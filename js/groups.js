@@ -1,0 +1,198 @@
+// Guruhlar: so'rov bilan qo'shilish, chat, vazifalar (alohida bo'lim), a'zolarni boshqarish, xavfsizlik sozlamalari
+import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, confirmDlg, btnBusy, fmtDate, fmtTime, fmtDur, spinner } from './core.js';
+import { mountChat } from './chat.js';
+import { startRecording, uploadAttachment, uploadVoice, mediaHtml, fillMedia, MAX_FILE } from './media.js';
+
+addDict({
+  uz: { 'grp.title': 'Guruhlar', 'grp.my': 'Mening guruhlarim', 'grp.none': 'Hali guruhga qo\'shilmagansiz', 'grp.find': 'Guruh qidirish', 'grp.find_ph': 'Guruh nomini yozing…',
+    'grp.join': 'So\'rov yuborish', 'grp.sent': 'So\'rov yuborildi', 'grp.pending': 'Tasdiq kutilmoqda', 'grp.new': 'Yangi guruh', 'grp.name': 'Guruh nomi', 'grp.desc': 'Tavsif',
+    'grp.created': 'Guruh yaratildi', 'grp.tab_chat': 'Chat', 'grp.tab_tasks': 'Vazifalar', 'grp.tab_members': 'A\'zolar', 'grp.tab_set': 'Sozlamalar', 'grp.help': 'Yordam / murojaat',
+    'grp.leave': 'Guruhdan chiqish', 'grp.new_task': 'Yangi vazifa', 'grp.task_title': 'Vazifa nomi', 'grp.task_body': 'Topshiriq matni', 'grp.due': 'Muddat', 'grp.no_tasks': 'Vazifalar yo\'q',
+    'grp.done': 'Topshirilgan', 'grp.todo': 'Topshirilmagan', 'grp.closed': 'Yopilgan', 'grp.overdue': 'Muddati o\'tgan', 'grp.submit': 'Topshirish', 'grp.your_work': 'Sizning ishingiz',
+    'grp.text_ph': 'Javob matni…', 'grp.rec': 'Ovoz yozish', 'grp.stop': 'To\'xtatish', 'grp.submitted': 'Topshirildi ✔', 'grp.subs': 'Topshirilganlar', 'grp.grade': 'Baho (0–100)', 'grp.feedback': 'Izoh',
+    'grp.save': 'Saqlash', 'grp.discuss': 'Vazifa muhokamasi', 'grp.pending_list': 'So\'rovlar', 'grp.members_list': 'A\'zolar', 'grp.approve': 'Qabul qilish', 'grp.reject': 'Rad etish', 'grp.block': 'Bloklash',
+    'grp.remove': 'Chiqarish', 'grp.msg': 'Yozish', 'grp.can_chat': 'Talabalar chatga yozishi mumkin', 'grp.names': 'Talaba ismi chatda', 'grp.n_first': 'Faqat ism', 'grp.n_full': 'To\'liq ism', 'grp.n_anon': 'Anonim (Talaba #1234)',
+    'grp.privacy': 'Talabalar bir-birining ro\'yxati, profili va shaxsiy xabarlarini ko\'rmaydi. Shikoyat tugmasi har bir xabarda bor.', 'grp.archive': 'Arxivlash', 'grp.delete': 'Guruhni o\'chirish',
+    'grp.rep_title': 'Xabar ustidan shikoyat', 'grp.rep_ph': 'Sababini yozing (ixtiyoriy)', 'grp.rep_sent': 'Shikoyat adminga yuborildi', 'grp.pending_n': '{n} ta so\'rov', 'grp.empty_members': 'A\'zolar yo\'q',
+    'grp.too_big': 'Fayl 10 MB dan katta', 'grp.open': 'Ochish', 'grp.closed_task': 'Vazifa yopilgan', 'grp.close_task': 'Yopish', 'grp.reopen': 'Qayta ochish', 'grp.new_task_msg': '📌 Yangi vazifa: {t}' },
+  ru: { 'grp.title': 'Группы', 'grp.my': 'Мои группы', 'grp.none': 'Вы ещё не вступили ни в одну группу', 'grp.find': 'Поиск группы', 'grp.find_ph': 'Введите название группы…',
+    'grp.join': 'Подать заявку', 'grp.sent': 'Заявка отправлена', 'grp.pending': 'Ожидает подтверждения', 'grp.new': 'Новая группа', 'grp.name': 'Название группы', 'grp.desc': 'Описание',
+    'grp.created': 'Группа создана', 'grp.tab_chat': 'Чат', 'grp.tab_tasks': 'Задания', 'grp.tab_members': 'Участники', 'grp.tab_set': 'Настройки', 'grp.help': 'Помощь / обращение',
+    'grp.leave': 'Выйти из группы', 'grp.new_task': 'Новое задание', 'grp.task_title': 'Название задания', 'grp.task_body': 'Текст задания', 'grp.due': 'Срок', 'grp.no_tasks': 'Заданий нет',
+    'grp.done': 'Сдано', 'grp.todo': 'Не сдано', 'grp.closed': 'Закрыто', 'grp.overdue': 'Просрочено', 'grp.submit': 'Сдать', 'grp.your_work': 'Ваша работа',
+    'grp.text_ph': 'Текст ответа…', 'grp.rec': 'Записать голос', 'grp.stop': 'Остановить', 'grp.submitted': 'Сдано ✔', 'grp.subs': 'Сданные работы', 'grp.grade': 'Оценка (0–100)', 'grp.feedback': 'Комментарий',
+    'grp.save': 'Сохранить', 'grp.discuss': 'Обсуждение задания', 'grp.pending_list': 'Заявки', 'grp.members_list': 'Участники', 'grp.approve': 'Принять', 'grp.reject': 'Отклонить', 'grp.block': 'Заблокировать',
+    'grp.remove': 'Исключить', 'grp.msg': 'Написать', 'grp.can_chat': 'Ученики могут писать в чат', 'grp.names': 'Имя ученика в чате', 'grp.n_first': 'Только имя', 'grp.n_full': 'Полное имя', 'grp.n_anon': 'Аноним (Ученик #1234)',
+    'grp.privacy': 'Ученики не видят список, профили и личные сообщения друг друга. У каждого сообщения есть кнопка жалобы.', 'grp.archive': 'В архив', 'grp.delete': 'Удалить группу',
+    'grp.rep_title': 'Жалоба на сообщение', 'grp.rep_ph': 'Укажите причину (необязательно)', 'grp.rep_sent': 'Жалоба отправлена админу', 'grp.pending_n': 'Заявок: {n}', 'grp.empty_members': 'Участников нет',
+    'grp.too_big': 'Файл больше 10 МБ', 'grp.open': 'Открыть', 'grp.closed_task': 'Задание закрыто', 'grp.close_task': 'Закрыть', 'grp.reopen': 'Открыть снова', 'grp.new_task_msg': '📌 Новое задание: {t}' },
+  en: { 'grp.title': 'Groups', 'grp.my': 'My groups', 'grp.none': 'You haven\'t joined any group yet', 'grp.find': 'Find a group', 'grp.find_ph': 'Type the group name…',
+    'grp.join': 'Request to join', 'grp.sent': 'Request sent', 'grp.pending': 'Awaiting approval', 'grp.new': 'New group', 'grp.name': 'Group name', 'grp.desc': 'Description',
+    'grp.created': 'Group created', 'grp.tab_chat': 'Chat', 'grp.tab_tasks': 'Assignments', 'grp.tab_members': 'Members', 'grp.tab_set': 'Settings', 'grp.help': 'Help / contact',
+    'grp.leave': 'Leave group', 'grp.new_task': 'New assignment', 'grp.task_title': 'Assignment title', 'grp.task_body': 'Instructions', 'grp.due': 'Due', 'grp.no_tasks': 'No assignments',
+    'grp.done': 'Submitted', 'grp.todo': 'Not submitted', 'grp.closed': 'Closed', 'grp.overdue': 'Overdue', 'grp.submit': 'Submit', 'grp.your_work': 'Your work',
+    'grp.text_ph': 'Your answer…', 'grp.rec': 'Record voice', 'grp.stop': 'Stop', 'grp.submitted': 'Submitted ✔', 'grp.subs': 'Submissions', 'grp.grade': 'Grade (0–100)', 'grp.feedback': 'Feedback',
+    'grp.save': 'Save', 'grp.discuss': 'Assignment discussion', 'grp.pending_list': 'Requests', 'grp.members_list': 'Members', 'grp.approve': 'Approve', 'grp.reject': 'Reject', 'grp.block': 'Block',
+    'grp.remove': 'Remove', 'grp.msg': 'Message', 'grp.can_chat': 'Students can post in chat', 'grp.names': 'Student name in chat', 'grp.n_first': 'First name only', 'grp.n_full': 'Full name', 'grp.n_anon': 'Anonymous (Student #1234)',
+    'grp.privacy': 'Students can\'t see each other\'s list, profiles or private messages. Every message has a report button.', 'grp.archive': 'Archive', 'grp.delete': 'Delete group',
+    'grp.rep_title': 'Report this message', 'grp.rep_ph': 'Reason (optional)', 'grp.rep_sent': 'Report sent to the admin', 'grp.pending_n': '{n} requests', 'grp.empty_members': 'No members',
+    'grp.too_big': 'File is larger than 10 MB', 'grp.open': 'Open', 'grp.closed_task': 'Assignment closed', 'grp.close_task': 'Close', 'grp.reopen': 'Reopen', 'grp.new_task_msg': '📌 New assignment: {t}' },
+});
+
+// ------------------------------------------------------------------ RO'YXAT
+route('/groups', async ({ el, alive }) => {
+  const uid = state.user.id; let groups = [], pend = {};
+  if (state.isAdmin) {
+    const [g, p] = await Promise.all([sb.from('groups').select('*').eq('archived', false).order('created_at', { ascending: false }), sb.from('group_members').select('group_id').eq('status', 'pending')]);
+    groups = (g.data || []).map(x => ({ ...x, status: 'approved' })); (p.data || []).forEach(r => pend[r.group_id] = (pend[r.group_id] || 0) + 1);
+  } else {
+    const { data: ms } = await sb.from('group_members').select('group_id,status').eq('user_id', uid);
+    const ids = (ms || []).map(m => m.group_id);
+    const pub = ids.length ? (await sb.from('groups_public').select('*').in('id', ids)).data || [] : [];
+    groups = (ms || []).map(m => ({ ...(pub.find(p => p.id === m.group_id) || { id: m.group_id, name: '…', description: '' }), status: m.status })).filter(g => g.name !== '…');
+  }
+  if (!alive()) return;
+  const draw = () => {
+    el.innerHTML = `<div class="page"><div class="row between mb"><h1>${esc(t('grp.title'))}</h1>${state.isAdmin ? `<button class="btn" id="new">${ic('plus')} ${esc(t('grp.new'))}</button>` : ''}</div>
+      ${groups.length ? `<div class="cards">${groups.map(g => `<a class="card pad item-row" href="${g.status === 'approved' ? '#/group/' + g.id : '#/groups'}">
+        <span class="item-ic users">${ic('users')}</span><div class="grow"><b>${esc(g.name)}</b><small class="muted">${esc(g.description || '')}</small>
+        ${g.status === 'pending' ? `<span class="chip warn">${esc(t('grp.pending'))}</span>` : ''}${pend[g.id] ? `<span class="chip warn">${esc(t('grp.pending_n', { n: pend[g.id] }))}</span>` : ''}</div>${g.status === 'approved' ? ic('chev') : ''}</a>`).join('')}</div>` : `<p class="muted">${esc(t('grp.none'))}</p>`}
+      ${state.isAdmin ? '' : `<h3 class="mt">${esc(t('grp.find'))}</h3><input class="input" id="q" placeholder="${esc(t('grp.find_ph'))}"><div id="res" class="cards mt"></div>`}</div>`;
+    $('#new', el)?.addEventListener('click', createGroup);
+    const q = $('#q', el); if (!q) return; let to;
+    q.oninput = () => { clearTimeout(to); to = setTimeout(async () => {
+      const v = q.value.trim(); if (v.length < 2) { $('#res', el).innerHTML = ''; return; }
+      const { data } = await sb.from('groups_public').select('*').ilike('name', `%${v}%`).limit(15);
+      $('#res', el).innerHTML = (data || []).map(g => { const mine = groups.find(x => x.id === g.id); return `<div class="card pad item-row"><span class="item-ic users">${ic('users')}</span><div class="grow"><b>${esc(g.name)}</b><small class="muted">${esc(g.description || '')}</small></div>
+        ${mine ? `<span class="chip">${esc(t(mine.status === 'pending' ? 'grp.pending' : 'grp.my'))}</span>` : `<button class="btn sm" data-j="${g.id}">${esc(t('grp.join'))}</button>`}</div>`; }).join('');
+      $$('[data-j]', el).forEach(b => b.onclick = async () => { const { error } = await sb.rpc('request_join', { p_group: b.dataset.j }); if (error) return toast(error.message, 'err'); toast(t('grp.sent'), 'ok'); groups.push({ id: b.dataset.j, name: '…', status: 'pending' }); b.outerHTML = `<span class="chip">${esc(t('grp.pending'))}</span>`; });
+    }, 300); };
+  };
+  draw();
+  function createGroup() {
+    const m = modal(`<h3>${esc(t('grp.new'))}</h3><form class="form" id="f"><label class="fld"><span>${esc(t('grp.name'))}</span><input class="input" id="n" required maxlength="80"></label>
+      <label class="fld"><span>${esc(t('grp.desc'))}</span><textarea class="input" id="d" rows="2"></textarea></label><button class="btn lg block">${esc(t('grp.new'))}</button></form>`);
+    $('#f', m.el).onsubmit = async e => { e.preventDefault(); const { data, error } = await sb.from('groups').insert({ name: $('#n', m.el).value.trim(), description: $('#d', m.el).value.trim(), owner_id: uid }).select().single();
+      if (error) return toast(error.message, 'err'); toast(t('grp.created'), 'ok'); m.close(); go('/group/' + data.id); };
+  }
+}, { auth: true });
+
+// ------------------------------------------------------------------ GURUH SAHIFASI
+route('/group/:id', async ({ el, params, alive, q }) => {
+  const gid = params.id, uid = state.user.id;
+  const { data: g } = await sb.from('groups').select('*').eq('id', gid).maybeSingle();
+  if (!alive()) return; if (!g) return go('/groups', true);
+  const tabs = [['chat', 'grp.tab_chat'], ['tasks', 'grp.tab_tasks'], ...(state.isAdmin ? [['members', 'grp.tab_members'], ['set', 'grp.tab_set']] : [])];
+  let tab = q.tab || 'chat', chat = null;
+  const paint = async () => {
+    chat?.destroy(); chat = null;
+    el.innerHTML = `<div class="page chatpage"><div class="row between"><div class="row"><a class="btn ghost sm" href="#/groups">${ic('back')}</a><div><h2 class="mb0">${esc(g.name)}</h2><small class="muted">${esc(g.description || '')}</small></div></div>
+      ${state.isAdmin ? '' : `<a class="btn ghost sm" href="#/inbox?topic=help&ctx=${encodeURIComponent(g.name)}">${ic('help', 16)} ${esc(t('grp.help'))}</a>`}</div>
+      <div class="tabs">${tabs.map(([k, l]) => `<button class="${k === tab ? 'on' : ''}" data-tab="${k}">${esc(t(l))}</button>`).join('')}</div><div id="body"></div></div>`;
+    $$('[data-tab]', el).forEach(b => b.onclick = () => { tab = b.dataset.tab; paint(); });
+    const body = $('#body', el);
+    if (tab === 'chat') {
+      chat = mountChat(body, { table: 'messages', filterCol: 'group_id', filterVal: gid, scope: qq => qq.is('assignment_id', null), accept: m => !m.assignment_id,
+        insertBase: { group_id: gid }, folder: `${gid}/${uid}`, canWrite: state.isAdmin || g.students_can_chat,
+        canDelete: m => state.isAdmin || m.user_id === uid, onReport: reportMessage });
+      onLeave(() => chat?.destroy());
+    } else if (tab === 'tasks') await tasksTab(body); else if (tab === 'members') await membersTab(body); else if (tab === 'set') settingsTab(body);
+  };
+  function reportMessage(mid) {
+    const m = modal(`<h3>${ic('flag')} ${esc(t('grp.rep_title'))}</h3><textarea class="input" id="r" rows="3" placeholder="${esc(t('grp.rep_ph'))}"></textarea><div class="row end mt"><button class="btn danger" id="ok">${esc(t('chat.report'))}</button></div>`);
+    $('#ok', m.el).onclick = async () => { await sb.from('message_reports').insert({ reporter: uid, message_id: mid, group_id: gid, reason: $('#r', m.el).value.trim() }); toast(t('grp.rep_sent'), 'ok'); m.close(); };
+  }
+  async function tasksTab(body) {
+    const [{ data: as }, { data: mine }] = await Promise.all([sb.from('assignments').select('*').eq('group_id', gid).order('created_at', { ascending: false }), sb.from('submissions').select('assignment_id').eq('group_id', gid).eq('user_id', uid)]);
+    const done = new Set((mine || []).map(x => x.assignment_id));
+    body.innerHTML = `${state.isAdmin ? `<button class="btn mb" id="nt">${ic('plus')} ${esc(t('grp.new_task'))}</button>` : ''}
+      ${(as || []).length ? `<div class="cards">${as.map(a => { const od = a.due_at && new Date(a.due_at) < new Date() && !a.closed;
+        return `<a class="card pad item-row" href="#/group/${gid}/task/${a.id}"><span class="item-ic book">${ic('test')}</span><div class="grow"><b>${esc(a.title)}</b>
+        <small class="muted">${a.due_at ? esc(fmtDate(a.due_at) + ' ' + fmtTime(a.due_at)) : ''}</small>
+        <div class="chips">${a.closed ? `<span class="chip">${esc(t('grp.closed'))}</span>` : ''}${od ? `<span class="chip warn">${esc(t('grp.overdue'))}</span>` : ''}${!state.isAdmin ? `<span class="chip ${done.has(a.id) ? 'ok' : ''}">${esc(t(done.has(a.id) ? 'grp.done' : 'grp.todo'))}</span>` : ''}</div></div>${ic('chev')}</a>`; }).join('')}</div>` : `<p class="muted">${esc(t('grp.no_tasks'))}</p>`}`;
+    $('#nt', body)?.addEventListener('click', () => {
+      const m = modal(`<h3>${esc(t('grp.new_task'))}</h3><form class="form" id="f"><label class="fld"><span>${esc(t('grp.task_title'))}</span><input class="input" id="ti" required></label>
+        <label class="fld"><span>${esc(t('grp.task_body'))}</span><textarea class="input" id="bo" rows="4"></textarea></label><label class="fld"><span>${esc(t('grp.due'))}</span><input class="input" id="du" type="datetime-local"></label><button class="btn lg block">${esc(t('grp.new_task'))}</button></form>`);
+      $('#f', m.el).onsubmit = async e => { e.preventDefault(); const title = $('#ti', m.el).value.trim(); const du = $('#du', m.el).value;
+        const { error } = await sb.from('assignments').insert({ group_id: gid, title, body: $('#bo', m.el).value.trim(), due_at: du ? new Date(du).toISOString() : null, created_by: uid });
+        if (error) return toast(error.message, 'err');
+        await sb.from('messages').insert({ group_id: gid, user_id: uid, kind: 'text', body: t('grp.new_task_msg', { t: title }) }); m.close(); paint(); };
+    });
+  }
+  async function membersTab(body) {
+    const { data } = await sb.rpc('group_roster', { p_group: gid }); const rows = data || [];
+    const grp = (st, title) => { const r = rows.filter(x => x.status === st); return r.length ? `<h4>${esc(t(title))} (${r.length})</h4><div class="cards">${r.map(m => `<div class="card pad item-row"><div class="grow"><b>${esc(m.full_name || m.email)}</b><small class="muted">${esc(m.email)}</small></div>
+      ${st === 'pending' ? `<button class="btn sm" data-ap="${m.user_id}">${ic('check', 16)} ${esc(t('grp.approve'))}</button><button class="btn sm ghost" data-rm="${m.user_id}">${esc(t('grp.reject'))}</button>`
+        : `<a class="btn sm ghost" href="#/inbox/${m.user_id}">${esc(t('grp.msg'))}</a><button class="btn sm ghost" data-bl="${m.user_id}:${st}">${esc(st === 'blocked' ? t('grp.approve') : t('grp.block'))}</button><button class="btn sm danger" data-rm="${m.user_id}">${ic('trash', 14)}</button>`}</div>`).join('')}</div>` : ''; };
+    body.innerHTML = rows.length ? grp('pending', 'grp.pending_list') + grp('approved', 'grp.members_list') + grp('blocked', 'grp.block') : `<p class="muted">${esc(t('grp.empty_members'))}</p>`;
+    const setSt = async (u, st) => { await sb.from('group_members').update({ status: st }).eq('group_id', gid).eq('user_id', u); membersTab(body); };
+    $$('[data-ap]', body).forEach(b => b.onclick = () => setSt(b.dataset.ap, 'approved'));
+    $$('[data-bl]', body).forEach(b => { const [u, st] = b.dataset.bl.split(':'); b.onclick = () => setSt(u, st === 'blocked' ? 'approved' : 'blocked'); });
+    $$('[data-rm]', body).forEach(b => b.onclick = async () => { await sb.from('group_members').delete().eq('group_id', gid).eq('user_id', b.dataset.rm); membersTab(body); });
+  }
+  function settingsTab(body) {
+    body.innerHTML = `<div class="card pad form"><label class="fld"><span>${esc(t('grp.name'))}</span><input class="input" id="n" value="${esc(g.name)}"></label>
+      <label class="fld"><span>${esc(t('grp.desc'))}</span><textarea class="input" id="d" rows="2">${esc(g.description || '')}</textarea></label>
+      <label class="chk"><input type="checkbox" id="c" ${g.students_can_chat ? 'checked' : ''}> ${esc(t('grp.can_chat'))}</label>
+      <label class="fld"><span>${esc(t('grp.names'))}</span><select class="input" id="s">${[['first', 'grp.n_first'], ['full', 'grp.n_full'], ['anon', 'grp.n_anon']].map(([v, k]) => `<option value="${v}" ${g.show_names === v ? 'selected' : ''}>${esc(t(k))}</option>`).join('')}</select></label>
+      <p class="muted small">🛡 ${esc(t('grp.privacy'))}</p>
+      <button class="btn" id="sv">${esc(t('grp.save'))}</button><div class="row"><button class="btn ghost" id="ar">${esc(t('grp.archive'))}</button><button class="btn danger" id="dl">${ic('trash', 16)} ${esc(t('grp.delete'))}</button></div></div>`;
+    $('#sv', body).onclick = async () => { const p = { name: $('#n', body).value.trim() || g.name, description: $('#d', body).value.trim(), students_can_chat: $('#c', body).checked, show_names: $('#s', body).value };
+      const { error } = await sb.from('groups').update(p).eq('id', gid); if (error) return toast(error.message, 'err'); Object.assign(g, p); toast(t('grp.save') + ' ✔', 'ok'); };
+    $('#ar', body).onclick = async () => { await sb.from('groups').update({ archived: true }).eq('id', gid); go('/groups'); };
+    $('#dl', body).onclick = async () => { if (!(await confirmDlg(t('grp.delete') + '?'))) return; await sb.from('groups').delete().eq('id', gid); go('/groups'); };
+  }
+  paint();
+}, { auth: true });
+
+// ------------------------------------------------------------------ VAZIFA SAHIFASI
+route('/group/:id/task/:aid', async ({ el, params, alive }) => {
+  const gid = params.id, aid = params.aid, uid = state.user.id;
+  const [{ data: a }, { data: g }] = await Promise.all([sb.from('assignments').select('*').eq('id', aid).maybeSingle(), sb.from('groups').select('id,name').eq('id', gid).maybeSingle()]);
+  if (!alive()) return; if (!a) return go('/group/' + gid, true);
+  const isClosed = a.closed || (a.due_at && new Date(a.due_at) < new Date() && false);
+  const loadSubs = async () => (await sb.from('submissions').select('*').eq('assignment_id', aid).order('created_at', { ascending: false })).data || [];
+  let subs = await loadSubs();
+  const subHtml = s => `<div class="card pad mb" data-s="${s.id}"><div class="row between"><b>${esc(s.sender_name)}</b><small class="muted">${esc(fmtDate(s.created_at) + ' ' + fmtTime(s.created_at))}</small></div>
+    ${s.text ? `<p class="pre">${esc(s.text)}</p>` : ''}${s.file_path || s.media_expired ? mediaHtml({ kind: 'file', media_path: s.file_path, body: s.file_name, media_expired: !s.file_path && s.media_expired }) : ''}
+    ${s.voice_path ? mediaHtml({ kind: 'voice', media_path: s.voice_path, media_secs: s.voice_secs }) : ''}
+    ${state.isAdmin ? `<div class="row wrap mt"><input class="input sm" style="max-width:110px" type="number" min="0" max="100" data-g placeholder="${esc(t('grp.grade'))}" value="${s.grade ?? ''}"><input class="input grow" data-f placeholder="${esc(t('grp.feedback'))}" value="${esc(s.feedback || '')}"><button class="btn sm" data-sv="${s.id}">${esc(t('grp.save'))}</button></div>`
+      : (s.grade !== null || s.feedback ? `<div class="chips mt">${s.grade !== null ? `<span class="chip ok">${s.grade}/100</span>` : ''}${s.feedback ? `<span class="chip">${esc(s.feedback)}</span>` : ''}</div>` : '')}</div>`;
+  el.innerHTML = `<div class="page chatpage"><div class="row"><a class="btn ghost sm" href="#/group/${gid}?tab=tasks">${ic('back')}</a><h2 class="mb0">${esc(a.title)}</h2></div>
+    <div class="card pad mt"><p class="pre">${esc(a.body || '')}</p>${a.due_at ? `<p class="muted small">⏰ ${esc(fmtDate(a.due_at) + ' ' + fmtTime(a.due_at))}</p>` : ''}
+      ${a.closed ? `<span class="chip">${esc(t('grp.closed_task'))}</span>` : ''}
+      ${state.isAdmin ? `<div class="row end"><button class="btn sm ghost" id="cl">${esc(a.closed ? t('grp.reopen') : t('grp.close_task'))}</button><button class="btn sm danger" id="dl">${ic('trash', 14)}</button></div>` : ''}</div>
+    ${!state.isAdmin && !a.closed ? `<div class="card pad mt form"><h4>${esc(t('grp.your_work'))}</h4><textarea class="input" id="tx" rows="3" placeholder="${esc(t('grp.text_ph'))}"></textarea>
+      <div class="row wrap"><label class="btn ghost sm">${ic('clip', 16)} <span id="fn">…</span><input type="file" id="fl" hidden></label><button class="btn ghost sm" id="mc" type="button">${ic('mic', 16)} <span id="mt">${esc(t('grp.rec'))}</span></button><span class="grow"></span><button class="btn" id="sb">${esc(t('grp.submit'))}</button></div></div>` : ''}
+    <h3 class="mt">${esc(state.isAdmin ? t('grp.subs') + ' (' + subs.length + ')' : t('grp.your_work'))}</h3><div id="subs">${subs.map(subHtml).join('') || '<p class="muted">—</p>'}</div>
+    <h3 class="mt">${ic('users', 18)} ${esc(t('grp.discuss'))}</h3><div id="thread" class="threadbox"></div></div>`;
+  fillMedia($('#subs', el));
+  const chat = mountChat($('#thread', el), { table: 'messages', filterCol: 'group_id', filterVal: gid, aid, scope: qq => qq.eq('assignment_id', aid), accept: m => m.assignment_id === aid,
+    insertBase: { group_id: gid, assignment_id: aid }, folder: `${gid}/${uid}`, canWrite: true, canDelete: m => state.isAdmin || m.user_id === uid });
+  onLeave(() => chat.destroy());
+  const bindSubs = () => $$('[data-sv]', el).forEach(b => b.onclick = async () => { const c = b.closest('[data-s]'), gr = $('[data-g]', c).value;
+    const { error } = await sb.from('submissions').update({ grade: gr === '' ? null : +gr, feedback: $('[data-f]', c).value.trim() || null }).eq('id', b.dataset.sv); toast(error ? error.message : t('grp.save') + ' ✔', error ? 'err' : 'ok'); });
+  bindSubs();
+  $('#cl', el)?.addEventListener('click', async () => { await sb.from('assignments').update({ closed: !a.closed }).eq('id', aid); location.reload(); });
+  $('#dl', el)?.addEventListener('click', async () => { if (!(await confirmDlg(t('delete') + '?'))) return; await sb.from('assignments').delete().eq('id', aid); go('/group/' + gid + '?tab=tasks'); });
+  // topshirish
+  const sbm = $('#sb', el); if (sbm) {
+    let file = null, voice = null, rec = null;
+    $('#fl', el).onchange = e => { file = e.target.files[0] || null; if (file && file.size > MAX_FILE) { toast(t('grp.too_big'), 'err'); file = null; e.target.value = ''; } $('#fn', el).textContent = file ? file.name.slice(0, 22) : '…'; };
+    $('#mc', el).onclick = async () => {
+      if (rec) { voice = await rec.stop(); rec = null; $('#mt', el).textContent = `🎤 ${fmtDur(voice.secs)} ✔`; return; }
+      rec = await startRecording(state.settings.app?.max_voice_seconds || 120, s => { $('#mt', el).textContent = '⏺ ' + fmtDur(s) + ' — ' + t('grp.stop'); }); voice = null;
+    };
+    sbm.onclick = async () => {
+      if (rec) { voice = await rec.stop(); rec = null; }
+      const text = $('#tx', el).value.trim(); if (!text && !file && !voice) return; btnBusy(sbm, true);
+      try {
+        const row = { assignment_id: aid, group_id: gid, user_id: uid, text };
+        if (file) { const up = await uploadAttachment(`${gid}/${uid}`, file); row.file_path = up.path; row.file_name = file.name; }
+        if (voice) { row.voice_path = await uploadVoice(`${gid}/${uid}`, voice); row.voice_secs = voice.secs; }
+        const { error } = await sb.from('submissions').insert(row); if (error) throw error;
+        toast(t('grp.submitted'), 'ok'); location.reload();
+      } catch (x) { toast(x.message || String(x), 'err'); btnBusy(sbm, false); }
+    };
+  }
+}, { auth: true });
