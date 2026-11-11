@@ -127,8 +127,18 @@ addDict({
   },
 });
 
-const langSwitch = () => `<div class="langsw">${['uz', 'ru', 'en'].map(l => `<button class="${state.lang === l ? 'on' : ''}" data-lang="${l}">${l.toUpperCase()}</button>`).join('')}</div>`;
-const bindLang = el => $$('[data-lang]', el).forEach(b => b.onclick = () => setLang(b.dataset.lang));
+const LANG_NAME = { uz: 'O\u02BBzbekcha', ru: 'Русский', en: 'English' };
+// Bitta tugma: joriy til. Bossangiz boshqa ikki til chiqadi, tanlasangiz almashadi.
+const langSwitch = () => `<div class="langdd"><button type="button" class="langcur" data-lcur aria-haspopup="true">🌐 ${LANG_NAME[state.lang]} <span class="caret">▾</span></button>
+  <div class="langmenu" hidden>${['uz', 'ru', 'en'].filter(l => l !== state.lang).map(l => `<button type="button" data-lang="${l}">${LANG_NAME[l]}</button>`).join('')}</div></div>`;
+function bindLang(el) {
+  const dd = $('.langdd', el); if (!dd) return;
+  const menu = $('.langmenu', dd);
+  $('[data-lcur]', dd).onclick = e => { e.stopPropagation(); menu.hidden = !menu.hidden; };
+  const close = () => { if (!dd.isConnected) return document.removeEventListener('click', close); menu.hidden = true; };
+  document.addEventListener('click', close);
+  $$('[data-lang]', dd).forEach(b => b.onclick = () => setLang(b.dataset.lang));
+}
 
 function authErr(e) {
   const m = (e?.message || '').toLowerCase();
@@ -147,14 +157,13 @@ route('/', async ({ el }) => {
   const feats = [['video', 'f1'], ['test', 'f2'], ['users', 'f3'], ['chart', 'f4']];
   el.innerHTML = `
   <div class="landing">
-    <header class="land-top"><div class="brand">🧬 <b>${esc(CONFIG.APP_NAME)}</b></div>${langSwitch()}</header>
+    <header class="land-top"><div class="brand">🧬 <b>${esc(CONFIG.APP_NAME)}</b></div>${langSwitch()}
+      <div class="land-cta"><a class="btn" href="#/login">${esc(t('land.login'))}</a><a class="btn ghost" href="#/register">${esc(t('land.register'))}</a></div></header>
     <section class="hero">
       <div class="hero-txt">
         <h1>${esc(t('land.hero_a'))}<br><span class="grad">${esc(t('land.hero_b'))}</span></h1>
         <p class="lead">${esc(t('land.sub'))}</p>
         <div class="row wrap">
-          <a class="btn lg" href="#/register">${esc(t('land.register'))}</a>
-          <a class="btn lg ghost" href="#/login">${esc(t('land.login'))}</a>
           <button class="btn lg soft" id="inst" hidden>${ic('download')} ${esc(t('land.install'))}</button>
         </div>
         <div class="fact"><span class="tag">💡 ${esc(t('land.fact'))}</span><span id="fact">${esc(t(rand(facts)))}</span></div>
@@ -176,11 +185,11 @@ route('/', async ({ el }) => {
 });
 
 // ------------------------------------------------------------------ shared auth shell
-function shell(title, sub, body, { open = false } = {}) {
+function shell(title, sub, body, { open = false, noLang = false } = {}) {
   return `<div class="auth-wrap">
     <div class="auth-art"><div id="aart">${cellSvg(open)}</div><div class="auth-dna" id="adna"></div></div>
     <div class="auth-card card">
-      <div class="row between"><a class="brand" href="#/">🧬 <b>${esc(CONFIG.APP_NAME)}</b></a>${langSwitch()}</div>
+      <div class="row between"><a class="brand" href="#/">🧬 <b>${esc(CONFIG.APP_NAME)}</b></a>${noLang ? '' : langSwitch()}</div>
       <h2>${esc(title)}</h2><p class="muted mb">${esc(sub)}</p>${body}
     </div></div>`;
 }
@@ -257,7 +266,7 @@ route('/verify', async ({ el, q }) => {
       <div class="err" id="err"></div>
       <button class="btn lg block" id="go">${esc(t('ver.confirm'))}</button>
       <div class="row between mt"><button type="button" class="link" id="rs"></button><a href="#/${type === 'signup' ? 'register' : 'forgot'}">${esc(t('ver.back'))}</a></div>
-    </form>`);
+    </form>`, { noLang: true });
   mountArt(el);
   const otp = $('#otp', el); otp.focus();
   let cd = 60, iv; const rs = $('#rs', el);
@@ -290,7 +299,7 @@ route('/forgot', async ({ el }) => {
       <div class="err" id="err"></div>
       <button class="btn lg block" id="go">${esc(t('rec.send'))}</button>
       <p class="center mt"><a href="#/login">${esc(t('land.login'))}</a></p>
-    </form>`);
+    </form>`, { noLang: true });
   mountArt(el);
   $('#f', el).onsubmit = async e => {
     e.preventDefault(); const b = $('#go', el); btnBusy(b, true);
@@ -305,7 +314,7 @@ route('/newpass', async ({ el }) => {
   if (!state.user) return go('/login', true);
   el.innerHTML = shell(t('rec.new'), '', `
     <form id="f" class="form">${passField('pw', t('rec.new'), 'new-password')}${passField('pw2', t('auth.pass2'), 'new-password')}
-      <div class="err" id="err"></div><button class="btn lg block" id="go">${esc(t('rec.save'))}</button></form>`, { open: true });
+      <div class="err" id="err"></div><button class="btn lg block" id="go">${esc(t('rec.save'))}</button></form>`, { open: true, noLang: true });
   mountArt(el);
   $('#f', el).onsubmit = async e => {
     e.preventDefault(); const p1 = $('#pw', el).value, p2 = $('#pw2', el).value, err = $('#err', el);

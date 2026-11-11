@@ -16,7 +16,18 @@ if (!['uz', 'ru', 'en'].includes(state.lang)) state.lang = 'uz';
 
 // ---------- i18n ----------
 const DICT = { uz: {}, ru: {}, en: {} };
-export function addDict(d) { for (const l of ['uz', 'ru', 'en']) Object.assign(DICT[l], d[l] || {}); }
+// O'zbek lotin imlosi: oʻ, gʻ (U+02BB) va tutuq belgisi (U+02BC). Kodda oddiy ' yozilgan — shu yerda to'g'rilanadi.
+export function uzFix(s) {
+  if (typeof s !== 'string') return Array.isArray(s) ? s.map(uzFix) : s;
+  return s.replace(/([oOgG])['‘’`ʼ´]/g, '$1\u02BB').replace(/([A-Za-z])['‘’`´]([A-Za-z])/g, '$1\u02BC$2');
+}
+export function addDict(d) {
+  for (const l of ['uz', 'ru', 'en']) {
+    const src = d[l] || {};
+    if (l === 'uz') for (const k of Object.keys(src)) src[k] = uzFix(src[k]);
+    Object.assign(DICT[l], src);
+  }
+}
 export function t(k, vars) {
   let s = DICT[state.lang]?.[k] ?? DICT.uz[k] ?? k;
   if (vars) s = s.replace(/\{(\w+)\}/g, (_, n) => vars[n] ?? '');

@@ -4,10 +4,10 @@ import { composeAnnouncement } from './news.js';
 
 addDict({
   uz: { 'nav.admin': 'Admin', 'adm.title': 'Admin paneli', 'adm.users': 'Foydalanuvchilar', 'adm.requests': 'So\'rovlar', 'adm.video': 'Video qoidalari', 'adm.app': 'Ilova', 'adm.stats': 'Platforma', 'adm.storage': 'Saqlash joyi', 'adm.news': 'E\'lonlar',
-    'adm.search': 'Ism yoki email…', 'adm.7d': '7 kun', 'adm.total': 'Jami', 'adm.tests': 'Testlar', 'adm.avg': 'O\'rtacha', 'adm.last': 'Oxirgi faollik', 'adm.make_admin': 'Admin qilish', 'adm.make_user': 'Oddiy qilish', 'adm.report': 'Hisobot',
+    'adm.search': 'Ism yoki email…', 'adm.7d': '7 kun', 'adm.total': 'Jami', 'adm.tests': 'Testlar', 'adm.avg': 'O\'rtacha', 'adm.last': 'Oxirgi faollik', 'adm.make_admin': 'Admin qilish', 'adm.make_user': 'Oddiy foydalanuvchi qilish', 'adm.report': 'Hisobot',
     'adm.buy_req': 'To\'plamga kirish so\'rovlari', 'adm.no_req': 'So\'rovlar yo\'q', 'adm.approve': 'Tasdiqlash', 'adm.reject': 'Rad etish', 'adm.reports': 'Xabarlarga shikoyatlar', 'adm.resolve': 'Hal qilindi', 'adm.open_group': 'Guruhga o\'tish',
-    'adm.v_fwd': 'Videoni oldinga o\'tkazishga ruxsat', 'adm.v_tol': 'Oldinga o\'tish bardoshi (soniya)', 'adm.v_rw': 'Orqaga qaytarish qadami (soniya)', 'adm.v_speeds': 'Ruxsat etilgan tezliklar (vergul bilan)', 'adm.v_q': 'Boshlang\'ich sifat',
-    'adm.v_resume': 'Oxirgi joydan davom ettirish', 'adm.v_pct': 'Ko\'rilgan hisoblanishi uchun % ', 'adm.v_wm': 'Ism suv belgisi (yozib olishga qarshi)', 'adm.v_hid': 'Sahifa yopilsa videoni to\'xtatish', 'adm.saved': 'Saqlandi ✔',
+    'adm.v_fwd': 'Videoni oldinga o\'tkazishga ruxsat', 'adm.v_tol': 'Oldinga o\'tishga ruxsat etilgan farq (soniya)', 'adm.v_rw': 'Orqaga qaytarish qadami (soniya)', 'adm.v_speeds': 'Ruxsat etilgan tezliklar (vergul bilan)', 'adm.v_q': 'Boshlang\'ich sifat',
+    'adm.v_resume': 'Oxirgi joydan davom ettirish', 'adm.v_pct': 'Ko\'rilgan deb hisoblash uchun (%)', 'adm.v_wm': 'Ism suv belgisi (yozib olishga qarshi)', 'adm.v_hid': 'Sahifa yopilsa videoni to\'xtatish', 'adm.saved': 'Saqlandi ✔',
     'adm.a_pin': 'PIN xato urinishlari (so\'ng chiqarib yuboriladi)', 'adm.a_chat': 'Chat fayllarini saqlash muddati (kun)', 'adm.a_voice': 'Ovozli xabar maks. uzunligi (soniya)',
     'adm.users_n': 'Foydalanuvchilar soni', 'adm.active': 'Faol foydalanuvchilar', 'adm.time_by': 'Bo\'limlar bo\'yicha vaqt', 'adm.dau': 'Kunlik faol foydalanuvchilar', 'adm.st_used': 'Ishlatilgan joy', 'adm.st_free': 'Bepul reja: 1 GB',
     'adm.cleanup': 'Eski chat fayllarini tozalash', 'adm.cleanup_d': 'Belgilangan muddatdan eski ovoz, rasm va topshiriq fayllari o\'chiriladi (matn qoladi).', 'adm.cleaned': '{n} ta fayl o\'chirildi', 'adm.new_ad': 'Yangi reklama', 'adm.new_news': 'Yangi e\'lon', 'adm.all_news': 'Barcha e\'lonlar',

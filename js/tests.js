@@ -1,6 +1,6 @@
 // Test tizimi: hujjatdan import (Word/PDF/TXT → avtomatik savollar), har safar aralashadigan variantlar,
 // bob bo'yicha tanlash, natija, foiz, motivatsiya va salyut effektlari.
-import { sb, state, t, addDict, route, go, esc, ic, $, $$, tr, shuffle, rand, modal, toast, btnBusy, fmtDur, trackTime, onLeave, spinner, confirmDlg, i18nField } from './core.js';
+import { sb, state, t, addDict, route, go, esc, ic, $, $$, tr, shuffle, rand, modal, toast, btnBusy, fmtDur, trackTime, onLeave, spinner, confirmDlg, i18nField, uzFix } from './core.js';
 import { parseQuestions } from './testparse.js';
 import { celebrate } from './fx.js';
 
@@ -56,7 +56,7 @@ const M = {
     70: ['Yaxshi natija! Xatolarni ko\'rib chiqing 📚', 'Yaxshi ketyapsiz — oldinga! 🌱', 'Ko\'rinib turibdi, harakat bor! Yana ozgina 🔬', 'Yaxshi! Murakkab savollarni takrorlang ✨'],
     50: ['Yomon emas, lekin siz ko\'proq qila olasiz! 💡', 'O\'rtacha natija. Mavzuni qayta o\'qib chiqing 📖', 'Yarmidan o\'tdingiz — endi tepaga! 🪜', 'Takrorlash — bilim onasi. Yana urinib ko\'ring 🔁'],
     30: ['Hech qisi yo\'q, hamma shu yo\'ldan o\'tadi. Qayta urinib ko\'ring! 🌤️', 'Birinchi qadam qiyin. Videoni qayta ko\'ring 🎬', 'Xato — o\'rganish imkoniyati! Davom eting 🌱', 'Sabr va mashq — muvaffaqiyat kaliti 🔑'],
-    0: ['Boshlanish doim qiyin. Mavzuni birga qayta ko\'ramiz 🤝', 'Taslim bo\'lmang! Har bir biolog avval shunday boshlagan 🧪', 'Bugun kam bo\'ldi, ertaga ko\'p bo\'ladi 🌅', 'Videodarsni qayta ko\'rib, testni yana yeching — albatta chiqadi! 💚'] },
+    0: ['Boshlanish doim qiyin. Mavzuni birga qayta ko\'ramiz 🤝', 'Taslim bo\'lmang! Har bir biolog avval shunday boshlagan 🧪', 'Bugun kam bo\'ldi, ertaga ko\'p bo\'ladi 🌅', 'Video darsni qayta ko\'rib, testni yana yeching — albatta chiqadi! 💚'] },
   ru: { 100: ['Идеально! 100% — настоящий биолог! 🏆', 'Без ошибок! Вы на вершине знаний 🚀', 'Ни одной ошибки! Блестящий результат 🌟', 'Отлично! Вы знаете всё — от клетки до экосистемы 🧬'],
     90: ['Почти идеально! Ещё чуть-чуть — и 100% 🎯', 'Отличный результат! Так держать 💪', 'Молодец! Знания крепкие 🌿', 'Учитель будет доволен 👏'],
     70: ['Хороший результат! Разберите ошибки 📚', 'Вы на верном пути — вперёд! 🌱', 'Видно старание! Ещё немного 🔬', 'Хорошо! Повторите сложные вопросы ✨'],
@@ -71,7 +71,7 @@ const M = {
     0: ['Starting is always hard. Let\'s revisit the topic together 🤝', 'Don\'t give up! Every biologist started here 🧪', 'A little today, a lot tomorrow 🌅', 'Rewatch the lesson and retake the test — you\'ll get there! 💚'] },
 };
 const band = p => p >= 100 ? 100 : p >= 90 ? 90 : p >= 70 ? 70 : p >= 50 ? 50 : p >= 30 ? 30 : 0;
-const motivation = p => rand(M[state.lang][band(p)]);
+const motivation = p => { const x = rand(M[state.lang][band(p)]); return state.lang === 'uz' ? uzFix(x) : x; };
 
 // ---------- fayldan matn olish
 const loadScript = src => new Promise((res, rej) => { if (document.querySelector(`script[src="${src}"]`)) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });

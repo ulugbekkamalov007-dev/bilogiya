@@ -162,3 +162,16 @@ textarea.input { resize: vertical; } input[type=file] { font-size: .9rem; max-wi
 .cmp-rec { display: flex; align-items: center; gap: 10px; padding: 4px 6px; } .recdot { width: 12px; height: 12px; border-radius: 50%; background: var(--bad); animation: blink 1s infinite; } @keyframes blink { 50% { opacity: .2; } } .chat-ro { padding: 12px; text-align: center; border-top: 1px solid var(--line); }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 .steps { padding-left: 20px; display: grid; gap: 8px; }
+
+/* Til tanlash: bitta tugma + ochiladigan menyu */
+.langdd { position: relative; display: inline-block; }
+.langcur { border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 7px 12px; font: inherit; font-size: .88rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.langmenu { position: absolute; right: 0; top: calc(100% + 6px); min-width: 140px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 4px; z-index: 90; }
+.langmenu[hidden] { display: none; }
+.langmenu button { display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--text); font: inherit; padding: 10px 12px; border-radius: 8px; cursor: pointer; }
+.langmenu button:hover { background: var(--bg-soft, rgba(0,0,0,.06)); }
+/* Landing: tepada Kirish / Ro'yxatdan o'tish */
+.land-top { flex-wrap: wrap; gap: 10px; }
+.land-cta { display: flex; gap: 8px; flex: 1 1 100%; order: 3; }
+.land-cta .btn { flex: 1; justify-content: center; text-align: center; }
+@media (min-width: 720px) { .land-cta { flex: 0 0 auto; order: 2; margin-left: auto; } .land-cta .btn { flex: 0 0 auto; } }
