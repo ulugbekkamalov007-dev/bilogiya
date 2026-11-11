@@ -6,7 +6,7 @@
 // =====================================================================
 export const CONFIG = {
   SUPABASE_URL: 'https://zghfacfjrcwfsjuwrvzh.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnaGZhY2ZqcmN3ZnNqdXdydnpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0MTAzODEsImV4cCI6MjEwOTk4NjM4MX0.pznjr5WxUysli8IaI19dP0nGcMs_wW1TGmm2Eh_NQ6Y',
+  SUPABASE_ANON_KEY: 'sb_publishable_PfyyytC0MlHDHVQNV_maJA_ezCkQ7sS',
 
   APP_NAME: 'BioAcademy',
 
