@@ -5,8 +5,8 @@
 //   service_role kalitini HECH QACHON bu yerga yozmang!)
 // =====================================================================
 export const CONFIG = {
-  SUPABASE_URL: 'https://YOUR-PROJECT.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR-ANON-PUBLIC-KEY',
+  SUPABASE_URL: 'https://zghfacfjrcwfsjuwrvzh.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnaGZhY2ZqcmN3ZnNqdXdydnpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0MTAzODEsImV4cCI6MjEwOTk4NjM4MX0.pznjr5WxUysli8IaI19dP0nGcMs_wW1TGmm2Eh_NQ6Y',
 
   APP_NAME: 'BioAcademy',
 
