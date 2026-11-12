@@ -6,13 +6,13 @@ import { sb, state, t, tr, addDict, esc, ic, $, $$, toast, fmtDur, trackTime, si
 addDict({
   uz: { 'pl.speed': 'Tezlik', 'pl.quality': 'Sifat', 'pl.auto': 'Avto', 'pl.no_fwd': 'Videoni oldinga o\'tkazib bo\'lmaydi — har bir daqiqani ko\'ring',
     'pl.back': 'Orqaga {s} s', 'pl.fwd': 'Oldinga {s} s', 'pl.done': 'Video ko\'rib bo\'ldi ✔', 'pl.resume': 'Oxirgi joydan davom ettirildi', 'pl.err': 'Videoni yuklab bo\'lmadi',
-    'pl.watched': 'Ko\'rilgan', 'pl.resume_at': '{t} dan davom etdi', 'pl.offline': 'Internet yo\'q — ijro to\'xtatildi, vaqt hisoblanmaydi' },
+    'pl.watched': 'Ko\'rilgan', 'pl.dl': 'Yuklab olish', 'pl.unsup': 'Bu format brauzerda ijro etilmaydi. Faylni yuklab olib, telefondagi o\'z pleyeringizda oching.', 'pl.resume_at': '{t} dan davom etdi', 'pl.offline': 'Internet yo\'q — ijro to\'xtatildi, vaqt hisoblanmaydi' },
   ru: { 'pl.speed': 'Скорость', 'pl.quality': 'Качество', 'pl.auto': 'Авто', 'pl.no_fwd': 'Видео нельзя перематывать вперёд — смотрите каждую минуту',
     'pl.back': 'Назад {s} с', 'pl.fwd': 'Вперёд {s} с', 'pl.done': 'Видео просмотрено ✔', 'pl.resume': 'Продолжено с последнего места', 'pl.err': 'Не удалось загрузить видео',
-    'pl.watched': 'Просмотрено', 'pl.resume_at': 'Продолжено с {t}', 'pl.offline': 'Нет интернета — пауза, время не считается' },
+    'pl.watched': 'Просмотрено', 'pl.dl': 'Скачать', 'pl.unsup': 'Этот формат не воспроизводится в браузере. Скачайте файл и откройте в плеере телефона.', 'pl.resume_at': 'Продолжено с {t}', 'pl.offline': 'Нет интернета — пауза, время не считается' },
   en: { 'pl.speed': 'Speed', 'pl.quality': 'Quality', 'pl.auto': 'Auto', 'pl.no_fwd': 'You can\'t skip ahead — watch every minute',
     'pl.back': 'Back {s}s', 'pl.fwd': 'Forward {s}s', 'pl.done': 'Video completed ✔', 'pl.resume': 'Resumed where you left off', 'pl.err': 'Could not load the video',
-    'pl.watched': 'Watched', 'pl.resume_at': 'Resumed at {t}', 'pl.offline': 'No internet — paused, time is not counted' },
+    'pl.watched': 'Watched', 'pl.dl': 'Download', 'pl.unsup': 'This format cannot be played in the browser. Download the file and open it in your phone player.', 'pl.resume_at': 'Resumed at {t}', 'pl.offline': 'No internet — paused, time is not counted' },
 });
 
 const loadScript = src => new Promise((res, rej) => { if (document.querySelector(`script[src="${src}"]`)) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
@@ -43,7 +43,7 @@ async function html5Adapter(stage, item, startQuality) {
   };
   await load(src);
   const ad = {
-    kind: 'html5', video: v,
+    kind: 'html5', video: v, srcUrl: () => v.currentSrc || v.src || '',
     play: () => v.play().catch(() => {}), pause: () => v.pause(), seek: x => { v.currentTime = x; },
     time: () => v.currentTime, duration: () => v.duration || 0, playing: () => !v.paused && !v.ended,
     setRate: r => { v.playbackRate = r; }, qualities: () => quals, currentQuality: () => ad._q || quals[0],
@@ -155,7 +155,11 @@ export async function mountPlayer(host, item, opts = {}) {
     ad.seek(x); paint();
   }
   ad.onEvents(ev => {
-    if (ev === 'error') { q('.vspin').hidden = true; msg(t('pl.err')); return; }
+    if (ev === 'error') {
+      q('.vspin').hidden = true; msg(t('pl.err'));
+      const u = ad.srcUrl?.(); if (u && !offline && !q('.vdl')) { const a = document.createElement('a'); a.className = 'btn vdl'; a.href = u + (u.includes('?') ? '&' : '?') + 'download='; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '⬇ ' + t('pl.dl'); const n = document.createElement('div'); n.className = 'center pad vdl'; n.innerHTML = '<p class="muted">' + esc(t('pl.unsup')) + '</p>'; n.appendChild(a); root.after(n); }
+      return;
+    }
     if (ev === 'waiting') { buffering = true; q('.vspin').hidden = false; } if (ev === 'playing') { buffering = false; stalled = false; } if (ev === 'playing' || ev === 'play' || ev === 'pause') q('.vspin').hidden = true;
     if (ev === 'loadedmetadata' && S.resume && prog && prog.last_pos > 5 && prog.last_pos < (dur() - 5) && !ad._resumed) { ad._resumed = true; ad.seek(Math.min(prog.last_pos, maxPos || prog.last_pos)); msg(t('pl.resume_at', { t: fmtDur(prog.last_pos) })); }
     if (ev === 'timeupdate' || ev === 'play') {
