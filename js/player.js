@@ -1,6 +1,7 @@
 // Maxsus video pleyer: YouTube (ilovadan chiqmasdan), to'g'ridan-to'g'ri URL/MP4, HLS.
 // Qoidalar admin sozlamalaridan olinadi (app_settings.video): oldinga o'tkazish taqiqi, tezlik, sifat va h.k.
-import { sb, state, t, addDict, esc, ic, $, $$, toast, fmtDur, trackTime, signedUrl } from './core.js';
+import { CONFIG } from './config.js';
+import { sb, state, t, tr, addDict, esc, ic, $, $$, toast, fmtDur, trackTime, signedUrl } from './core.js';
 
 addDict({
   uz: { 'pl.speed': 'Tezlik', 'pl.quality': 'Sifat', 'pl.auto': 'Avto', 'pl.no_fwd': 'Videoni oldinga o\'tkazib bo\'lmaydi — har bir daqiqani ko\'ring',
@@ -93,13 +94,15 @@ async function ytAdapter(stage, item) {
 }
 
 // ---------- asosiy pleyer
-export async function mountPlayer(host, item) {
+export async function mountPlayer(host, item, opts = {}) {
+  const offline = !!opts.offline;   // telefonda saqlangan nusxa: tarmoq/progress kerak emas
   const S = { allow_forward_seek: false, forward_tolerance_s: 2, rewind_step_s: 10, allowed_speeds: [1], resume: true, complete_pct: 90, watermark: true, pause_when_hidden: true, ...(state.settings.video || {}) };
+  if (offline) { S.allow_forward_seek = true; S.resume = false; }   // oxirigacha ko'rilgan materialni qayta ko'rish — erkin
   const uid = state.user.id;
   // tezroq ochilish: imzolangan havola va YouTube kutubxonasi progress so'rovi bilan PARALLEL tayyorlanadi
   if (item.storage_path && !item.url) item._urlP = signedUrl('content', item.storage_path, 7200).catch(() => null);
   if (item.source === 'youtube' || item.youtube_id) loadYT().catch(() => {});
-  const { data: prog } = await sb.from('video_progress').select('*').eq('user_id', uid).eq('item_id', item.id).maybeSingle();
+  const { data: prog } = offline ? { data: null } : await sb.from('video_progress').select('*').eq('user_id', uid).eq('item_id', item.id).maybeSingle();
   let maxPos = prog?.max_pos || 0, completed = !!prog?.completed, lastSent = 0, lastT = 0;
 
   const isAud = item.kind === 'audio';
@@ -142,7 +145,8 @@ export async function mountPlayer(host, item) {
     const now = Date.now(); if (!force && now - lastSent < 10000) return; lastSent = now;
     const d = dur(); if (!d) return;
     const done = completed || (maxPos / d * 100 >= S.complete_pct);
-    if (done && !completed) { completed = true; msg(t('pl.done')); }
+    if (done && !completed) { completed = true; msg(t('pl.done')); try { opts.onDone?.(); } catch { /* */ } }
+    if (offline) return;
     await sb.from('video_progress').upsert({ user_id: uid, item_id: item.id, max_pos: maxPos, last_pos: ad.time(), duration: d, completed: done, updated_at: new Date().toISOString() });
   }
   function seekTo(x) {
@@ -205,7 +209,7 @@ export async function mountPlayer(host, item) {
   const mark = q('.vmark'); const markIv = mark ? setInterval(() => { mark.style.top = (8 + Math.random() * 70) + '%'; mark.style.left = (4 + Math.random() * 60) + '%'; }, 7000) : null;
   const vis = () => { if (document.hidden) { save(true).catch(() => {}); if (S.pause_when_hidden && !isAud && ad.playing()) ad.pause(); } };
   document.addEventListener('visibilitychange', vis);
-  const off = () => { if (ad.playing()) { ad.pause(); } msg(t('pl.offline')); };
+  const off = () => { if (offline) return; if (ad.playing()) { ad.pause(); } msg(t('pl.offline')); };
   addEventListener('offline', off);
   const ui = setInterval(paint, 500);
   const onFs = () => { root.classList.toggle('is-full', !!document.fullscreenElement); if (!document.fullscreenElement) screen.orientation?.unlock?.(); }; document.addEventListener('fullscreenchange', onFs);
@@ -213,8 +217,20 @@ export async function mountPlayer(host, item) {
   const orient = () => { if (isAud) return; const land = innerWidth > innerHeight && innerHeight < 560; root.classList.toggle('land-full', land); document.body.classList.toggle('vland', land); };
   addEventListener('orientationchange', orient); addEventListener('resize', orient); orient();
 
+  // Ekran o'chganda/qulflanganda ham audio davom etadi: tizimning "media" boshqaruvi (qulf ekrani, bildirishnoma)
+  if ('mediaSession' in navigator) {
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: tr(item.title) || 'BioAcademy', artist: CONFIG.APP_NAME, artwork: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }] });
+      navigator.mediaSession.setActionHandler('play', () => ad.play());
+      navigator.mediaSession.setActionHandler('pause', () => ad.pause());
+      navigator.mediaSession.setActionHandler('seekbackward', () => seekTo(ad.time() - S.rewind_step_s));
+      navigator.mediaSession.setActionHandler('seekforward', null);
+    } catch { /* eski brauzer */ }
+  }
   return {
+    completed: () => completed || offline,
     async destroy() {
+      try { if ('mediaSession' in navigator) { navigator.mediaSession.metadata = null; ['play', 'pause', 'seekbackward'].forEach(a => navigator.mediaSession.setActionHandler(a, null)); } } catch { /* */ }
       clearInterval(ui); clearInterval(markIv); clearInterval(stallIv); screen.orientation?.unlock?.(); removeEventListener('orientationchange', orient); document.removeEventListener('visibilitychange', vis); removeEventListener('offline', off); removeEventListener('resize', orient); document.body.classList.remove('vland'); document.removeEventListener('fullscreenchange', onFs);
       try { await save(true); } catch { /* */ } timer.stop(); ad.destroy();
     },

@@ -160,11 +160,12 @@ function bindLang(el) {
 
 function authErr(e) {
   const m = (e?.message || '').toLowerCase();
+  if (m.includes('banned')) return t('err.banned');
   if (m.includes('invalid login')) return t('auth.err_creds');
   if (m.includes('rate') || e?.status === 429) return t('auth.err_rate');
   if (m.includes('already')) return t('auth.err_exists');
   if (m.includes('expired') || m.includes('invalid') || m.includes('token')) return t('ver.bad');
-  return e?.message || String(e);
+  return friendlyErr(e?.message || String(e));
 }
 
 // ------------------------------------------------------------------ LANDING

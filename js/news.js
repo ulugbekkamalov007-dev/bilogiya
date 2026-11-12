@@ -1,5 +1,5 @@
 // E'lonlar va reklamalar: ko'rish, admin tomonidan yaratish (hammaga / guruhlarga / shaxslarga)
-import { sb, state, t, tr, addDict, route, esc, ic, $, $$, modal, toast, confirmDlg, fmtDate, publicUrl, compressImage, upload, uid8, i18nField, btnBusy, spinner } from './core.js';
+import { sb, state, t, tr, addDict, friendlyErr, route, esc, ic, $, $$, modal, toast, confirmDlg, fmtDate, publicUrl, compressImage, upload, uid8, i18nField, btnBusy, spinner } from './core.js';
 
 addDict({
   uz: { 'news.title': 'E\'lonlar', 'news.new': 'Yangi e\'lon', 'news.kind': 'Turi', 'news.k_news': 'E\'lon', 'news.k_ad': 'Reklama (banner)',
@@ -110,7 +110,7 @@ export function composeAnnouncement(onDone, preset = {}) {
       });
       if (error) throw error;
       toast(t('news.done'), 'ok'); m.close(); onDone?.();
-    } catch (x) { err.textContent = x.message || String(x); btnBusy(b, false); b.textContent = t('news.publish'); }
+    } catch (x) { err.textContent = friendlyErr(x.message || String(x)); btnBusy(b, false); b.textContent = t('news.publish'); }
   };
 }
 

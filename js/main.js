@@ -12,6 +12,7 @@ import './inbox.js';
 import './settings.js';
 import './admin.js';
 import './guide.js';
+import { offList } from './offline.js';
 import { maybeDevNote } from './contact.js';
 import { lockEnabled, showLock, initAutoLock, offerQuickLogin } from './lock.js';
 import { registerSW, canInstall, installApp } from './pwa.js';
@@ -66,7 +67,9 @@ let appTimer = null, rt = null;
 async function onSignedIn(user) {
   state.user = user;
   const [{ data: p }] = await Promise.all([sb.from('profiles').select('*').eq('id', user.id).maybeSingle(), loadSettings()]);
-  state.profile = p || { id: user.id, full_name: user.email, role: 'user' };
+  const pk = 'bio.prof.' + user.id;
+  if (p) { if (p.blocked) { await sb.auth.signOut().catch(() => {}); toast(t('err.banned'), 'err'); return; } try { localStorage.setItem(pk, JSON.stringify(p)); } catch { /* */ } }
+  state.profile = p || (() => { try { return JSON.parse(localStorage.getItem(pk)); } catch { return null; } })() || { id: user.id, full_name: user.email, role: 'user' };
   state.isAdmin = state.profile.role === 'admin';
   if (state.profile.lang && !localStorage.getItem('bio.lang')) { state.lang = state.profile.lang; document.documentElement.lang = state.lang; }
   if (lockEnabled()) { $('#boot')?.remove(); await showLock(); }
@@ -81,10 +84,23 @@ async function onSignedIn(user) {
     }
   }).subscribe();
   document.body.dataset.shell = 'app';
-  refreshUnread();
-  if (['/', '/login', '/register', '/verify', '/forgot'].includes(currentPath())) go('/home', true); else render();
+  if (navigator.onLine) refreshUnread();
+  if (!navigator.onLine && offList().length && !currentPath().startsWith('/offline')) go('/offline', true);
+  else if (['/', '/login', '/register', '/verify', '/forgot'].includes(currentPath())) go('/home', true); else render();
+  watchBlocked();
   offerQuickLogin();
   setTimeout(() => { try { maybeDevNote(); } catch { /* */ } }, 2500);
+}
+
+// bloklangan yoki o'chirilgan foydalanuvchini ochiq ilovadan ham chiqarib yuborish (har 2 daqiqada tekshiradi)
+let blkIv;
+function watchBlocked() {
+  clearInterval(blkIv);
+  blkIv = setInterval(async () => {
+    if (!state.user || !navigator.onLine || document.hidden) return;
+    const { data, error } = await sb.from('profiles').select('blocked').eq('id', state.user.id).maybeSingle();
+    if (!error && (!data || data.blocked)) { await sb.auth.signOut().catch(() => {}); toast(t('err.banned'), 'err'); }
+  }, 120000);
 }
 
 sb.auth.onAuthStateChange((evt, session) => {
@@ -117,13 +133,19 @@ function setupBackGuard() {
 
 document.addEventListener('bio-unread', () => refreshUnread());
 addEventListener('hashchange', render);
-addEventListener('online', () => toast(t('net.on'), 'ok'));
-addEventListener('offline', () => toast(t('net.off'), 'err'));
+const offBar = () => { let b = $('#offbar'); if (!b) { b = document.createElement('a'); b.id = 'offbar'; b.href = '#/offline'; $('#view').before(b); } b.hidden = navigator.onLine || !state.user || !offList().length; b.textContent = t('off.mode') + ' ›'; };
+addEventListener('online', () => { toast(t('net.on'), 'ok'); offBar(); });
+addEventListener('offline', () => { toast(t('net.off'), 'err'); offBar(); });
+addEventListener('hashchange', offBar);
 
 (async function boot() {
   setupBackGuard(); initAutoLock();
-  const { data } = await sb.auth.getSession();
-  if (data.session?.user) await onSignedIn(data.session.user);
+  const { data } = await sb.auth.getSession().catch(() => ({ data: {} }));
+  let user = data?.session?.user;
+  if (!user && !navigator.onLine) {   // internet yo'q va token yangilanmadi: saqlangan sessiyadan oflayn rejimda kiramiz (faqat saqlangan materiallar)
+    try { const k = Object.keys(localStorage).find(x => /^sb-.*-auth-token$/.test(x)); user = JSON.parse(localStorage.getItem(k) || 'null')?.user; } catch { /* */ }
+  }
+  if (user) await onSignedIn(user);
   else { document.body.dataset.shell = 'public'; render(); }
   $('#boot')?.remove();
 })();

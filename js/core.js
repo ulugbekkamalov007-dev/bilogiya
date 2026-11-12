@@ -123,13 +123,19 @@ export const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Mat
 
 // ---------- UI: toast / modal / confirm ----------
 // Texnik xatolarni (masalan "Could not find the function...") foydalanuvchiga ko'rsatmaymiz — o'z tilida tushunarli xabar
-addDict({ uz: { 'err.unavail': 'Ma\'lumotlar mavjud emas yoki xizmat hozircha tayyor emas', 'err.net': 'Internet bilan aloqa yo\'q' },
-  ru: { 'err.unavail': 'Данные недоступны или сервис пока не готов', 'err.net': 'Нет связи с интернетом' },
-  en: { 'err.unavail': 'No data available or the service is not ready yet', 'err.net': 'No internet connection' } });
+addDict({ uz: { 'err.generic': 'Xatolik yuz berdi. Qayta urinib ko\'ring.', 'err.audio_db': 'Audio qo\'shish hali yoqilmagan. Administrator bazani yangilashi kerak (supabase/update3.sql).', 'err.big': 'Fayl juda katta. Kichikroq fayl tanlang yoki havola (URL) orqali qo\'shing.', 'err.banned': 'Hisobingiz bloklangan. Dasturchi bilan bog\'laning.', 'err.perm': 'Bu amal uchun ruxsat yo\'q', 'err.unavail': 'Ma\'lumotlar mavjud emas yoki xizmat hozircha tayyor emas', 'err.net': 'Internet bilan aloqa yo\'q' },
+  ru: { 'err.generic': 'Произошла ошибка. Попробуйте ещё раз.', 'err.audio_db': 'Добавление аудио ещё не включено. Администратору нужно обновить базу (supabase/update3.sql).', 'err.big': 'Файл слишком большой. Выберите меньший файл или добавьте по ссылке (URL).', 'err.banned': 'Ваш аккаунт заблокирован. Свяжитесь с разработчиком.', 'err.perm': 'Нет прав на это действие', 'err.unavail': 'Данные недоступны или сервис пока не готов', 'err.net': 'Нет связи с интернетом' },
+  en: { 'err.generic': 'Something went wrong. Please try again.', 'err.audio_db': 'Audio is not enabled yet. The administrator must update the database (supabase/update3.sql).', 'err.big': 'The file is too large. Pick a smaller file or add it by link (URL).', 'err.banned': 'Your account is blocked. Contact the developer.', 'err.perm': 'You are not allowed to do this', 'err.unavail': 'No data available or the service is not ready yet', 'err.net': 'No internet connection' } });
 export function friendlyErr(msg) {
   const m = String(msg || '');
-  if (/failed to fetch|networkerror|load failed/i.test(m)) return t('err.net');
+  if (/items_kind_check/i.test(m)) return t('err.audio_db');
+  if (/exceeded the maximum|payload too large|too large|413/i.test(m)) return t('err.big');
+  if (/banned/i.test(m)) return t('err.banned');
+  if (/row-level security|rls|not allowed|ruxsat/i.test(m)) return t('err.perm');
+  if (/failed to fetch|networkerror|load failed|network request/i.test(m)) return t('err.net');
   if (/could not find|schema cache|does not exist|pgrst|permission denied|function public\.|relation |column |syntax|jwt|violates|internal server/i.test(m)) return t('err.unavail');
+  // qolgan texnik (dasturlash tilidagi) xabarlar odamga ko'rsatilmaydi — konsolga yoziladi
+  if (!m || /violates|constraint|relation |column |function |schema|syntax|duplicate key|null value|invalid input|pgrst|supabase|bucket|mime|\bsql\b|undefined|is not a function|cannot read|unexpected token|json|policy|permission|uuid|[a-z]+_[a-z_]+|[a-z]+\.[a-z_]+\(|status code|http|error:/i.test(m)) { if (m) console.warn('[xato]', m); return t('err.generic'); }
   return m;
 }
 export function toast(msg, type = '') {

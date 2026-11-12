@@ -58,6 +58,7 @@ route('/settings', async ({ el }) => {
   el.innerHTML = `<div class="page narrow"><h1>${esc(t('settings.title'))}</h1>
     <div class="card pad row"><span class="avatar lg">${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="">` : esc((p.full_name || '?')[0])}</span><div class="grow"><b>${esc(p.full_name)}</b><br><small class="muted">${esc(state.user.email)} · ${esc(t(state.isAdmin ? 'set.admin' : 'set.user'))}</small></div></div>
     <div class="cards mt">${SECTIONS.map(([k, i]) => `<a class="card pad item-row" href="#/settings/${k}"><span class="item-ic">${ic(i)}</span><b class="grow">${esc(t('settings.' + k))}</b>${ic('chev')}</a>`).join('')}
+      <a class="card pad item-row" href="#/offline"><span class="item-ic">${ic('download')}</span><b class="grow">${esc(t('off.title'))}</b>${ic('chev')}</a>
       <a class="card pad item-row" href="#/guide"><span class="item-ic">${ic('book')}</span><b class="grow">${esc(t('settings.guide'))}</b>${ic('chev')}</a>
       ${state.isAdmin ? `<a class="card pad item-row" href="#/admin"><span class="item-ic">${ic('shield')}</span><b class="grow">${esc(t('nav.admin'))}</b>${ic('chev')}</a>` : ''}
       <button class="card pad item-row danger-row" id="lo"><span class="item-ic">${ic('logout')}</span><b class="grow left">${esc(t('settings.logout'))}</b></button></div></div>`;

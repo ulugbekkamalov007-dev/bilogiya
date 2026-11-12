@@ -1,6 +1,6 @@
 // Test tizimi: hujjatdan import (Word/PDF/TXT → avtomatik savollar), har safar aralashadigan variantlar,
 // bob bo'yicha tanlash, natija, foiz, motivatsiya va salyut effektlari.
-import { sb, state, t, addDict, route, go, esc, ic, $, $$, tr, shuffle, rand, modal, toast, btnBusy, fmtDur, trackTime, onLeave, spinner, confirmDlg, i18nField, uzFix } from './core.js';
+import { sb, state, t, addDict, friendlyErr, route, go, esc, ic, $, $$, tr, shuffle, rand, modal, toast, btnBusy, fmtDur, trackTime, onLeave, spinner, confirmDlg, i18nField, uzFix } from './core.js';
 import { parseQuestions } from './testparse.js';
 import { celebrate } from './fx.js';
 
@@ -120,7 +120,7 @@ export function testImportModal({ folderId = null, itemId = null, onDone } = {})
   $('#fl', el).onchange = async e => {
     const f = e.target.files[0]; if (!f) return; err(); $('#tx', el).value = t('imp.reading');
     try { $('#tx', el).value = await extractText(f); if (!itemId && !$('#nm', el).value) $('#nm', el).value = f.name.replace(/\.[^.]+$/, ''); }
-    catch (x) { $('#tx', el).value = ''; err(f.name.toLowerCase().endsWith('.pdf') ? t('imp.pdf_fail') : (x.message || String(x))); }
+    catch (x) { $('#tx', el).value = ''; err(f.name.toLowerCase().endsWith('.pdf') ? t('imp.pdf_fail') : friendlyErr(x.message || String(x))); }
   };
   $('#pr', el).onclick = () => {
     err(); const r = parseQuestions($('#tx', el).value, { optionsCount: +$('#oc', el).value || 4 }); qs = r.questions;
@@ -145,7 +145,7 @@ export function testImportModal({ folderId = null, itemId = null, onDone } = {})
         const rows = list.map((q, i) => ({ item_id: id, position: (count || 0) + i, chapter: q.chapter, question: q.question, correct: q.correct, wrong: q.wrong, explanation: q.explanation || null }));
         for (let i = 0; i < rows.length; i += 200) { const { error } = await sb.from('questions').insert(rows.slice(i, i + 200)); if (error) throw error; }
         toast(t('imp.saved'), 'ok'); m.close(); onDone?.(id);
-      } catch (x) { err(x.message || String(x)); btnBusy(btn, false); }
+      } catch (x) { err(friendlyErr(x.message || String(x))); btnBusy(btn, false); }
     };
   };
 }

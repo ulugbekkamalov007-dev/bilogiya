@@ -225,3 +225,7 @@ body.vland { overflow: hidden; } body.vland #top, body.vland #tabs { display: no
 .cat .cic { color: var(--cc); display: grid; } .cat b { font-size: .82rem; white-space: nowrap; } .cat small { color: var(--muted); font-size: .72rem; }
 .cat.on { border-color: var(--cc); background: color-mix(in srgb, var(--cc) 12%, var(--card)); transform: translateY(-2px); } .cat:active { transform: scale(.96); }
 button.lbrow { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; } .lbrow .left { display: block; text-align: left; } .lbrow small { display: block; }
+
+.offbox .prog { margin-top: 6px; } .warnbox { background: #fef3c7; color: #78350f; border: 1px solid #fcd34d; }
+#offbar { display: block; background: #f59e0b; color: #fff; font: 600 .85rem system-ui; text-align: center; padding: 8px 12px; text-decoration: none; } #offbar[hidden] { display: none; }
+.tag.bad { background: #fee2e2; color: #b91c1c; margin-left: 4px; }
