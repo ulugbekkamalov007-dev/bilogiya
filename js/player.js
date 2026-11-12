@@ -5,13 +5,13 @@ import { sb, state, t, addDict, esc, ic, $, $$, toast, fmtDur, trackTime, signed
 addDict({
   uz: { 'pl.speed': 'Tezlik', 'pl.quality': 'Sifat', 'pl.auto': 'Avto', 'pl.no_fwd': 'Videoni oldinga o\'tkazib bo\'lmaydi — har bir daqiqani ko\'ring',
     'pl.back': 'Orqaga {s} s', 'pl.fwd': 'Oldinga {s} s', 'pl.done': 'Video ko\'rib bo\'ldi ✔', 'pl.resume': 'Oxirgi joydan davom ettirildi', 'pl.err': 'Videoni yuklab bo\'lmadi',
-    'pl.watched': 'Ko\'rilgan' },
+    'pl.watched': 'Ko\'rilgan', 'pl.resume_at': '{t} dan davom etdi' },
   ru: { 'pl.speed': 'Скорость', 'pl.quality': 'Качество', 'pl.auto': 'Авто', 'pl.no_fwd': 'Видео нельзя перематывать вперёд — смотрите каждую минуту',
     'pl.back': 'Назад {s} с', 'pl.fwd': 'Вперёд {s} с', 'pl.done': 'Видео просмотрено ✔', 'pl.resume': 'Продолжено с последнего места', 'pl.err': 'Не удалось загрузить видео',
-    'pl.watched': 'Просмотрено' },
+    'pl.watched': 'Просмотрено', 'pl.resume_at': 'Продолжено с {t}' },
   en: { 'pl.speed': 'Speed', 'pl.quality': 'Quality', 'pl.auto': 'Auto', 'pl.no_fwd': 'You can\'t skip ahead — watch every minute',
     'pl.back': 'Back {s}s', 'pl.fwd': 'Forward {s}s', 'pl.done': 'Video completed ✔', 'pl.resume': 'Resumed where you left off', 'pl.err': 'Could not load the video',
-    'pl.watched': 'Watched' },
+    'pl.watched': 'Watched', 'pl.resume_at': 'Resumed at {t}' },
 });
 
 const loadScript = src => new Promise((res, rej) => { if (document.querySelector(`script[src="${src}"]`)) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
@@ -24,7 +24,8 @@ const YTQ = { hd2160: '2160p', hd1440: '1440p', hd1080: '1080p', hd720: '720p', 
 
 // ---------- adapterlar
 async function html5Adapter(stage, item, startQuality) {
-  const v = document.createElement('video'); v.playsInline = true; v.preload = 'metadata'; v.disablePictureInPicture = true;
+  const isAud = item.kind === 'audio';
+  const v = document.createElement(isAud ? 'audio' : 'video'); v.preload = 'metadata'; if (!isAud) { v.playsInline = true; v.disablePictureInPicture = true; }
   v.setAttribute('controlslist', 'nodownload noremoteplayback'); v.oncontextmenu = e => e.preventDefault();
   stage.appendChild(v);
   const variants = (item.meta?.sources || []).filter(s => s.url);
@@ -98,8 +99,9 @@ export async function mountPlayer(host, item) {
   const { data: prog } = await sb.from('video_progress').select('*').eq('user_id', uid).eq('item_id', item.id).maybeSingle();
   let maxPos = prog?.max_pos || 0, completed = !!prog?.completed, lastSent = 0, lastT = 0;
 
-  host.innerHTML = `<div class="vplayer" tabindex="0"><div class="vstage"></div><div class="vshield"></div>
-    ${S.watermark ? `<div class="vmark">${esc(state.profile.full_name || state.user.email)}</div>` : ''}
+  const isAud = item.kind === 'audio';
+  host.innerHTML = `<div class="vplayer ${isAud ? 'aud' : ''}" tabindex="0"><div class="vstage"></div>${isAud ? `<div class="vstage-aud"><div class="aud-ic">🎧</div><div class="eq"><i></i><i></i><i></i><i></i><i></i></div></div>` : '<div class="vshield"></div>'}
+    ${S.watermark && !isAud ? `<div class="vmark">${esc(state.profile.full_name || state.user.email)}</div>` : ''}
     <div class="vspin" hidden><div class="spin"></div></div><div class="vtoast" hidden></div>
     <div class="vbig">${ic('play', 44)}</div>
     <div class="vctl">
@@ -109,7 +111,7 @@ export async function mountPlayer(host, item) {
         <button class="vb" data-a="back" title="${esc(t('pl.back', { s: S.rewind_step_s }))}">${ic('rewind')}<small>${S.rewind_step_s}</small></button>
         <span class="vtime"><span id="vt">0:00</span> / <span id="vd">0:00</span></span><span class="grow"></span>
         <button class="vb" data-a="menu" aria-label="settings">${ic('gear')}</button>
-        <button class="vb" data-a="full" aria-label="fullscreen">${ic('full')}</button>
+        ${isAud ? '' : `<button class="vb" data-a="full" aria-label="fullscreen">${ic('full')}</button>`}
       </div>
       <div class="vmenu" hidden></div>
     </div></div>`;
@@ -121,14 +123,14 @@ export async function mountPlayer(host, item) {
 
   const q = s => $(s, root), vcur = q('.vcur'), vmax = q('.vmax'), knob = q('.vknob'), bar = q('.vbar');
   const msg = txt => { const m = q('.vtoast'); m.textContent = txt; m.hidden = false; clearTimeout(msg.t); msg.t = setTimeout(() => m.hidden = true, 2200); };
-  const timer = trackTime('video', item.id, () => ad.playing());
+  const timer = trackTime(isAud ? 'audio' : 'video', item.id, () => ad.playing());
   const dur = () => ad.duration() || prog?.duration || 0;
 
   const paint = () => {
     const d = dur(), c = ad.time(); if (!d) return;
     vcur.style.width = (c / d * 100) + '%'; vmax.style.width = (Math.max(maxPos, c) / d * 100) + '%'; knob.style.left = (c / d * 100) + '%';
     q('#vt').textContent = fmtDur(c); q('#vd').textContent = fmtDur(d);
-    q('[data-a=play]').innerHTML = ic(ad.playing() ? 'pause' : 'play'); root.classList.toggle('playing', ad.playing());
+    q('[data-a=play]').innerHTML = ic(ad.playing() ? 'pause' : 'play'); root.classList.toggle('playing', ad.playing()); root.classList.toggle('paused', !ad.playing());
   };
   async function save(force) {
     const now = Date.now(); if (!force && now - lastSent < 10000) return; lastSent = now;
@@ -145,7 +147,7 @@ export async function mountPlayer(host, item) {
   ad.onEvents(ev => {
     if (ev === 'error') { q('.vspin').hidden = true; msg(t('pl.err')); return; }
     if (ev === 'waiting') q('.vspin').hidden = false; if (ev === 'playing' || ev === 'play' || ev === 'pause') q('.vspin').hidden = true;
-    if (ev === 'loadedmetadata' && S.resume && prog && prog.last_pos > 5 && prog.last_pos < (dur() - 5) && !ad._resumed) { ad._resumed = true; ad.seek(Math.min(prog.last_pos, maxPos || prog.last_pos)); msg(t('pl.resume')); }
+    if (ev === 'loadedmetadata' && S.resume && prog && prog.last_pos > 5 && prog.last_pos < (dur() - 5) && !ad._resumed) { ad._resumed = true; ad.seek(Math.min(prog.last_pos, maxPos || prog.last_pos)); msg(t('pl.resume_at', { t: fmtDur(prog.last_pos) })); }
     if (ev === 'timeupdate' || ev === 'play') {
       const c = ad.time();
       if (!S.allow_forward_seek && c > maxPos + Math.max(S.forward_tolerance_s, 3) && ad.playing()) { ad.seek(maxPos); msg(t('pl.no_fwd')); }
@@ -158,7 +160,7 @@ export async function mountPlayer(host, item) {
 
   // boshqaruv
   const toggle = () => ad.playing() ? ad.pause() : ad.play();
-  q('.vshield').onclick = q('.vbig').onclick = toggle;
+  (q('.vshield') || q('.vstage-aud')).onclick = q('.vbig').onclick = toggle;
   const menu = q('.vmenu');
   const drawMenu = () => {
     const quals = ad.qualities(), cq = ad.currentQuality();
@@ -173,7 +175,7 @@ export async function mountPlayer(host, item) {
     if (a === 'play') toggle();
     else if (a === 'back') seekTo(ad.time() - S.rewind_step_s);
     else if (a === 'menu') { drawMenu(); menu.hidden = !menu.hidden; }
-    else if (a === 'full') {
+    else if (a === 'full' && !isAud) {
       if (document.fullscreenElement) document.exitFullscreen(); else if (root.requestFullscreen) root.requestFullscreen().catch(() => root.classList.toggle('pseudo-full')); else root.classList.toggle('pseudo-full');
     }
   };
@@ -195,7 +197,7 @@ export async function mountPlayer(host, item) {
   ['mousemove', 'touchstart', 'click'].forEach(e => root.addEventListener(e, wake)); wake();
   // yashirin belgi harakati
   const mark = q('.vmark'); const markIv = mark ? setInterval(() => { mark.style.top = (8 + Math.random() * 70) + '%'; mark.style.left = (4 + Math.random() * 60) + '%'; }, 7000) : null;
-  const vis = () => { if (document.hidden && S.pause_when_hidden && ad.playing()) ad.pause(); };
+  const vis = () => { if (document.hidden) { save(true).catch(() => {}); if (S.pause_when_hidden && !isAud && ad.playing()) ad.pause(); } };
   document.addEventListener('visibilitychange', vis);
   const ui = setInterval(paint, 500);
   const onFs = () => root.classList.toggle('is-full', !!document.fullscreenElement); document.addEventListener('fullscreenchange', onFs);

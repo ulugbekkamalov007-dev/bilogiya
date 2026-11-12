@@ -11,6 +11,8 @@ import './news.js';
 import './inbox.js';
 import './settings.js';
 import './admin.js';
+import './guide.js';
+import { maybeDevNote } from './contact.js';
 import { lockEnabled, showLock, initAutoLock, offerQuickLogin } from './lock.js';
 import { registerSW, canInstall, installApp } from './pwa.js';
 import { CONFIG } from './config.js';
@@ -62,11 +64,10 @@ export { refreshUnread };
 let appTimer = null, rt = null;
 async function onSignedIn(user) {
   state.user = user;
-  const { data: p } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+  const [{ data: p }] = await Promise.all([sb.from('profiles').select('*').eq('id', user.id).maybeSingle(), loadSettings()]);
   state.profile = p || { id: user.id, full_name: user.email, role: 'user' };
   state.isAdmin = state.profile.role === 'admin';
   if (state.profile.lang && !localStorage.getItem('bio.lang')) { state.lang = state.profile.lang; document.documentElement.lang = state.lang; }
-  await loadSettings();
   if (lockEnabled()) { $('#boot')?.remove(); await showLock(); }
   appTimer?.stop(); appTimer = trackTime('app', null);
   rt?.unsubscribe?.();
@@ -82,6 +83,7 @@ async function onSignedIn(user) {
   refreshUnread();
   if (['/', '/login', '/register', '/verify', '/forgot'].includes(currentPath())) go('/home', true); else render();
   offerQuickLogin();
+  setTimeout(() => { try { maybeDevNote(); } catch { /* */ } }, 2500);
 }
 
 sb.auth.onAuthStateChange((evt, session) => {

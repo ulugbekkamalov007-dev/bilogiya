@@ -8,7 +8,7 @@ addDict({
     'adm.buy_req': 'To\'plamga kirish so\'rovlari', 'adm.no_req': 'So\'rovlar yo\'q', 'adm.approve': 'Tasdiqlash', 'adm.reject': 'Rad etish', 'adm.reports': 'Xabarlarga shikoyatlar', 'adm.resolve': 'Hal qilindi', 'adm.open_group': 'Guruhga o\'tish',
     'adm.v_fwd': 'Videoni oldinga o\'tkazishga ruxsat', 'adm.v_tol': 'Oldinga o\'tishga ruxsat etilgan farq (soniya)', 'adm.v_rw': 'Orqaga qaytarish qadami (soniya)', 'adm.v_speeds': 'Ruxsat etilgan tezliklar (vergul bilan)', 'adm.v_q': 'Boshlang\'ich sifat',
     'adm.v_resume': 'Oxirgi joydan davom ettirish', 'adm.v_pct': 'Ko\'rilgan deb hisoblash uchun (%)', 'adm.v_wm': 'Ism suv belgisi (yozib olishga qarshi)', 'adm.v_hid': 'Sahifa yopilsa videoni to\'xtatish', 'adm.saved': 'Saqlandi ✔',
-    'adm.a_pin': 'PIN xato urinishlari (so\'ng chiqarib yuboriladi)', 'adm.a_chat': 'Chat fayllarini saqlash muddati (kun)', 'adm.a_voice': 'Ovozli xabar maks. uzunligi (soniya)',
+    'adm.a_pin': 'PIN xato urinishlari (so\'ng chiqarib yuboriladi)', 'adm.a_chat': 'Chat fayllarini saqlash muddati (kun)', 'adm.a_voice': 'Ovozli xabar maks. uzunligi (soniya)', 'adm.a_lb': 'Reytingni yoqish (foydalanuvchilar bir-birining hisobotini ko\'radi)', 'adm.a_lbn': 'Reytingda ismlar', 'adm.a_short': 'Qisqa (Ali V.)', 'adm.a_full': 'To\'liq ism', 'rep.audio': 'Audio', 'rep.other': 'Ilovada sayr',
     'adm.users_n': 'Foydalanuvchilar soni', 'adm.active': 'Faol foydalanuvchilar', 'adm.time_by': 'Bo\'limlar bo\'yicha vaqt', 'adm.dau': 'Kunlik faol foydalanuvchilar', 'adm.st_used': 'Ishlatilgan joy', 'adm.st_free': 'Bepul reja: 1 GB',
     'adm.cleanup': 'Eski chat fayllarini tozalash', 'adm.cleanup_d': 'Belgilangan muddatdan eski ovoz, rasm va topshiriq fayllari o\'chiriladi (matn qoladi).', 'adm.cleaned': '{n} ta fayl o\'chirildi', 'adm.new_ad': 'Yangi reklama', 'adm.new_news': 'Yangi e\'lon', 'adm.all_news': 'Barcha e\'lonlar',
     'rep.video': 'Video', 'rep.book': 'Kitob/material', 'rep.test': 'Test', 'rep.app': 'Ilovada' },
@@ -17,7 +17,7 @@ addDict({
     'adm.buy_req': 'Заявки на доступ к наборам', 'adm.no_req': 'Заявок нет', 'adm.approve': 'Подтвердить', 'adm.reject': 'Отклонить', 'adm.reports': 'Жалобы на сообщения', 'adm.resolve': 'Решено', 'adm.open_group': 'Перейти в группу',
     'adm.v_fwd': 'Разрешить перемотку видео вперёд', 'adm.v_tol': 'Допуск перемотки вперёд (сек)', 'adm.v_rw': 'Шаг перемотки назад (сек)', 'adm.v_speeds': 'Разрешённые скорости (через запятую)', 'adm.v_q': 'Качество по умолчанию',
     'adm.v_resume': 'Продолжать с последнего места', 'adm.v_pct': '% для статуса «просмотрено»', 'adm.v_wm': 'Водяной знак с именем (против записи экрана)', 'adm.v_hid': 'Ставить на паузу при сворачивании', 'adm.saved': 'Сохранено ✔',
-    'adm.a_pin': 'Попыток ввода PIN (затем выход)', 'adm.a_chat': 'Срок хранения файлов чата (дней)', 'adm.a_voice': 'Макс. длина голосового (сек)',
+    'adm.a_pin': 'Попыток ввода PIN (затем выход)', 'adm.a_chat': 'Срок хранения файлов чата (дней)', 'adm.a_voice': 'Макс. длина голосового (сек)', 'adm.a_lb': 'Включить рейтинг (пользователи видят отчёты друг друга)', 'adm.a_lbn': 'Имена в рейтинге', 'adm.a_short': 'Кратко (Али В.)', 'adm.a_full': 'Полное имя', 'rep.audio': 'Аудио', 'rep.other': 'Прогулка',
     'adm.users_n': 'Всего пользователей', 'adm.active': 'Активные пользователи', 'adm.time_by': 'Время по разделам', 'adm.dau': 'Активные пользователи по дням', 'adm.st_used': 'Занято', 'adm.st_free': 'Бесплатный тариф: 1 ГБ',
     'adm.cleanup': 'Очистить старые файлы чата', 'adm.cleanup_d': 'Голос, фото и файлы работ старше срока будут удалены (текст останется).', 'adm.cleaned': 'Удалено файлов: {n}', 'adm.new_ad': 'Новая реклама', 'adm.new_news': 'Новое объявление', 'adm.all_news': 'Все объявления',
     'rep.video': 'Видео', 'rep.book': 'Книги/материалы', 'rep.test': 'Тесты', 'rep.app': 'В приложении' },
@@ -26,7 +26,7 @@ addDict({
     'adm.buy_req': 'Collection access requests', 'adm.no_req': 'No requests', 'adm.approve': 'Approve', 'adm.reject': 'Reject', 'adm.reports': 'Message reports', 'adm.resolve': 'Resolved', 'adm.open_group': 'Open group',
     'adm.v_fwd': 'Allow skipping forward in videos', 'adm.v_tol': 'Forward-seek tolerance (sec)', 'adm.v_rw': 'Rewind step (sec)', 'adm.v_speeds': 'Allowed speeds (comma-separated)', 'adm.v_q': 'Default quality',
     'adm.v_resume': 'Resume from last position', 'adm.v_pct': '% needed to count as watched', 'adm.v_wm': 'Name watermark (anti screen-recording)', 'adm.v_hid': 'Pause when the page is hidden', 'adm.saved': 'Saved ✔',
-    'adm.a_pin': 'Wrong-PIN attempts (then logout)', 'adm.a_chat': 'Chat file retention (days)', 'adm.a_voice': 'Max voice message length (sec)',
+    'adm.a_pin': 'Wrong-PIN attempts (then logout)', 'adm.a_chat': 'Chat file retention (days)', 'adm.a_voice': 'Max voice message length (sec)', 'adm.a_lb': 'Enable leaderboard (users can see each other\'s reports)', 'adm.a_lbn': 'Names in leaderboard', 'adm.a_short': 'Short (Ali V.)', 'adm.a_full': 'Full name', 'rep.audio': 'Audio', 'rep.other': 'Browsing',
     'adm.users_n': 'Total users', 'adm.active': 'Active users', 'adm.time_by': 'Time by section', 'adm.dau': 'Daily active users', 'adm.st_used': 'Used', 'adm.st_free': 'Free plan: 1 GB',
     'adm.cleanup': 'Clean up old chat files', 'adm.cleanup_d': 'Voice, photos and submission files older than the retention period are deleted (text stays).', 'adm.cleaned': '{n} files deleted', 'adm.new_ad': 'New ad', 'adm.new_news': 'New announcement', 'adm.all_news': 'All announcements',
     'rep.video': 'Video', 'rep.book': 'Books/materials', 'rep.test': 'Tests', 'rep.app': 'In app' },
@@ -95,11 +95,12 @@ function videoTab(body) {
 }
 
 function appTab(body) {
-  const a = { pin_max_attempts: 5, autolock_minutes: 1, chat_media_days: 60, max_voice_seconds: 120, ...(state.settings.app || {}) };
+  const a = { pin_max_attempts: 5, autolock_minutes: 1, chat_media_days: 60, max_voice_seconds: 120, leaderboard: true, leaderboard_names: 'short', ...(state.settings.app || {}) };
   body.innerHTML = `<div class="card pad form"><label class="fld"><span>${esc(t('adm.a_pin'))}</span><input class="input" id="pn" type="number" min="3" max="10" value="${a.pin_max_attempts}"></label>
     <label class="fld"><span>${esc(t('adm.a_chat'))}</span><input class="input" id="cd" type="number" min="7" max="365" value="${a.chat_media_days}"></label>
-    <label class="fld"><span>${esc(t('adm.a_voice'))}</span><input class="input" id="vs" type="number" min="15" max="300" value="${a.max_voice_seconds}"></label><button class="btn lg" id="sv">${esc(t('set.save'))}</button></div>`;
-  $('#sv', body).onclick = () => save('app', { ...a, pin_max_attempts: +$('#pn', body).value || 5, chat_media_days: +$('#cd', body).value || 60, max_voice_seconds: +$('#vs', body).value || 120 });
+    <label class="fld"><span>${esc(t('adm.a_voice'))}</span><input class="input" id="vs" type="number" min="15" max="300" value="${a.max_voice_seconds}"></label><label class="chk"><input type="checkbox" id="lb" ${a.leaderboard !== false ? 'checked' : ''}> ${esc(t('adm.a_lb'))}</label>
+    <label class="fld"><span>${esc(t('adm.a_lbn'))}</span><select class="input" id="ln"><option value="short" ${a.leaderboard_names !== 'full' ? 'selected' : ''}>${esc(t('adm.a_short'))}</option><option value="full" ${a.leaderboard_names === 'full' ? 'selected' : ''}>${esc(t('adm.a_full'))}</option></select></label><button class="btn lg" id="sv">${esc(t('set.save'))}</button></div>`;
+  $('#sv', body).onclick = () => save('app', { ...a, leaderboard: $('#lb', body).checked, leaderboard_names: $('#ln', body).value, pin_max_attempts: +$('#pn', body).value || 5, chat_media_days: +$('#cd', body).value || 60, max_voice_seconds: +$('#vs', body).value || 120 });
 }
 
 // ---------------- platforma hisoboti
@@ -107,10 +108,10 @@ async function statsTab(body) {
   const to = dayStr(), from = dayStr(addDays(new Date(), -29));
   const [ov, dau, cnt] = await Promise.all([sb.rpc('admin_overview', { p_from: from, p_to: to }), sb.rpc('admin_daily_active', { p_from: from, p_to: to }), sb.from('profiles').select('*', { count: 'exact', head: true })]);
   const rows = ov.data || [], days = dau.data || [], max = Math.max(1, ...rows.map(r => +r.seconds)), dmax = Math.max(1, ...days.map(d => +d.users));
-  const COL = { video: '#2563eb', book: '#f59e0b', test: '#16a34a', app: '#94a3b8' };
+  const COL = { video: '#2563eb', audio: '#8b5cf6', book: '#f59e0b', test: '#16a34a', app: '#94a3b8' };
   body.innerHTML = `<div class="stats3 mb"><div class="stat card"><span>${esc(t('adm.users_n'))}</span><b>${cnt.count ?? 0}</b></div><div class="stat card"><span>${esc(t('adm.active'))} (30)</span><b>${Math.max(0, ...rows.map(r => +r.users))}</b></div>
       <div class="stat card"><span>${esc(t('rep.app'))} (30)</span><b>${esc(fmtMin((rows.find(r => r.kind === 'app') || { seconds: 0 }).seconds))}</b></div></div>
-    <div class="card pad mb"><h3>${esc(t('adm.time_by'))} · 30</h3>${['video', 'book', 'test', 'app'].map(k => { const r = rows.find(x => x.kind === k) || { seconds: 0, users: 0 }; return `<div class="hbar"><span>${esc(t('rep.' + k))}</span><div><i style="width:${+r.seconds / max * 100}%;background:${COL[k]}"></i></div><b>${esc(fmtMin(r.seconds))} · ${r.users}👤</b></div>`; }).join('')}</div>
+    <div class="card pad mb"><h3>${esc(t('adm.time_by'))} · 30</h3>${['video', 'audio', 'book', 'test', 'app'].map(k => { const r = rows.find(x => x.kind === k) || { seconds: 0, users: 0 }; return `<div class="hbar"><span>${esc(t('rep.' + k))}</span><div><i style="width:${+r.seconds / max * 100}%;background:${COL[k]}"></i></div><b>${esc(fmtMin(r.seconds))} · ${r.users}👤</b></div>`; }).join('')}</div>
     <div class="card pad"><h3>${esc(t('adm.dau'))}</h3>${days.length ? `<div class="mini-bars">${days.map(d => `<div title="${esc(fmtDate(d.day))}: ${d.users}"><i style="height:${+d.users / dmax * 100}%"></i><small>${d.day.slice(8)}</small></div>`).join('')}</div>` : `<p class="muted">—</p>`}</div>`;
 }
 

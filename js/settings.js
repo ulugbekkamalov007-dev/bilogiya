@@ -1,5 +1,8 @@
 // Sozlamalar: profil, til va ko'rinish, xavfsizlik (parol, PIN, barmoq izi), bildirishnomalar, ilova haqida
-import { sb, state, t, addDict, route, go, esc, ic, $, $$, toast, btnBusy, compressImage, upload, publicUrl, setLang, confirmDlg } from './core.js';
+import { sb, state, t, addDict, route, go, esc, ic, $, $$, toast, btnBusy, compressImage, upload, publicUrl, setLang, confirmDlg, passScore } from './core.js';
+import { contactCards, bindContact } from './contact.js';
+import { aboutHtml } from './guide.js';
+import { strengthBar, bindStrength } from './auth.js';
 import { lockEnabled, bioEnabled, lockInfo, pinSetup, removeLock, removeBiometric, registerBiometric, biometricSupported, setAutoLock, doLogout } from './lock.js';
 import { canInstall, installApp, isStandalone } from './pwa.js';
 import { applyTheme } from './main.js';
@@ -32,7 +35,22 @@ addDict({
     'set.version': 'Version', 'set.role': 'Role', 'set.admin': 'Administrator', 'set.user': 'User', 'set.pin_removed': 'PIN turned off', 'set.email': 'Email', 'set.save': 'Save' },
 });
 
-const SECTIONS = [['profile', 'user'], ['look', 'globe'], ['security', 'lock'], ['notif', 'bell'], ['about', 'help']];
+addDict({
+  uz: { 'settings.contact': 'Dasturchi bilan bog\'lanish', 'settings.guide': 'Foydalanish yo\'riqnomasi',
+    'set.pw_note': 'Xavfsizlik uchun avval emailingizga tasdiqlash kodi yuboriladi, so\'ng yangi parol kiritasiz.', 'set.pw_send': 'Emailga kod yuborish', 'set.pw_sent': 'Kod {email} manziliga yuborildi',
+    'set.pw_code': 'Emaildagi kod', 'set.pw_new2': 'Yangi parolni takrorlang', 'set.pw_resend': 'Qayta yuborish ({s} s)', 'set.pw_bad': 'Kod noto\'g\'ri yoki eskirgan',
+    'set.pw_lost': 'Parolni eslay olmayapsizmi? Chiqib, kirish sahifasidagi «Parolni unutdingizmi?» ni bosing. Email ham ishlamasa — dasturchiga murojaat qiling.' },
+  ru: { 'settings.contact': 'Связь с разработчиком', 'settings.guide': 'Руководство',
+    'set.pw_note': 'Для безопасности сначала на email придёт код подтверждения, затем вы введёте новый пароль.', 'set.pw_send': 'Отправить код на email', 'set.pw_sent': 'Код отправлен на {email}',
+    'set.pw_code': 'Код из письма', 'set.pw_new2': 'Повторите новый пароль', 'set.pw_resend': 'Отправить снова ({s} с)', 'set.pw_bad': 'Код неверный или устарел',
+    'set.pw_lost': 'Не помните пароль? Выйдите и нажмите «Забыли пароль?» на странице входа. Если email недоступен — обратитесь к разработчику.' },
+  en: { 'settings.contact': 'Contact the developer', 'settings.guide': 'User guide',
+    'set.pw_note': 'For security we first email you a confirmation code, then you enter the new password.', 'set.pw_send': 'Send code to email', 'set.pw_sent': 'Code sent to {email}',
+    'set.pw_code': 'Code from email', 'set.pw_new2': 'Repeat new password', 'set.pw_resend': 'Resend ({s} s)', 'set.pw_bad': 'Code is wrong or expired',
+    'set.pw_lost': 'Can\'t remember your password? Log out and tap “Forgot password?” on the sign-in page. If email is unavailable, contact the developer.' },
+});
+
+const SECTIONS = [['profile', 'user'], ['look', 'globe'], ['security', 'lock'], ['notif', 'bell'], ['contact', 'phone'], ['about', 'help']];
 const saveProfile = async patch => { const { error } = await sb.from('profiles').update(patch).eq('id', state.user.id); if (error) { toast(error.message, 'err'); return false; } Object.assign(state.profile, patch); toast(t('set.saved'), 'ok'); return true; };
 
 route('/settings', async ({ el }) => {
@@ -40,6 +58,7 @@ route('/settings', async ({ el }) => {
   el.innerHTML = `<div class="page narrow"><h1>${esc(t('settings.title'))}</h1>
     <div class="card pad row"><span class="avatar lg">${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="">` : esc((p.full_name || '?')[0])}</span><div class="grow"><b>${esc(p.full_name)}</b><br><small class="muted">${esc(state.user.email)} · ${esc(t(state.isAdmin ? 'set.admin' : 'set.user'))}</small></div></div>
     <div class="cards mt">${SECTIONS.map(([k, i]) => `<a class="card pad item-row" href="#/settings/${k}"><span class="item-ic">${ic(i)}</span><b class="grow">${esc(t('settings.' + k))}</b>${ic('chev')}</a>`).join('')}
+      <a class="card pad item-row" href="#/guide"><span class="item-ic">${ic('book')}</span><b class="grow">${esc(t('settings.guide'))}</b>${ic('chev')}</a>
       ${state.isAdmin ? `<a class="card pad item-row" href="#/admin"><span class="item-ic">${ic('shield')}</span><b class="grow">${esc(t('nav.admin'))}</b>${ic('chev')}</a>` : ''}
       <button class="card pad item-row danger-row" id="lo"><span class="item-ic">${ic('logout')}</span><b class="grow left">${esc(t('settings.logout'))}</b></button></div></div>`;
   $('#lo', el).onclick = () => doLogout(true);
@@ -59,7 +78,14 @@ route('/settings/:s', async ({ el, params }) => {
       <div class="fld"><span>${esc(t('set.font'))}</span><div class="seg">${[['s', 'set.f_s'], ['m', 'set.f_m'], ['l', 'set.f_l']].map(([v, k]) => `<label><input type="radio" name="fs" value="${v}" ${(localStorage.getItem('bio.fs') || 'm') === v ? 'checked' : ''}><span>${esc(t(k))}</span></label>`).join('')}</div></div></div>`;
   if (s === 'security') {
     const on = lockEnabled(), info = lockInfo(), bsup = await biometricSupported();
-    body = `<div class="card pad form mt"><h4>${esc(t('set.pass'))}</h4><div class="row"><input class="input grow" id="np" type="password" autocomplete="new-password" placeholder="${esc(t('set.new_pass'))}"><button class="btn" id="cp">${esc(t('set.save'))}</button></div></div>
+    body = `<div class="card pad form mt"><h4>${esc(t('set.pass'))}</h4><p class="muted small">${esc(t('set.pw_note'))}</p>
+      <button class="btn" id="pcode">${esc(t('set.pw_send'))}</button>
+      <div id="pstep" hidden class="form"><small class="muted" id="psent"></small>
+        <label class="fld"><span>${esc(t('set.pw_code'))}</span><input class="input otp" id="pc" inputmode="numeric" autocomplete="one-time-code" maxlength="${CONFIG.OTP_LENGTH}" placeholder="${'•'.repeat(CONFIG.OTP_LENGTH)}"></label>
+        <label class="fld"><span>${esc(t('set.new_pass'))}</span><input class="input" id="np" type="password" autocomplete="new-password"></label>${strengthBar('np')}
+        <label class="fld"><span>${esc(t('set.pw_new2'))}</span><input class="input" id="np2" type="password" autocomplete="new-password"></label>
+        <div class="err" id="perr"></div><button class="btn" id="cp">${esc(t('set.save'))}</button></div>
+      <p class="muted small">${esc(t('set.pw_lost'))}</p></div>
       <div class="card pad form mt"><div class="row between"><h4>${esc(t('set.pin'))}</h4><span class="chip ${on ? 'ok' : ''}">${esc(t(on ? 'set.pin_state_on' : 'set.pin_state_off'))}</span></div>
       <button class="btn" id="pin">${esc(t(on ? 'set.pin_change' : 'set.pin_set'))}</button>
       ${on ? `${bsup ? `<label class="chk"><input type="checkbox" id="bio" ${bioEnabled() ? 'checked' : ''}> ${esc(t('set.bio'))}</label>` : `<small class="muted">${esc(t('set.bio_na'))}</small>`}
@@ -69,8 +95,9 @@ route('/settings/:s', async ({ el, params }) => {
   if (s === 'notif') { const pr = p.prefs || {}; const perm = 'Notification' in window ? Notification.permission : 'denied';
     body = `<div class="card pad form mt">${[['notif_news', 'set.n_news'], ['notif_chat', 'set.n_chat'], ['notif_task', 'set.n_task']].map(([k, l]) => `<label class="chk"><input type="checkbox" data-n="${k}" ${pr[k] === false ? '' : 'checked'}> ${esc(t(l))}</label>`).join('')}
       ${'Notification' in window ? `<button class="btn ${perm === 'granted' ? 'ghost' : ''}" id="perm" ${perm === 'granted' ? 'disabled' : ''}>${esc(t('set.n_perm'))}${perm === 'granted' ? ' ✔' : ''}</button>` : ''}<p class="muted small">${esc(t('set.n_note'))}</p></div>`; }
-  if (s === 'about') body = `<div class="card pad mt center"><div class="lock-logo">🧬</div><h3>${esc(CONFIG.APP_NAME)}</h3><p class="muted">${esc(t('set.version'))} 1.0 · ${esc(t(state.isAdmin ? 'set.admin' : 'set.user'))}</p>
-      ${isStandalone() ? `<p class="ok">${esc(t('set.installed'))}</p>` : canInstall() ? `<button class="btn lg" id="ins">${ic('download')} ${esc(t('set.install'))}</button>` : ''}</div>`;
+  if (s === 'contact') body = `<p class="muted mt">${esc(t('ct.sub'))}</p>${contactCards()}`;
+  if (s === 'about') body = `<div class="card pad mt center"><div class="lock-logo">🧬</div><h3>${esc(CONFIG.APP_NAME)}</h3><p class="muted">${esc(t('set.version'))} 2.0 · ${esc(t(state.isAdmin ? 'set.admin' : 'set.user'))}</p>
+      ${isStandalone() ? `<p class="ok">${esc(t('set.installed'))}</p>` : canInstall() ? `<button class="btn lg" id="ins">${ic('download')} ${esc(t('set.install'))}</button>` : ''}</div>${aboutHtml()}`;
   el.innerHTML = `<div class="page narrow">${head}${body}</div>`;
 
   // --- hodisalar
@@ -81,8 +108,31 @@ route('/settings/:s', async ({ el, params }) => {
   $$('input[name=l]', el).forEach(r => r.onchange = () => setLang(r.value));
   $$('input[name=th]', el).forEach(r => r.onchange = () => { localStorage.setItem('bio.theme', r.value); applyTheme(); });
   $$('input[name=fs]', el).forEach(r => r.onchange = () => { localStorage.setItem('bio.fs', r.value); applyTheme(); });
-  $('#cp', el)?.addEventListener('click', async ev => { const v = $('#np', el).value; if (v.length < 8) return toast(t('auth.err_pass_len'), 'err'); btnBusy(ev.currentTarget, true);
-    const { error } = await sb.auth.updateUser({ password: v }); btnBusy(ev.currentTarget, false); toast(error ? error.message : t('rec.done'), error ? 'err' : 'ok'); if (!error) $('#np', el).value = ''; });
+  if ($('#pcode', el)) {
+    bindStrength(el, 'np'); bindContact(el);
+    const sendBtn = $('#pcode', el); let cd = 0, iv;
+    const tick = () => { if (!sendBtn.isConnected) return clearInterval(iv); if (cd > 0) { sendBtn.disabled = true; sendBtn.textContent = t('set.pw_resend', { s: cd-- }); } else { sendBtn.disabled = false; sendBtn.textContent = t('set.pw_send'); clearInterval(iv); } };
+    sendBtn.onclick = async () => {
+      btnBusy(sendBtn, true); const { error } = await sb.auth.resetPasswordForEmail(state.user.email); btnBusy(sendBtn, false);
+      if (error) return toast(/rate|429/i.test(error.message) ? t('auth.err_rate') : error.message, 'err');
+      $('#pstep', el).hidden = false; $('#psent', el).textContent = t('set.pw_sent', { email: state.user.email }); $('#pc', el).focus(); cd = 60; clearInterval(iv); iv = setInterval(tick, 1000); tick();
+    };
+    $('#pc', el).oninput = e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, CONFIG.OTP_LENGTH); };
+    $('#cp', el).onclick = async ev => {
+      const err = $('#perr', el), code = $('#pc', el).value, p1 = $('#np', el).value, p2 = $('#np2', el).value; err.textContent = '';
+      if (code.length < 6) return err.textContent = t('set.pw_bad');
+      if (p1.length < 8) return err.textContent = t('auth.err_pass_len');
+      if (passScore(p1).issue) return err.textContent = t('pw.weak');
+      if (p1 !== p2) return err.textContent = t('auth.err_pass_match');
+      const b = ev.currentTarget; btnBusy(b, true);
+      const v = await sb.auth.verifyOtp({ email: state.user.email, token: code, type: 'recovery' });
+      if (v.error) { btnBusy(b, false); return err.textContent = t('set.pw_bad'); }
+      const { error } = await sb.auth.updateUser({ password: p1 }); btnBusy(b, false);
+      if (error) return err.textContent = error.message;
+      toast(t('rec.done'), 'ok'); go('/settings/security', true);
+    };
+  }
+  if (s === 'contact') bindContact(el);
   $('#pin', el)?.addEventListener('click', () => pinSetup({ skippable: false, onDone: () => go('/settings/security', true) }));
   $('#bio', el)?.addEventListener('change', async e => { if (e.target.checked) { try { await registerBiometric(); } catch { e.target.checked = false; toast(t('lock.bio_fail')); } } else removeBiometric(); });
   $('#al', el)?.addEventListener('change', e => setAutoLock(+e.target.value));

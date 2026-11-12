@@ -1,5 +1,5 @@
 // Kutubxona: Drive kabi papkalar, materiallar (video/PDF/taqdimot/kitob/test/havola), pullik to'plamlar, admin boshqaruvi
-import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, confirmDlg, btnBusy, i18nField, upload, signedUrl, safeName, fmtSize, trackTime, spinner } from './core.js';
+import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, confirmDlg, btnBusy, i18nField, upload, signedUrl, safeName, fmtSize, trackTime, spinner, memo, memoClear } from './core.js';
 import { mountPlayer } from './player.js';
 import { testImportModal } from './tests.js';
 import { renderPdf } from './pdfjs.js';
@@ -7,7 +7,7 @@ import { CONFIG } from './config.js';
 
 addDict({
   uz: { 'lib.title': 'Kutubxona', 'lib.root': 'Bosh papka', 'lib.empty': 'Bu yerda hali hech narsa yo\'q', 'lib.folder': 'Papka', 'lib.new_folder': 'Yangi papka',
-    'lib.add_video': 'Video', 'lib.add_file': 'Fayl (PDF / taqdimot / kitob)', 'lib.add_test': 'Test', 'lib.add_link': 'Havola', 'lib.add': 'Qo\'shish',
+    'lib.add_video': 'Video', 'lib.add_audio': 'Audio', 'lib.k_audio': 'Audio', 'lib.src_aud': 'Audio fayl (mp3/m4a)', 'lib.add_file': 'Fayl (PDF / taqdimot / kitob)', 'lib.add_test': 'Test', 'lib.add_link': 'Havola', 'lib.add': 'Qo\'shish',
     'lib.title_f': 'Nomi', 'lib.desc': 'Tavsif (ixtiyoriy)', 'lib.price': 'Narxi, so\'m (0 = bepul)', 'lib.visible': 'Foydalanuvchilarga ko\'rinsin',
     'lib.hidden': 'Yashirin', 'lib.paid': 'Pullik', 'lib.locked_t': 'Pullik to\'plam', 'lib.locked_d': 'Bu to\'plamga kirish uchun so\'rov yuboring. Admin tasdiqlagach ochiladi.',
     'lib.request': 'Kirishni so\'rash', 'lib.requested': 'So\'rov yuborildi — admin javobini kuting', 'lib.pending': 'So\'rov ko\'rib chiqilmoqda',
@@ -19,7 +19,7 @@ addDict({
     'lib.url': 'Havola (URL)', 'lib.watched': 'Ko\'rilgan', 'lib.edit': 'Tahrirlash', 'lib.del_q': 'O\'chirilsinmi? Ichidagi hamma narsa ham o\'chadi.', 'lib.bad_yt': 'YouTube havolasi noto\'g\'ri',
     'lib.file_hint': 'Bepul rejada bitta fayl ≤ {mb} MB. Katta kitoblarni Google Drive/R2 ga qo\'yib, havola sifatida qo\'shing.' },
   ru: { 'lib.title': 'Библиотека', 'lib.root': 'Корневая папка', 'lib.empty': 'Здесь пока ничего нет', 'lib.folder': 'Папка', 'lib.new_folder': 'Новая папка',
-    'lib.add_video': 'Видео', 'lib.add_file': 'Файл (PDF / презентация / книга)', 'lib.add_test': 'Тест', 'lib.add_link': 'Ссылка', 'lib.add': 'Добавить',
+    'lib.add_video': 'Видео', 'lib.add_audio': 'Аудио', 'lib.k_audio': 'Аудио', 'lib.src_aud': 'Аудио файл (mp3/m4a)', 'lib.add_file': 'Файл (PDF / презентация / книга)', 'lib.add_test': 'Тест', 'lib.add_link': 'Ссылка', 'lib.add': 'Добавить',
     'lib.title_f': 'Название', 'lib.desc': 'Описание (необязательно)', 'lib.price': 'Цена, сум (0 = бесплатно)', 'lib.visible': 'Показывать пользователям',
     'lib.hidden': 'Скрыто', 'lib.paid': 'Платно', 'lib.locked_t': 'Платный набор', 'lib.locked_d': 'Отправьте запрос на доступ. После подтверждения админом набор откроется.',
     'lib.request': 'Запросить доступ', 'lib.requested': 'Запрос отправлен — ждите ответа админа', 'lib.pending': 'Запрос рассматривается',
@@ -31,7 +31,7 @@ addDict({
     'lib.url': 'Ссылка (URL)', 'lib.watched': 'Просмотрено', 'lib.edit': 'Изменить', 'lib.del_q': 'Удалить? Всё внутри тоже удалится.', 'lib.bad_yt': 'Неверная ссылка YouTube',
     'lib.file_hint': 'На бесплатном тарифе файл ≤ {mb} МБ. Большие книги загрузите в Google Drive/R2 и добавьте как ссылку.' },
   en: { 'lib.title': 'Library', 'lib.root': 'Root folder', 'lib.empty': 'Nothing here yet', 'lib.folder': 'Folder', 'lib.new_folder': 'New folder',
-    'lib.add_video': 'Video', 'lib.add_file': 'File (PDF / slides / book)', 'lib.add_test': 'Test', 'lib.add_link': 'Link', 'lib.add': 'Add',
+    'lib.add_video': 'Video', 'lib.add_audio': 'Audio', 'lib.k_audio': 'Audio', 'lib.src_aud': 'Audio file (mp3/m4a)', 'lib.add_file': 'File (PDF / slides / book)', 'lib.add_test': 'Test', 'lib.add_link': 'Link', 'lib.add': 'Add',
     'lib.title_f': 'Title', 'lib.desc': 'Description (optional)', 'lib.price': 'Price, UZS (0 = free)', 'lib.visible': 'Visible to users',
     'lib.hidden': 'Hidden', 'lib.paid': 'Paid', 'lib.locked_t': 'Paid collection', 'lib.locked_d': 'Send an access request. It unlocks once the admin approves.',
     'lib.request': 'Request access', 'lib.requested': 'Request sent — wait for the admin', 'lib.pending': 'Request is being reviewed',
@@ -45,7 +45,7 @@ addDict({
 });
 
 export const ytId = u => (String(u).match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([\w-]{11})/) || [])[1] || null;
-const KIND_IC = { video: 'video', pdf: 'file', presentation: 'file', book: 'book', test: 'test', link: 'link' };
+const KIND_IC = { video: 'video', audio: 'audio', pdf: 'file', presentation: 'file', book: 'book', test: 'test', link: 'link' };
 const fmtPrice = f => new Intl.NumberFormat('uz-UZ').format(f.price) + ' ' + (f.currency === 'UZS' ? (state.lang === 'en' ? 'UZS' : state.lang === 'ru' ? 'сум' : 'so\'m') : f.currency);
 
 async function crumbs(fid) {
@@ -60,7 +60,7 @@ const browse = async ({ el, params, alive }) => {
   const fq = sb.from('folders').select('*').order('sort').order('created_at');
   const iq = sb.from('items').select('*').order('sort').order('created_at');
   const [path, f, i, ent, reqs] = await Promise.all([
-    crumbs(fid), fid ? fq.eq('parent_id', fid) : fq.is('parent_id', null), fid ? iq.eq('folder_id', fid) : iq.is('folder_id', null),
+    memo('lib:crumbs:' + fid, 60000, () => crumbs(fid)), fid ? fq.eq('parent_id', fid) : fq.is('parent_id', null), fid ? iq.eq('folder_id', fid) : iq.is('folder_id', null),
     sb.from('entitlements').select('folder_id').eq('user_id', state.user.id), sb.from('access_requests').select('folder_id,status').eq('user_id', state.user.id),
   ]);
   if (!alive()) return;
@@ -71,13 +71,13 @@ const browse = async ({ el, params, alive }) => {
   const folders = f.data || [], items = lockedAnc ? [] : (i.data || []);
 
   let prog = {};
-  const vids = items.filter(x => x.kind === 'video').map(x => x.id);
+  const vids = items.filter(x => x.kind === 'video' || x.kind === 'audio').map(x => x.id);
   if (vids.length) (await sb.from('video_progress').select('item_id,last_pos,duration,completed').eq('user_id', state.user.id).in('item_id', vids)).data?.forEach(p => prog[p.item_id] = p);
 
   const crumbHtml = `<nav class="crumbs"><a href="#/library">${ic('home', 16)} ${esc(t('lib.title'))}</a>${path.map(p => ` ${ic('chev', 14)} <a href="#/library/${p.id}">${esc(tr(p.title))}</a>`).join('')}</nav>`;
   const adminBar = state.isAdmin && !lockedAnc ? `<div class="toolbar">
     <button class="btn sm" data-add="folder">${ic('folder', 16)} ${esc(t('lib.new_folder'))}</button><button class="btn sm" data-add="video">${ic('video', 16)} ${esc(t('lib.add_video'))}</button>
-    <button class="btn sm" data-add="file">${ic('file', 16)} ${esc(t('lib.add_file'))}</button><button class="btn sm" data-add="test">${ic('test', 16)} ${esc(t('lib.add_test'))}</button>
+    <button class="btn sm" data-add="audio">${ic('audio', 16)} ${esc(t('lib.add_audio'))}</button><button class="btn sm" data-add="file">${ic('file', 16)} ${esc(t('lib.add_file'))}</button><button class="btn sm" data-add="test">${ic('test', 16)} ${esc(t('lib.add_test'))}</button>
     <button class="btn sm" data-add="link">${ic('link', 16)} ${esc(t('lib.add_link'))}</button></div>` : '';
   const adm = (type, id, vis) => state.isAdmin ? `<span class="acts"><button data-vis="${type}:${id}:${vis ? 1 : 0}" title="visible">${ic(vis ? 'eye' : 'eyeoff', 16)}</button><button data-edit="${type}:${id}">${ic('edit', 16)}</button><button data-del="${type}:${id}">${ic('trash', 16)}</button></span>` : '';
 
@@ -99,7 +99,7 @@ const browse = async ({ el, params, alive }) => {
     if (error && !String(error.message).includes('duplicate')) return toast(error.message, 'err');
     toast(t('lib.requested'), 'ok'); browse({ el, params, alive });
   });
-  const refresh = () => browse({ el, params, alive });
+  const refresh = () => { memoClear('lib:'); return browse({ el, params, alive }); };
   $$('[data-open]', el).forEach(c => c.onclick = e => { if (e.target.closest('.acts')) return; const fo = folders.find(x => x.id === c.dataset.open); if (isLocked(fo)) lockedModal(fo, reqMap[fo.id]); else go('/library/' + fo.id); });
   $$('[data-item]', el).forEach(c => c.onclick = e => { if (e.target.closest('.acts')) return; openItem(items.find(x => x.id === c.dataset.item)); });
   $$('[data-add]', el).forEach(b => b.onclick = () => addDialog(b.dataset.add, fid, refresh));
@@ -133,7 +133,7 @@ route('/item/:id', async ({ el, params, alive }) => {
   const back = `#/library/${it.folder_id || ''}`;
   el.innerHTML = `<div class="page"><a class="btn ghost sm" href="${back}">${ic('back')}</a><h2 class="mt">${esc(tr(it.title))}</h2><div id="host" class="mb"></div>${tr(it.description) ? `<p class="pre muted">${esc(tr(it.description))}</p>` : ''}</div>`;
   const host = $('#host', el);
-  if (it.kind === 'video') { const pl = await mountPlayer(host, it); onLeave(() => pl.destroy()); return; }
+  if (it.kind === 'video' || it.kind === 'audio') { const pl = await mountPlayer(host, it); onLeave(() => pl.destroy()); return; }
   // o'qiladigan materiallar — o'qish vaqtini hisoblaymiz
   const tm = trackTime('book', it.id); onLeave(() => tm.stop());
   let url = it.url; if (!url && it.storage_path) url = await signedUrl('content', it.storage_path, 7200);
@@ -154,12 +154,13 @@ function addDialog(type, fid, done) {
     folder: `<label class="fld"><span>${esc(t('lib.price'))}</span><input class="input" id="pr" type="number" min="0" value="0"></label>`,
     video: `<div class="fld"><span>${esc(t('lib.src'))}</span><div class="seg"><label><input type="radio" name="s" value="youtube" checked><span>YouTube</span></label><label><input type="radio" name="s" value="url"><span>URL</span></label><label><input type="radio" name="s" value="storage"><span>${esc(t('lib.src_up'))}</span></label></div></div>
       <div id="vsrc"></div>`,
+    audio: `<div class="fld"><span>${esc(t('lib.src'))}</span><div class="seg"><label><input type="radio" name="s" value="storage" checked><span>${esc(t('lib.src_up'))}</span></label><label><input type="radio" name="s" value="url"><span>URL</span></label></div></div><div id="asrc"></div>`,
     file: `<div class="fld"><span>${esc(t('lib.kind'))}</span><div class="seg"><label><input type="radio" name="k" value="pdf" checked><span>${esc(t('lib.k_pdf'))}</span></label><label><input type="radio" name="k" value="presentation"><span>${esc(t('lib.k_presentation'))}</span></label><label><input type="radio" name="k" value="book"><span>${esc(t('lib.k_book'))}</span></label></div></div>
       <label class="fld"><span>${esc(t('lib.src_up'))}</span><input type="file" id="fl" accept=".pdf,.ppt,.pptx,.doc,.docx"></label><small class="muted">${esc(t('lib.file_hint', { mb: CONFIG.MAX_UPLOAD_MB }))}</small>
       <label class="fld"><span>${esc(t('lib.url'))}</span><input class="input" id="ur" type="url" placeholder="https://"></label>`,
     link: `<label class="fld"><span>${esc(t('lib.url'))}</span><input class="input" id="ur" type="url" placeholder="https://" required></label><small class="muted">${esc(t('lib.yt_hint'))}</small>`,
   };
-  const m = modal(`<h3>${esc(t(type === 'folder' ? 'lib.new_folder' : type === 'video' ? 'lib.add_video' : type === 'file' ? 'lib.add_file' : 'lib.add_link'))}</h3>
+  const m = modal(`<h3>${esc(t(type === 'folder' ? 'lib.new_folder' : type === 'video' ? 'lib.add_video' : type === 'audio' ? 'lib.add_audio' : type === 'file' ? 'lib.add_file' : 'lib.add_link'))}</h3>
     <form id="f" class="form"><label class="fld"><span>${esc(t('lib.title_f'))}</span><input class="input" id="ti" required maxlength="140"></label>
     <label class="fld"><span>${esc(t('lib.desc'))}</span><textarea class="input" id="de" rows="2"></textarea></label>${fields[type]}
     <label class="chk"><input type="checkbox" id="vi" checked> ${esc(t('lib.visible'))}</label><div class="err" id="err"></div><div class="prog" id="pg" hidden><i></i></div>
@@ -170,6 +171,12 @@ function addDialog(type, fid, done) {
       ? `<label class="fld"><span>${esc(t('lib.src_yt'))}</span><input class="input" id="ur" placeholder="https://youtu.be/..." required></label><small class="muted">${esc(t('lib.yt_hint'))}</small>`
       : s === 'url' ? `<label class="fld"><span>${esc(t('lib.src_url'))}</span><input class="input" id="ur" type="url" required></label><label class="fld"><span>${esc(t('lib.variants'))}</span><textarea class="input" id="vr" rows="3" placeholder="360p|https://...&#10;720p|https://..."></textarea></label>`
       : `<label class="fld"><span>${esc(t('lib.src_up'))} (mp4 ≤ ${CONFIG.MAX_UPLOAD_MB} MB)</span><input type="file" id="fl" accept="video/*" required></label>`; };
+    $$('input[name=s]', el).forEach(r => r.onchange = draw); draw();
+  }
+  if (type === 'audio') {
+    const draw = () => { const v = $('input[name=s]:checked', el).value; $('#asrc', el).innerHTML = v === 'url'
+      ? `<label class="fld"><span>URL (mp3/m4a)</span><input class="input" id="ur" type="url" required></label>`
+      : `<label class="fld"><span>${esc(t('lib.src_aud'))} ≤ ${CONFIG.MAX_UPLOAD_MB} MB</span><input type="file" id="fl" accept="audio/*" required></label>`; };
     $$('input[name=s]', el).forEach(r => r.onchange = draw); draw();
   }
   $('#f', el).onsubmit = async e => {
@@ -192,6 +199,8 @@ function addDialog(type, fid, done) {
             Object.assign(row, { source: 'url', url: $('#ur', el).value.trim() });
             const vs = ($('#vr', el).value || '').split('\n').map(l => l.split('|')).filter(p => p.length === 2).map(([label, url]) => ({ label: label.trim(), url: url.trim() })); if (vs.length) row.meta.sources = vs;
           } else await putFile($('#fl', el).files[0]);
+        } else if (type === 'audio') {
+          row.kind = 'audio'; if ($('input[name=s]:checked', el).value === 'url') Object.assign(row, { source: 'url', url: $('#ur', el).value.trim() }); else await putFile($('#fl', el).files[0]);
         } else if (type === 'file') {
           row.kind = $('input[name=k]:checked', el).value; const f = $('#fl', el).files[0], u = $('#ur', el).value.trim();
           if (f) await putFile(f); else if (u) Object.assign(row, { source: 'url', url: u }); else throw new Error(t('lib.url_or_file'));

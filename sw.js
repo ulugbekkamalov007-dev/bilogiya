@@ -1,8 +1,8 @@
 // Service worker: ilova qobig'i oflayn ochiladi; Supabase/API so'rovlari HECH QACHON keshlanmaydi.
-const VER = 'bio-v1';
+const VER = 'bio-v2';
 const SHELL = ['./', 'index.html', 'css/app.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png',
   'js/main.js', 'js/core.js', 'js/config.js', 'js/i18n.js', 'js/auth.js', 'js/lock.js', 'js/fx.js', 'js/pwa.js', 'js/home.js', 'js/library.js', 'js/player.js', 'js/pdfjs.js',
-  'js/tests.js', 'js/testparse.js', 'js/reports.js', 'js/groups.js', 'js/chat.js', 'js/media.js', 'js/news.js', 'js/inbox.js', 'js/settings.js', 'js/admin.js'];
+  'js/tests.js', 'js/testparse.js', 'js/reports.js', 'js/groups.js', 'js/chat.js', 'js/media.js', 'js/news.js', 'js/inbox.js', 'js/settings.js', 'js/admin.js', 'js/guide.js', 'js/contact.js'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(VER).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VER).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -13,7 +13,9 @@ self.addEventListener('fetch', e => {
   if (u.hostname.endsWith('supabase.co') || u.hostname.includes('youtube') || u.hostname.includes('ytimg') || u.hostname.includes('mymemory')) return; // tarmoqqa
   if (u.origin === location.origin) {
     // o'z fayllarimiz: avval tarmoq (yangilanish tez yetib borsin), oflayn bo'lsa kesh
-    e.respondWith(fetch(r).then(res => { if (res.ok) { const cp = res.clone(); caches.open(VER).then(c => c.put(r, cp)); } return res; }).catch(() => caches.match(r).then(m => m || caches.match('index.html'))));
+    const net = fetch(r).then(res => { if (res.ok) { const cp = res.clone(); caches.open(VER).then(c => c.put(r, cp)); } return res; });
+    const slow = new Promise((ok, no) => setTimeout(() => caches.match(r).then(m => m ? ok(m) : no()), 2000));
+    e.respondWith(Promise.race([net, slow]).catch(() => net).catch(() => caches.match(r).then(m => m || caches.match('index.html'))));
     return;
   }
   // CDN kutubxonalar (esm.sh, jsdelivr): kesh birinchi, fonda yangilash

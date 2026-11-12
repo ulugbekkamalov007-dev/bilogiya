@@ -1,5 +1,5 @@
 // Bosh sahifa (landing), kirish, ro'yxatdan o'tish, email tasdiqlash (OTP), parolni tiklash
-import { sb, state, t, addDict, route, go, esc, $, $$, ic, toast, setLang, btnBusy, rand } from './core.js';
+import { sb, state, t, addDict, route, go, esc, $, $$, ic, toast, setLang, btnBusy, rand, modal, genPassword, passScore } from './core.js';
 import { dnaHelix, cellSvg } from './fx.js';
 import { canInstall, installApp } from './pwa.js';
 import { CONFIG } from './config.js';
@@ -127,6 +127,24 @@ addDict({
   },
 });
 
+addDict({
+  uz: { 'pw.gen': 'Ishonchli parol yaratish', 'pw.gen_t': 'Ishonchli parol yaratildi', 'pw.gen_d': 'Uni albatta nusxalab oling yoki saqlang — keyin ko\'rsatilmaydi.',
+    'pw.copy': 'Nusxalash', 'pw.copied': 'Nusxalandi', 'pw.use_save': 'Ishlatish va saqlash', 'pw.use': 'Faqat ishlatish', 'pw.save_q': 'Brauzer parolni saqlashni taklif qiladi — «Saqlash»ni tanlang. Keyingi safar kirishda u tayyor turadi.',
+    'pw.weak': 'Parol juda oddiy. Harf, raqam va belgilarni aralashtiring yoki «Ishonchli parol yaratish» ni bosing.', 'pw.s0': 'Juda zaif', 'pw.s1': 'Zaif', 'pw.s2': 'O\'rtacha', 'pw.s3': 'Yaxshi', 'pw.s4': 'Juda ishonchli',
+    'pw.saved_use': 'Saqlangan parol bilan kirish', 'auth.throttle': 'Juda ko\'p noto\'g\'ri urinish. {s} soniyadan keyin qayta urinib ko\'ring.',
+    'auth.forgot_hint': 'Parol esingizdan chiqdimi? «Parolni unutdingizmi?» ni bosing — emailingizga kod yuboramiz.' },
+  ru: { 'pw.gen': 'Создать надёжный пароль', 'pw.gen_t': 'Надёжный пароль создан', 'pw.gen_d': 'Обязательно скопируйте или сохраните его — потом он не показывается.',
+    'pw.copy': 'Копировать', 'pw.copied': 'Скопировано', 'pw.use_save': 'Использовать и сохранить', 'pw.use': 'Только использовать', 'pw.save_q': 'Браузер предложит сохранить пароль — выберите «Сохранить». В следующий раз он подставится при входе.',
+    'pw.weak': 'Пароль слишком простой. Смешайте буквы, цифры и символы или нажмите «Создать надёжный пароль».', 'pw.s0': 'Очень слабый', 'pw.s1': 'Слабый', 'pw.s2': 'Средний', 'pw.s3': 'Хороший', 'pw.s4': 'Очень надёжный',
+    'pw.saved_use': 'Войти с сохранённым паролем', 'auth.throttle': 'Слишком много неверных попыток. Повторите через {s} сек.',
+    'auth.forgot_hint': 'Забыли пароль? Нажмите «Забыли пароль?» — мы отправим код на email.' },
+  en: { 'pw.gen': 'Generate a strong password', 'pw.gen_t': 'Strong password created', 'pw.gen_d': 'Be sure to copy or save it — it will not be shown again.',
+    'pw.copy': 'Copy', 'pw.copied': 'Copied', 'pw.use_save': 'Use and save', 'pw.use': 'Use only', 'pw.save_q': 'Your browser will offer to save the password — choose “Save”. Next time it is ready at sign-in.',
+    'pw.weak': 'Password is too simple. Mix letters, digits and symbols or tap “Generate a strong password”.', 'pw.s0': 'Very weak', 'pw.s1': 'Weak', 'pw.s2': 'Fair', 'pw.s3': 'Good', 'pw.s4': 'Very strong',
+    'pw.saved_use': 'Sign in with saved password', 'auth.throttle': 'Too many wrong attempts. Try again in {s} s.',
+    'auth.forgot_hint': 'Forgot your password? Tap “Forgot password?” — we email you a code.' },
+});
+
 const LANG_NAME = { uz: 'O\u02BBzbekcha', ru: 'Русский', en: 'English' };
 // Bitta tugma: joriy til. Bossangiz boshqa ikki til chiqadi, tanlasangiz almashadi.
 const langSwitch = () => `<div class="langdd"><button type="button" class="langcur" data-lcur aria-haspopup="true">🌐 ${LANG_NAME[state.lang]} <span class="caret">▾</span></button>
@@ -195,6 +213,29 @@ function shell(title, sub, body, { open = false, noLang = false } = {}) {
 }
 const passField = (id, label, auto = 'current-password') => `<label class="fld"><span>${esc(label)}</span>
   <div class="pw"><input class="input" id="${id}" type="password" autocomplete="${auto}" required><button type="button" class="pw-eye" data-eye="${id}" aria-label="show">${ic('eye')}</button></div></label>`;
+export const strengthBar = id => `<div class="pwmeter" data-for="${id}"><i></i><i></i><i></i><i></i><small></small></div>`;
+export function bindStrength(el, id) {
+  const inp = $('#' + id, el), box = $(`.pwmeter[data-for=${id}]`, el); if (!inp || !box) return;
+  const upd = () => { const { score } = passScore(inp.value); $$('i', box).forEach((x, k) => x.className = inp.value && k < score ? 'on s' + score : ''); $('small', box).textContent = inp.value ? t('pw.s' + score) : ''; };
+  inp.addEventListener('input', upd); upd(); box.update = upd;
+}
+// parol generatori (ro'yxatdan o'tish uchun)
+function bindGenerator(el, st) {
+  const btn = $('#gen', el); if (!btn) return;
+  btn.onclick = () => {
+    const pw = genPassword(14);
+    const m = modal(`<div class="center"><div class="bigic">🔐</div><h3>${esc(t('pw.gen_t'))}</h3></div><code class="genpw" id="gp">${esc(pw)}</code>
+      <p class="muted small">${esc(t('pw.gen_d'))}</p><p class="muted small">${esc(t('pw.save_q'))}</p>
+      <div class="stack"><button class="btn" id="cp">${esc(t('pw.copy'))}</button><button class="btn lg" id="us">${esc(t('pw.use_save'))}</button><button class="btn ghost" id="uo">${esc(t('pw.use'))}</button></div>`);
+    const fill = save => { $('#pw', el).value = pw; $('#pw2', el).value = pw; $('#pw', el).type = $('#pw2', el).type = 'text'; st.save = save; $$('.pwmeter', el).forEach(b => b.update?.()); m.close(); };
+    $('#cp', m.el).onclick = async () => { try { await navigator.clipboard.writeText(pw); toast(t('pw.copied'), 'ok'); } catch { /* */ } };
+    $('#us', m.el).onclick = () => fill(true); $('#uo', m.el).onclick = () => fill(false);
+  };
+}
+// brauzerning parol saqlash oynasini ochish (Chrome/Edge/Android). Keyingi kirishda login sahifasi shuni taklif qiladi.
+async function storeCred(email, password, name) {
+  try { if (window.PasswordCredential) { await navigator.credentials.store(new PasswordCredential({ id: email, password, name })); localStorage.setItem('bio.hasCred', '1'); } } catch { /* */ }
+}
 function bindEyes(el) { $$('[data-eye]', el).forEach(b => b.onclick = () => { const i = $('#' + b.dataset.eye, el); i.type = i.type === 'password' ? 'text' : 'password'; }); }
 function mountArt(el) { const d = $('#adna', el); if (d) dnaHelix(d, { rows: 14, w: 160, h: 300 }); bindLang(el); bindEyes(el); }
 
@@ -207,17 +248,27 @@ route('/login', async ({ el }) => {
       ${passField('pw', t('auth.pass'))}
       <div class="err" id="err"></div>
       <button class="btn lg block" id="go">${esc(t('land.login'))}</button>
+      ${window.PasswordCredential && localStorage.getItem('bio.hasCred') ? `<button type="button" class="btn soft block mt" id="cred">🔑 ${esc(t('pw.saved_use'))}</button>` : ''}
       <div class="row between mt"><a href="#/forgot">${esc(t('auth.forgot'))}</a><span class="muted">${esc(t('auth.no_acc'))} <a href="#/register">${esc(t('land.register'))}</a></span></div>
     </form>`);
   mountArt(el);
+  $('#cred', el)?.addEventListener('click', async () => {
+    try { const c = await navigator.credentials.get({ password: true, mediation: 'optional' }); if (c?.password) { $('#em', el).value = c.id; $('#pw', el).value = c.password; } } catch { /* */ }
+  });
   $('#f', el).onsubmit = async e => {
-    e.preventDefault(); const b = $('#go', el); btnBusy(b, true); $('#err', el).textContent = '';
+    e.preventDefault(); const b = $('#go', el); $('#err', el).textContent = '';
+    // oddiy himoya: ketma-ket noto'g'ri urinishlardan keyin vaqtincha to'xtatish
+    const th = JSON.parse(localStorage.getItem('bio.loginfail') || '{"n":0,"until":0}');
+    if (th.until > Date.now()) return $('#err', el).textContent = t('auth.throttle', { s: Math.ceil((th.until - Date.now()) / 1000) });
+    btnBusy(b, true);
     const email = $('#em', el).value.trim().toLowerCase();
     const { error } = await sb.auth.signInWithPassword({ email, password: $('#pw', el).value });
     btnBusy(b, false);
+    if (!error) localStorage.removeItem('bio.loginfail');
+    else if (/invalid login/i.test(error.message || '')) { th.n++; if (th.n >= 5) { th.until = Date.now() + Math.min(600, 30 * (th.n - 4)) * 1000; } localStorage.setItem('bio.loginfail', JSON.stringify(th)); }
     if (error) {
       if ((error.message || '').toLowerCase().includes('not confirmed')) { await sb.auth.resend({ type: 'signup', email }); return go('/verify?type=signup&email=' + encodeURIComponent(email)); }
-      $('#err', el).textContent = authErr(error);
+      $('#err', el).textContent = authErr(error) + (/invalid login/i.test(error.message || '') ? '\n' + t('auth.forgot_hint') : '');
     }
     // muvaffaqiyatli bo'lsa main.js dagi onAuthStateChange yo'naltiradi
   };
@@ -232,25 +283,29 @@ route('/register', async ({ el }) => {
       <div class="fld"><span>${esc(t('auth.gender'))}</span>
         <div class="seg"><label><input type="radio" name="g" value="m" checked><span>${esc(t('auth.male'))}</span></label><label><input type="radio" name="g" value="f"><span>${esc(t('auth.female'))}</span></label></div></div>
       <label class="fld"><span>${esc(t('auth.email'))}</span><input class="input" id="em" type="email" autocomplete="email" inputmode="email" required></label>
-      ${passField('pw', t('auth.pass'), 'new-password')}
+      ${passField('pw', t('auth.pass'), 'new-password')}${strengthBar('pw')}
       ${passField('pw2', t('auth.pass2'), 'new-password')}
+      <button type="button" class="btn soft" id="gen">🔐 ${esc(t('pw.gen'))}</button>
       <small class="muted">${esc(t('auth.pass_hint'))}</small>
       <div class="err" id="err"></div>
       <button class="btn lg block" id="go">${esc(t('land.register'))}</button>
       <p class="center muted mt">${esc(t('auth.has_acc'))} <a href="#/login">${esc(t('land.login'))}</a></p>
     </form>`);
   mountArt(el);
+  const st = { save: false }; bindStrength(el, 'pw'); bindGenerator(el, st);
   $('#f', el).onsubmit = async e => {
     e.preventDefault(); const err = $('#err', el); err.textContent = '';
     const name = $('#nm', el).value.trim(), email = $('#em', el).value.trim().toLowerCase(), p1 = $('#pw', el).value, p2 = $('#pw2', el).value;
     if (name.length < 3) return err.textContent = t('auth.err_name');
     if (p1.length < 8) return err.textContent = t('auth.err_pass_len');
+    if (passScore(p1).issue) return err.textContent = t('pw.weak');
     if (p1 !== p2) return err.textContent = t('auth.err_pass_match');
     const b = $('#go', el); btnBusy(b, true);
     const { data, error } = await sb.auth.signUp({ email, password: p1, options: { data: { full_name: name, gender: $('input[name=g]:checked', el).value, lang: state.lang } } });
     btnBusy(b, false);
     if (error) return err.textContent = authErr(error);
     if (data.user && data.user.identities && data.user.identities.length === 0) return err.textContent = t('auth.err_exists');
+    if (st.save) await storeCred(email, p1, name);
     if (!data.session) go('/verify?type=signup&email=' + encodeURIComponent(email));
   };
 });
@@ -261,7 +316,7 @@ route('/verify', async ({ el, q }) => {
   if (!email) return go('/login', true);
   el.innerHTML = shell(t('ver.title'), t('ver.sent', { email }), `
     <form id="f" class="form">
-      <input class="input otp" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="• • • • • •" required>
+      <input class="input otp" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="${CONFIG.OTP_LENGTH}" placeholder="${'•'.repeat(CONFIG.OTP_LENGTH)}" required>
       <small class="muted">${esc(t('ver.hint'))}</small>
       <div class="err" id="err"></div>
       <button class="btn lg block" id="go">${esc(t('ver.confirm'))}</button>
@@ -288,7 +343,7 @@ route('/verify', async ({ el, q }) => {
     // signup: onAuthStateChange → /home
   };
   $('#f', el).onsubmit = e => { e.preventDefault(); submit(); };
-  otp.oninput = () => { if (otp.value.replace(/\D/g, '').length === CONFIG.OTP_LENGTH) submit(); };
+  otp.oninput = () => { otp.value = otp.value.replace(/\D/g, '').slice(0, CONFIG.OTP_LENGTH); if (otp.value.length === CONFIG.OTP_LENGTH) submit(); };
 });
 
 // ------------------------------------------------------------------ FORGOT / NEW PASSWORD
@@ -313,12 +368,13 @@ route('/forgot', async ({ el }) => {
 route('/newpass', async ({ el }) => {
   if (!state.user) return go('/login', true);
   el.innerHTML = shell(t('rec.new'), '', `
-    <form id="f" class="form">${passField('pw', t('rec.new'), 'new-password')}${passField('pw2', t('auth.pass2'), 'new-password')}
+    <form id="f" class="form">${passField('pw', t('rec.new'), 'new-password')}${strengthBar('pw')}${passField('pw2', t('auth.pass2'), 'new-password')}
       <div class="err" id="err"></div><button class="btn lg block" id="go">${esc(t('rec.save'))}</button></form>`, { open: true, noLang: true });
-  mountArt(el);
+  mountArt(el); bindStrength(el, 'pw');
   $('#f', el).onsubmit = async e => {
     e.preventDefault(); const p1 = $('#pw', el).value, p2 = $('#pw2', el).value, err = $('#err', el);
     if (p1.length < 8) return err.textContent = t('auth.err_pass_len');
+    if (passScore(p1).issue) return err.textContent = t('pw.weak');
     if (p1 !== p2) return err.textContent = t('auth.err_pass_match');
     const b = $('#go', el); btnBusy(b, true);
     const { error } = await sb.auth.updateUser({ password: p1 }); btnBusy(b, false);

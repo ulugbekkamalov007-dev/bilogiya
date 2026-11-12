@@ -62,6 +62,9 @@ const IC = {
   user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   folder: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+  audio: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
   video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
   file: '<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/>',
   test: '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
@@ -255,4 +258,33 @@ export async function render() {
 export async function loadSettings() {
   const { data } = await sb.from('app_settings').select('key,value');
   (data || []).forEach(r => { state.settings[r.key] = r.value; });
+}
+
+
+// ---------- kichik xotira keshi (tez ochilish): bir xil so'rovni qisqa muddat qayta yubormaydi
+const MEMO = new Map();
+export async function memo(key, ttl, fn) {
+  const h = MEMO.get(key); if (h && Date.now() - h.t < ttl) return h.v;
+  const v = await fn(); MEMO.set(key, { t: Date.now(), v }); return v;
+}
+export function memoClear(prefix = '') { for (const k of [...MEMO.keys()]) if (k.startsWith(prefix)) MEMO.delete(k); }
+
+// ---------- parol: kuchli parol yaratish va baholash
+const COMMON = ['12345678', '123456789', 'password', 'qwertyui', '11111111', '00000000', 'umidjon21', 'ulugbek0829', 'parol123', 'password1', 'iloveyou', '87654321'];
+export function genPassword(len = 14) {
+  const sets = ['ABCDEFGHJKLMNPQRSTUVWXYZ', 'abcdefghijkmnpqrstuvwxyz', '23456789', '!@#$%^&*?-_'];
+  const rnd = n => { const a = new Uint32Array(1); let x; do { crypto.getRandomValues(a); x = a[0]; } while (x >= Math.floor(4294967296 / n) * n); return x % n; };
+  const all = sets.join(''), out = sets.map(s => s[rnd(s.length)]);
+  while (out.length < len) out.push(all[rnd(all.length)]);
+  for (let i = out.length - 1; i > 0; i--) { const j = rnd(i + 1); [out[i], out[j]] = [out[j], out[i]]; }
+  return out.join('');
+}
+// 0..4 ball + muammo kodi (null = yaxshi)
+export function passScore(p) {
+  p = p || ''; let sc = 0;
+  if (p.length >= 8) sc++; if (p.length >= 12) sc++;
+  if (/[a-z]/.test(p) && /[A-Z]/.test(p)) sc++; if (/\d/.test(p) && /[^A-Za-z0-9]/.test(p)) sc++;
+  let issue = null;
+  if (p.length < 8) issue = 'len'; else if (COMMON.includes(p.toLowerCase()) || /^(.)\1+$/.test(p) || /^\d+$/.test(p)) { issue = 'weak'; sc = Math.min(sc, 1); }
+  return { score: Math.min(4, sc), issue };
 }
