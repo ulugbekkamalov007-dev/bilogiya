@@ -5,13 +5,13 @@ import { sb, state, t, addDict, esc, ic, $, $$, toast, fmtDur, trackTime, signed
 addDict({
   uz: { 'pl.speed': 'Tezlik', 'pl.quality': 'Sifat', 'pl.auto': 'Avto', 'pl.no_fwd': 'Videoni oldinga o\'tkazib bo\'lmaydi — har bir daqiqani ko\'ring',
     'pl.back': 'Orqaga {s} s', 'pl.fwd': 'Oldinga {s} s', 'pl.done': 'Video ko\'rib bo\'ldi ✔', 'pl.resume': 'Oxirgi joydan davom ettirildi', 'pl.err': 'Videoni yuklab bo\'lmadi',
-    'pl.watched': 'Ko\'rilgan', 'pl.resume_at': '{t} dan davom etdi' },
+    'pl.watched': 'Ko\'rilgan', 'pl.resume_at': '{t} dan davom etdi', 'pl.offline': 'Internet yo\'q — ijro to\'xtatildi, vaqt hisoblanmaydi' },
   ru: { 'pl.speed': 'Скорость', 'pl.quality': 'Качество', 'pl.auto': 'Авто', 'pl.no_fwd': 'Видео нельзя перематывать вперёд — смотрите каждую минуту',
     'pl.back': 'Назад {s} с', 'pl.fwd': 'Вперёд {s} с', 'pl.done': 'Видео просмотрено ✔', 'pl.resume': 'Продолжено с последнего места', 'pl.err': 'Не удалось загрузить видео',
-    'pl.watched': 'Просмотрено', 'pl.resume_at': 'Продолжено с {t}' },
+    'pl.watched': 'Просмотрено', 'pl.resume_at': 'Продолжено с {t}', 'pl.offline': 'Нет интернета — пауза, время не считается' },
   en: { 'pl.speed': 'Speed', 'pl.quality': 'Quality', 'pl.auto': 'Auto', 'pl.no_fwd': 'You can\'t skip ahead — watch every minute',
     'pl.back': 'Back {s}s', 'pl.fwd': 'Forward {s}s', 'pl.done': 'Video completed ✔', 'pl.resume': 'Resumed where you left off', 'pl.err': 'Could not load the video',
-    'pl.watched': 'Watched', 'pl.resume_at': 'Resumed at {t}' },
+    'pl.watched': 'Watched', 'pl.resume_at': 'Resumed at {t}', 'pl.offline': 'No internet — paused, time is not counted' },
 });
 
 const loadScript = src => new Promise((res, rej) => { if (document.querySelector(`script[src="${src}"]`)) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
@@ -199,12 +199,14 @@ export async function mountPlayer(host, item) {
   const mark = q('.vmark'); const markIv = mark ? setInterval(() => { mark.style.top = (8 + Math.random() * 70) + '%'; mark.style.left = (4 + Math.random() * 60) + '%'; }, 7000) : null;
   const vis = () => { if (document.hidden) { save(true).catch(() => {}); if (S.pause_when_hidden && !isAud && ad.playing()) ad.pause(); } };
   document.addEventListener('visibilitychange', vis);
+  const off = () => { if (ad.playing()) { ad.pause(); } msg(t('pl.offline')); };
+  addEventListener('offline', off);
   const ui = setInterval(paint, 500);
   const onFs = () => root.classList.toggle('is-full', !!document.fullscreenElement); document.addEventListener('fullscreenchange', onFs);
 
   return {
     async destroy() {
-      clearInterval(ui); clearInterval(markIv); document.removeEventListener('visibilitychange', vis); document.removeEventListener('fullscreenchange', onFs);
+      clearInterval(ui); clearInterval(markIv); document.removeEventListener('visibilitychange', vis); removeEventListener('offline', off); document.removeEventListener('fullscreenchange', onFs);
       try { await save(true); } catch { /* */ } timer.stop(); ad.destroy();
     },
   };

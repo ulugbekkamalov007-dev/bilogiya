@@ -31,7 +31,7 @@ export function saveVcf() {
 export const contactCards = () => `<div class="cards">
   <button class="card pad item-row" data-ct="call"><span class="item-ic">${ic('phone')}</span><div class="grow left"><b>${esc(t('ct.phone'))}</b><br><small class="muted">${esc(CONFIG.DEV_PHONE_LABEL)}</small></div>${ic('chev')}</button>
   <button class="card pad item-row" data-ct="tg"><span class="item-ic">${ic('send')}</span><div class="grow left"><b>${esc(t('ct.tg'))}</b><br><small class="muted">@${esc(CONFIG.DEV_TG)}</small></div>${ic('chev')}</button>
-  <button class="card pad item-row" data-ct="vcf"><span class="item-ic">${ic('download')}</span><b class="grow left">${esc(t('ct.vcf'))}</b>${ic('chev')}</button></div>`;
+  ${state.isAdmin ? `<button class="card pad item-row" data-ct="vcf"><span class="item-ic">${ic('download')}</span><b class="grow left">${esc(t('ct.vcf'))}</b>${ic('chev')}</button>` : ''}</div>`;
 export function bindContact(root) {
   root.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => ({ call: callDev, tg: openTg, vcf: saveVcf })[b.dataset.ct]());
 }
@@ -39,7 +39,7 @@ export function bindContact(root) {
 // Birinchi kirishdan keyin (foydalanuvchi ham, admin ham): "raqamni saqlab qo'ying". "Kiritdim" bosilsa — qaytib so'ramaydi.
 let shownThisSession = false;
 export function maybeDevNote() {
-  if (!state.user || shownThisSession) return; shownThisSession = true;
+  if (!state.user || !state.isAdmin || shownThisSession) return; shownThisSession = true;
   if (state.profile?.prefs?.dev_saved || localStorage.getItem('bio.devnote.' + state.user.id)) return;
   const m = modal(`<div class="center"><div class="bigic">📞</div><h3>${esc(t('ct.note_t'))}</h3><p class="muted">${esc(t('ct.note_d'))}</p></div>${contactCards()}
     <div class="row mt"><button class="btn grow" id="ok">${esc(t('ct.saved'))}</button><button class="btn ghost grow" id="lt">${esc(t('ct.later'))}</button></div>`);

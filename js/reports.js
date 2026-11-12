@@ -3,17 +3,17 @@
 import { sb, state, t, tr, addDict, route, go, esc, ic, $, $$, modal, fmtMin, fmtDate, dayStr, addDays, fmtDur, spinner } from './core.js';
 
 addDict({
-  uz: { 'rep.mine': 'Mening hisobotim', 'rep.lb': 'Reyting', 'rep.all': 'Hammasi', 'rep.lb_off': 'Reyting o\'chirilgan', 'rep.title': 'Hisobot', 'rep.of': '{name} — hisobot', 'rep.today': 'Bugun', 'rep.week': 'Oxirgi 7 kun', 'rep.total': 'Jami', 'rep.p7': '7 kun', 'rep.p30': '30 kun', 'rep.p12w': '12 hafta',
+  uz: { 'rep.kind_hint': 'Kategoriyani bosing — qaysi materialga qancha vaqt ketgani ko\'rinadi', 'rep.mine': 'Mening hisobotim', 'rep.lb': 'Reyting', 'rep.all': 'Hammasi', 'rep.lb_off': 'Reyting o\'chirilgan', 'rep.title': 'Hisobot', 'rep.of': '{name} — hisobot', 'rep.today': 'Bugun', 'rep.week': 'Oxirgi 7 kun', 'rep.total': 'Jami', 'rep.p7': '7 kun', 'rep.p30': '30 kun', 'rep.p12w': '12 hafta',
     'rep.time_chart': 'O\'qish vaqti (daqiqa)', 'rep.by_kind': 'Bo\'limlar bo\'yicha', 'rep.video': 'Video', 'rep.book': 'Kitob/material', 'rep.test': 'Test', 'rep.other': 'Ilovada sayr qilish', 'rep.audio': 'Audio', 'rep.app': 'Ilovada',
     'rep.items': 'Materiallar bo\'yicha vaqt', 'rep.tests': 'Test natijalari', 'rep.attempts': 'Urinishlar', 'rep.avg': 'O\'rtacha', 'rep.best': 'Eng yaxshi', 'rep.correct': 'to\'g\'ri',
     'rep.no_data': 'Ma\'lumot hali yo\'q', 'rep.day_detail': 'Kunlik to\'liq hisobot', 'rep.day': 'Kun', 'rep.min': 'daq', 'rep.close': 'Yopish', 'rep.hint': 'Kartani yoki ustunni bosing — kunlik tafsilot ochiladi',
     'rep.week_of': 'hafta', 'rep.deleted': '(o\'chirilgan material)' },
-  ru: { 'rep.mine': 'Мой отчёт', 'rep.lb': 'Рейтинг', 'rep.all': 'Всё время', 'rep.lb_off': 'Рейтинг отключён', 'rep.title': 'Отчёт', 'rep.of': '{name} — отчёт', 'rep.today': 'Сегодня', 'rep.week': 'Последние 7 дней', 'rep.total': 'Всего', 'rep.p7': '7 дней', 'rep.p30': '30 дней', 'rep.p12w': '12 недель',
+  ru: { 'rep.kind_hint': 'Нажмите на категорию — увидите, на какие материалы ушло время', 'rep.mine': 'Мой отчёт', 'rep.lb': 'Рейтинг', 'rep.all': 'Всё время', 'rep.lb_off': 'Рейтинг отключён', 'rep.title': 'Отчёт', 'rep.of': '{name} — отчёт', 'rep.today': 'Сегодня', 'rep.week': 'Последние 7 дней', 'rep.total': 'Всего', 'rep.p7': '7 дней', 'rep.p30': '30 дней', 'rep.p12w': '12 недель',
     'rep.time_chart': 'Время обучения (минуты)', 'rep.by_kind': 'По разделам', 'rep.video': 'Видео', 'rep.book': 'Книги/материалы', 'rep.test': 'Тесты', 'rep.other': 'Прогулка по приложению', 'rep.audio': 'Аудио', 'rep.app': 'В приложении',
     'rep.items': 'Время по материалам', 'rep.tests': 'Результаты тестов', 'rep.attempts': 'Попытки', 'rep.avg': 'Среднее', 'rep.best': 'Лучший', 'rep.correct': 'верно',
     'rep.no_data': 'Данных пока нет', 'rep.day_detail': 'Подробный отчёт по дням', 'rep.day': 'День', 'rep.min': 'мин', 'rep.close': 'Закрыть', 'rep.hint': 'Нажмите на карточку или столбец — откроется детализация по дням',
     'rep.week_of': 'неделя', 'rep.deleted': '(удалённый материал)' },
-  en: { 'rep.mine': 'My report', 'rep.lb': 'Leaderboard', 'rep.all': 'All time', 'rep.lb_off': 'Leaderboard is off', 'rep.title': 'Report', 'rep.of': '{name} — report', 'rep.today': 'Today', 'rep.week': 'Last 7 days', 'rep.total': 'Total', 'rep.p7': '7 days', 'rep.p30': '30 days', 'rep.p12w': '12 weeks',
+  en: { 'rep.kind_hint': 'Tap a category to see which items took the time', 'rep.mine': 'My report', 'rep.lb': 'Leaderboard', 'rep.all': 'All time', 'rep.lb_off': 'Leaderboard is off', 'rep.title': 'Report', 'rep.of': '{name} — report', 'rep.today': 'Today', 'rep.week': 'Last 7 days', 'rep.total': 'Total', 'rep.p7': '7 days', 'rep.p30': '30 days', 'rep.p12w': '12 weeks',
     'rep.time_chart': 'Study time (minutes)', 'rep.by_kind': 'By section', 'rep.video': 'Video', 'rep.book': 'Books/materials', 'rep.test': 'Tests', 'rep.other': 'Browsing the app', 'rep.audio': 'Audio', 'rep.app': 'In app',
     'rep.items': 'Time per material', 'rep.tests': 'Test results', 'rep.attempts': 'Attempts', 'rep.avg': 'Average', 'rep.best': 'Best', 'rep.correct': 'correct',
     'rep.no_data': 'No data yet', 'rep.day_detail': 'Full daily report', 'rep.day': 'Day', 'rep.min': 'min', 'rep.close': 'Close', 'rep.hint': 'Tap a card or a bar to open the daily breakdown',
@@ -71,27 +71,32 @@ async function renderReport(el, uid, name, alive) {
     if (weeks) { const g = {}; days.forEach(d => { const m = dayStr(mondayOf(new Date(d))); (g[m] ||= []).push(d); }); buckets = Object.entries(g).map(([m, ds]) => mk('w:' + ds[0] + ':' + ds[ds.length - 1], fmtDate(m), ds)); }
     else buckets = days.map(d => mk('d:' + d, nDays > 14 ? d.slice(8) : fmtDate(d), [d]));
     const sec = (ds, k) => ds.reduce((a, d) => a + ((byDay[d]?.[k] || 0) * 60), 0);
-    const last7 = days.slice(-7), appTotal = (all.data || []).reduce((a, r) => a + (r.kind === 'app' ? +r.seconds : 0), 0);
+    const last7 = days.slice(-7);
+    const dayTot = x => x ? x.video + x.audio + x.book + x.test + Math.max(0, x.app - x.video - x.audio - x.book - x.test) : 0;   // daqiqa
+    const allBy = {}; (all.data || []).forEach(r => { (allBy[r.day] ||= { app: 0, video: 0, audio: 0, book: 0, test: 0 })[r.kind] += +r.seconds / 60; });
+    const appTotal = Object.values(allBy).reduce((a, x) => a + dayTot(x) * 60, 0);
+    const secTot = ds => ds.reduce((a, d) => a + dayTot(byDay[d]) * 60, 0);
     const kindTot = k => rows.reduce((a, r) => a + (r.kind === k ? +r.seconds : 0), 0);
     const kinds = [['video', kindTot('video')], ['audio', kindTot('audio')], ['book', kindTot('book')], ['test', kindTot('test')], ['other', Math.round(buckets.reduce((a, b) => a + b.other, 0) * 60)]];
     const kmax = Math.max(1, ...kinds.map(k => k[1]));
     const pcts = tests.map(x => +x.percent), avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null;
 
-    el.innerHTML = `<div class="page">${name ? `<a class="btn ghost sm" href="#/reports/all">${ic('back')}</a>` : tabs('me')}<div class="row between wrap"><h1>${esc(name ? t('rep.of', { name }) : t('rep.title'))}</h1>${name && state.isAdmin ? `<a class="btn sm ghost" href="#/inbox/${uid}">${ic('send', 14)}</a>` : ''}
+    el.innerHTML = `<div class="page">${name ? `<a class="btn ghost sm" href="#/rating">${ic('back')}</a>` : ''}<div class="row between wrap"><h1>${esc(name ? t('rep.of', { name }) : t('rep.title'))}</h1>${name && state.isAdmin ? `<a class="btn sm ghost" href="#/inbox/${uid}">${ic('send', 14)}</a>` : ''}
       <div class="seg sm">${[['7', 'rep.p7'], ['30', 'rep.p30'], ['12w', 'rep.p12w']].map(([v, k]) => `<label><input type="radio" name="pp" value="${v}" ${v === period ? 'checked' : ''}><span>${esc(t(k))}</span></label>`).join('')}</div></div>
       <p class="muted small">${esc(t('rep.hint'))}</p>
-      <div class="stats3 mb"><button class="stat card" data-sum="today"><span>${esc(t('rep.today'))}</span><b>${esc(fmtMin(sec([dayStr(today)], 'app')))}</b></button>
-        <button class="stat card" data-sum="week"><span>${esc(t('rep.week'))}</span><b>${esc(fmtMin(sec(last7, 'app')))}</b></button>
+      <div class="stats3 mb"><button class="stat card" data-sum="today"><span>${esc(t('rep.today'))}</span><b>${esc(fmtMin(secTot([dayStr(today)])))}</b></button>
+        <button class="stat card" data-sum="week"><span>${esc(t('rep.week'))}</span><b>${esc(fmtMin(secTot(last7)))}</b></button>
         <button class="stat card" data-sum="all"><span>${esc(t('rep.total'))}</span><b>${esc(fmtMin(appTotal))}</b></button></div>
       <div class="card pad mb"><h3>${esc(t('rep.time_chart'))}</h3>${buckets.some(b => b.total > 0) ? stackedChart(buckets) : `<p class="muted center pad">${esc(t('rep.no_data'))}</p>`}
         <div class="legend">${['video', 'audio', 'book', 'test', 'other'].map(k => `<span><i style="background:${COL[k]}"></i>${esc(t('rep.' + k))}</span>`).join('')}</div></div>
-      <div class="card pad mb"><h3>${esc(t('rep.by_kind'))}</h3>${kinds.map(([k, s]) => `<div class="hbar"><span>${esc(t('rep.' + k))}</span><div><i style="width:${s / kmax * 100}%;background:${COL[k]}"></i></div><b>${esc(fmtMin(s))}</b></div>`).join('')}</div>
+      <div class="card pad mb"><h3>${esc(t('rep.by_kind'))}</h3>${kinds.map(([k, s]) => `<div class="hbar ${k !== 'other' ? 'clk' : ''}" ${k !== 'other' ? `data-kind="${k}" role="button" tabindex="0"` : ''}><span>${esc(t('rep.' + k))}</span><div><i style="width:${s / kmax * 100}%;background:${COL[k]}"></i></div><b>${esc(fmtMin(s))}${k !== 'other' ? ' ›' : ''}</b></div>`).join('')}<small class="muted">${esc(t('rep.kind_hint'))}</small></div>
       <div class="card pad mb"><h3>${esc(t('rep.items'))}</h3>${items.length ? `<div class="tbl">${items.map(i => `<div class="trow"><span class="item-ic ${i.kind === 'book' ? 'book' : i.kind}">${ic(i.kind === 'video' ? 'video' : i.kind === 'audio' ? 'audio' : i.kind === 'test' ? 'test' : 'book', 16)}</span><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}</span><b>${esc(fmtMin(i.seconds))}</b></div>`).join('')}</div>` : `<p class="muted">${esc(t('rep.no_data'))}</p>`}</div>
       <div class="card pad mb"><h3>${esc(t('rep.tests'))}</h3>${tests.length ? `<div class="stats3"><div class="stat"><span>${esc(t('rep.attempts'))}</span><b>${tests.length}</b></div><div class="stat"><span>${esc(t('rep.avg'))}</span><b>${avg}%</b></div><div class="stat"><span>${esc(t('rep.best'))}</span><b>${Math.round(Math.max(...pcts))}%</b></div></div>
         ${lineChart(tests.map(x => ({ v: +x.percent, label: fmtDate(x.day) + ' · ' + tr(x.title) })))}
         <div class="tbl mt">${[...tests].reverse().slice(0, 30).map(x => `<div class="trow"><small class="muted">${esc(fmtDate(x.day))}</small><span class="grow">${esc(tr(x.title))}</span><span class="muted">${x.correct}/${x.total}</span><b class="${x.percent >= 70 ? 'ok' : x.percent >= 50 ? '' : 'bad'}">${Math.round(x.percent)}%</b></div>`).join('')}</div>` : `<p class="muted">${esc(t('rep.no_data'))}</p>`}</div></div>`;
 
     $$('input[name=pp]', el).forEach(r => r.onchange = () => { period = r.value; localStorage.setItem('bio.repP', period); draw(); });
+    $$('.hbar.clk', el).forEach(h => h.onclick = () => kindDetail(h.dataset.kind, items, tests));
     $$('.cbar', el).forEach(g => g.onclick = () => { const [ty, a, b] = g.dataset.k.split(':'); dayDetail(uid, a, b || a, byDay, tests); });
     $$('[data-sum]', el).forEach(b => b.onclick = async () => {
       const k = b.dataset.sum; if (k === 'today') return dayDetail(uid, dayStr(today), dayStr(today), byDay, tests);
@@ -101,6 +106,12 @@ async function renderReport(el, uid, name, alive) {
     });
   };
   await draw();
+}
+
+// Kategoriya bosilganda: aynan qaysi material(lar)ga qancha vaqt ketgani
+function kindDetail(kind, items, tests) {
+  const list = items.filter(i => i.kind === kind), tot = list.reduce((a, i) => a + +i.seconds, 0);
+  modal(`<h3>${esc(t('rep.' + kind))} · ${esc(fmtMin(tot))}</h3>${list.length ? `<div class="tbl">${list.map(i => `<div class="trow"><span class="item-ic ${kind}">${ic(kind === 'video' ? 'video' : kind === 'audio' ? 'audio' : kind === 'test' ? 'test' : 'book', 16)}</span><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}</span><b>${esc(fmtMin(i.seconds))}</b></div>`).join('')}</div>` : `<p class="muted">${esc(t('rep.no_data'))}</p>`}`, { cls: 'wide' });
 }
 
 // Kunlik to'liq hisobot oynasi: har bir kun uchun vaqt + ichidagi materiallar
@@ -113,7 +124,7 @@ async function dayDetail(uid, from, to, byDay, tests, allTime) {
   const per = await Promise.all(first.map(d => sb.rpc('report_usage_items', { p_user: uid, p_from: d, p_to: d })));
   $('#dd', m.el).innerHTML = `${bucket.length > 1 && bucket.length <= 62 ? stackedChart(bucket.slice(-31)) : ''}
     <div class="tbl">${first.map((d, i) => { const x = byDay[d] || { app: 0, video: 0, audio: 0, book: 0, test: 0 }, its = per[i].data || [], ts = tests.filter(q => q.day === d);
-      return `<details class="dday" ${first.length === 1 ? 'open' : ''}><summary><b>${esc(fmtDate(d))}</b><span class="grow"></span><span>${esc(fmtMin(x.app * 60))}</span></summary>
+      return `<details class="dday" ${first.length === 1 ? 'open' : ''}><summary><b>${esc(fmtDate(d))}</b><span class="grow"></span><span>${esc(fmtMin((x.video + (x.audio || 0) + x.book + x.test + Math.max(0, x.app - x.video - (x.audio || 0) - x.book - x.test)) * 60))}</span></summary>
         <div class="chips"><span class="chip" style="border-color:${COL.video}">${esc(t('rep.video'))}: ${Math.round(x.video)} ${esc(t('rep.min'))}</span><span class="chip" style="border-color:${COL.audio}">${esc(t('rep.audio'))}: ${Math.round(x.audio || 0)} ${esc(t('rep.min'))}</span><span class="chip" style="border-color:${COL.other}">${esc(t('rep.other'))}: ${Math.round(Math.max(0, x.app - x.video - (x.audio || 0) - x.book - x.test))} ${esc(t('rep.min'))}</span><span class="chip" style="border-color:${COL.book}">${esc(t('rep.book'))}: ${Math.round(x.book)} ${esc(t('rep.min'))}</span><span class="chip" style="border-color:${COL.test}">${esc(t('rep.test'))}: ${Math.round(x.test)} ${esc(t('rep.min'))}</span></div>
         ${its.map(i => `<div class="trow"><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}</span><b>${esc(fmtMin(i.seconds))}</b></div>`).join('')}
         ${ts.map(q => `<div class="trow"><span class="grow">🧪 ${esc(tr(q.title))}</span><span class="muted">${q.correct}/${q.total}</span><b>${Math.round(q.percent)}%</b></div>`).join('')}</details>`; }).join('')}</div>`;
@@ -128,11 +139,11 @@ route('/reports/user/:uid', async ({ el, params, alive }) => {
 
 // ---- Reyting: barcha foydalanuvchilar, kategoriyalar bo'yicha vaqt
 const ini = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-route('/reports/all', async ({ el, alive }) => {
-  if (!state.isAdmin && state.settings?.app?.leaderboard === false) { el.innerHTML = `<div class="page">${tabs('all')}<p class="muted center pad">${esc(t('rep.lb_off'))}</p></div>`; return; }
+route('/rating', async ({ el, alive }) => {
+  if (!state.isAdmin && state.settings?.app?.leaderboard === false) { el.innerHTML = `<div class="page"><p class="muted center pad">${esc(t('rep.lb_off'))}</p></div>`; return; }
   let per = localStorage.getItem('bio.lbP') || '7', sort = localStorage.getItem('bio.lbS') || 'total';
   const draw = async () => {
-    el.innerHTML = `<div class="page">${tabs('all')}<div id="lb">${spinner()}</div></div>`;
+    el.innerHTML = `<div class="page"><div id="lb">${spinner()}</div></div>`;
     const days = { today: 1, '7': 7, '30': 30, all: 3650 }[per], today = new Date();
     const { data, error } = await sb.rpc('leaderboard', { p_from: dayStr(addDays(today, -(days - 1))), p_to: dayStr(today) });
     if (!alive()) return;
@@ -150,3 +161,5 @@ route('/reports/all', async ({ el, alive }) => {
   };
   await draw();
 }, { auth: true });
+
+route('/reports/all', async () => { location.replace('#/rating'); }, { auth: true });

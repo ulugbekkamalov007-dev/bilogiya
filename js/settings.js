@@ -89,7 +89,7 @@ route('/settings/:s', async ({ el, params }) => {
       <div class="card pad form mt"><div class="row between"><h4>${esc(t('set.pin'))}</h4><span class="chip ${on ? 'ok' : ''}">${esc(t(on ? 'set.pin_state_on' : 'set.pin_state_off'))}</span></div>
       <button class="btn" id="pin">${esc(t(on ? 'set.pin_change' : 'set.pin_set'))}</button>
       ${on ? `${bsup ? `<label class="chk"><input type="checkbox" id="bio" ${bioEnabled() ? 'checked' : ''}> ${esc(t('set.bio'))}</label>` : `<small class="muted">${esc(t('set.bio_na'))}</small>`}
-        <label class="fld"><span>${esc(t('set.auto'))}</span><select class="input" id="al">${[[0, 'set.a_now'], [1, 'set.a_1'], [5, 'set.a_5'], [15, 'set.a_15'], [-1, 'set.a_never']].map(([v, k]) => `<option value="${v}" ${(info.auto ?? 1) === v ? 'selected' : ''}>${esc(t(k))}</option>`).join('')}</select></label>
+        <label class="fld"><span>${esc(t('set.auto'))}</span><select class="input" id="al">${[[0, 'set.a_now'], [1, 'set.a_1'], [5, 'set.a_5'], [15, 'set.a_15'], [-1, 'set.a_never']].map(([v, k]) => `<option value="${v}" ${(info.auto ?? 0) === v ? 'selected' : ''}>${esc(t(k))}</option>`).join('')}</select></label>
         <button class="btn ghost danger" id="off">${esc(t('set.pin_off'))}</button>` : ''}</div>`;
   }
   if (s === 'notif') { const pr = p.prefs || {}; const perm = 'Notification' in window ? Notification.permission : 'denied';

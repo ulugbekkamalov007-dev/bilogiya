@@ -42,7 +42,7 @@ async function hashPin(pin, salt) {
 }
 export async function setPin(pin) {
   const salt = b64(crypto.getRandomValues(new Uint8Array(16))), old = get();
-  put({ uid: state.user.id, salt, hash: await hashPin(pin, salt), len: pin.length, fails: 0, auto: old?.auto ?? 1, cred: old?.uid === state.user.id ? old.cred : null });
+  put({ autoV: 2, uid: state.user.id, salt, hash: await hashPin(pin, salt), len: pin.length, fails: 0, auto: old?.auto ?? 0, cred: old?.uid === state.user.id ? old.cred : null });
 }
 export async function checkPin(pin) { const l = get(); return !!l && await hashPin(pin, l.salt) === l.hash; }
 export function setAutoLock(min) { const l = get(); if (l) put({ ...l, auto: min }); }
@@ -81,7 +81,7 @@ function keypad(len, onDone, { bio = false, onBio } = {}) {
   const el = document.createElement('div'); el.className = 'pinpad';
   el.innerHTML = `<div class="dots">${'<i></i>'.repeat(len)}</div>
     <div class="keys">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button type="button" data-k="${n}">${n}</button>`).join('')}
-    <button type="button" class="alt" data-bio ${bio ? '' : 'disabled style="visibility:hidden"'} aria-label="${esc(t('lock.bio'))}">${ic('lock', 24)}</button>
+    <button type="button" class="alt bio" data-bio ${bio ? '' : 'disabled style="visibility:hidden"'} aria-label="${esc(t('lock.bio'))}">${ic('finger', 30)}</button>
     <button type="button" data-k="0">0</button><button type="button" class="alt" data-del aria-label="del">⌫</button></div>`;
   let v = '';
   const paint = () => $$('.dots i', el).forEach((d, i) => d.classList.toggle('on', i < v.length));
@@ -104,7 +104,7 @@ export function showLock() {
   if (lockP) return lockP;
   lockP = new Promise(resolve => {
     const l = get(); const wrap = document.createElement('div'); wrap.className = 'lockscreen';
-    wrap.innerHTML = `<div class="lock-in"><div class="lock-logo">🧬</div><h2>${esc(t('lock.hello', { name: (state.profile?.full_name || '').split(' ')[0] }))}</h2>
+    wrap.innerHTML = `<div class="lock-in"><div class="lock-av">${state.profile?.avatar_url ? `<img src="${esc(state.profile.avatar_url)}" alt="">` : esc((state.profile?.full_name || state.user?.email || '?').trim()[0]?.toUpperCase())}</div><h2>${esc(t('lock.hello', { name: (state.profile?.full_name || '').split(' ')[0] }))}</h2>
       <p class="muted" id="lm">${esc(t('lock.enter'))}</p><div id="kp"></div>
       <button class="link mt" id="lo">${esc(t('lock.forgot'))}</button></div>`;
     document.body.appendChild(wrap); document.body.classList.add('locked');
@@ -127,11 +127,14 @@ export function showLock() {
 // ---- Avtomatik qulflash (ilovadan chiqib qaytganda)
 let hiddenAt = 0;
 export function initAutoLock() {
+  // eski o'rnatilgan qurilmalar: standart — "Darhol" (ilovadan chiqib qaytsa PIN so'raladi)
+  const l0 = get(); if (l0 && l0.autoV !== 2) put({ ...l0, auto: l0.auto === 1 ? 0 : (l0.auto ?? 0), autoV: 2 });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { hiddenAt = Date.now(); return; }
     if (!lockEnabled() || !hiddenAt) return;
-    const mins = get().auto ?? 1;
-    if (mins >= 0 && Date.now() - hiddenAt >= mins * 60000) showLock();
+    const mins = get().auto ?? 0, away = Date.now() - hiddenAt;
+    // "Darhol": 4 soniyadan ortiq chiqib turilsa (fayl tanlash oynasi kabi qisqa o'tishlar qulflamaydi)
+    if (mins >= 0 && away >= Math.max(mins * 60000, 4000)) showLock();
   });
 }
 

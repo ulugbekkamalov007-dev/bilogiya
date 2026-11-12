@@ -62,6 +62,8 @@ const IC = {
   user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   folder: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+  finger: '<path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .131-5.354 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>',
+  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-1.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98 1.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
   audio: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
   phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
   send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
@@ -207,15 +209,26 @@ export async function i18nField(text, from = state.lang, auto = CONFIG.AI_TRANSL
 }
 
 // ---------- Foydalanish vaqtini kuzatish ----------
+// Vaqt hisobi (soxtalashtirishdan himoyalangan):
+//  - faqat internet bor paytda; oflayn bo'lsa HISOBLANMAYDI
+//  - ekran o'chiq / ilova fonda bo'lsa hisoblanmaydi (faqat ijro etilayotgan AUDIO bundan mustasno)
+//  - ilova/kitob/test vaqti: 4 daqiqa hech narsa bosilmasa to'xtaydi (video/audio ijro paytida bundan mustasno)
+let lastAct = Date.now();
+['pointerdown', 'keydown', 'touchstart', 'scroll', 'wheel'].forEach(e => addEventListener(e, () => { lastAct = Date.now(); }, { passive: true, capture: true }));
+const IDLE_MS = 240000;
 export function trackTime(kind, itemId, isActive = () => true) {
   let acc = 0, last = Date.now(), stopped = false;
+  const media = kind === 'video' || kind === 'audio';
   const flush = async () => {
     const s = Math.floor(acc); if (s <= 0) return; acc -= s;
+    if (!navigator.onLine) return;
     try { await sb.rpc('add_usage', { p_kind: kind, p_item: itemId || null, p_secs: s }); } catch { /* oflayn */ }
   };
   const tick = () => {
     if (stopped) return; const now = Date.now();
-    if (!document.hidden && isActive()) acc += (now - last) / 1000;
+    const seen = kind === 'audio' || !document.hidden;
+    const idleOk = media || now - lastAct < IDLE_MS;
+    if (navigator.onLine && seen && idleOk && isActive()) acc += Math.min(now - last, 6000) / 1000;
     last = now; if (acc >= 20) flush();
   };
   const iv = setInterval(tick, 4000);

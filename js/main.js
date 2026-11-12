@@ -32,6 +32,7 @@ document.documentElement.lang = state.lang;
 // ---- qobiq (header + pastki navigatsiya)
 const NAV = () => [
   ['/home', 'home', t('nav.home')], ['/library', 'book', t('nav.library')], ['/groups', 'users', t('nav.groups')],
+  ...(state.isAdmin || state.settings?.app?.leaderboard !== false ? [['/rating', 'trophy', t('nav.rating')]] : []),
   ['/reports', 'chart', t('nav.reports')], state.isAdmin ? ['/admin', 'shield', t('nav.admin')] : ['/settings', 'settings', t('nav.settings')],
 ];
 let unread = 0;
