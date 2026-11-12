@@ -1,5 +1,5 @@
 // Admin paneli: foydalanuvchilar, so'rovlar/shikoyatlar, video qoidalari (kodsiz), ilova sozlamalari, platforma hisoboti, saqlash joyi
-import { sb, state, t, tr, addDict, route, go, esc, ic, $, $$, toast, confirmDlg, btnBusy, fmtMin, fmtDate, fmtSize, dayStr, addDays, loadSettings, spinner } from './core.js';
+import { sb, state, t, tr, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, confirmDlg, btnBusy, fmtMin, fmtDate, fmtSize, dayStr, addDays, loadSettings, spinner } from './core.js';
 import { composeAnnouncement } from './news.js';
 
 addDict({
@@ -51,7 +51,7 @@ route('/admin', async ({ el, q, alive }) => {
 async function usersTab(body) {
   body.innerHTML = `<input class="input" id="s" placeholder="${esc(t('adm.search'))}"><div id="ul" class="mt">${spinner()}</div>`;
   const load = async (v = '') => {
-    const { data, error } = await sb.rpc('admin_users_summary', { p_search: v }); if (error) return $('#ul', body).innerHTML = esc(error.message);
+    const { data, error } = await sb.rpc('admin_users_summary', { p_search: v }); if (error) return $('#ul', body).innerHTML = `<p class="muted center pad">${esc(friendlyErr(error.message))}</p>`;
     $('#ul', body).innerHTML = `<div class="cards">${(data || []).map(u => `<div class="card pad urow"><div class="grow"><a href="#/reports/user/${u.id}"><b>${esc(u.full_name || '—')}</b></a> ${u.role === 'admin' ? '<span class="tag">ADMIN</span>' : ''}<br><small class="muted">${esc(u.email)}</small>
       <div class="chips"><span class="chip">${esc(t('adm.7d'))}: ${esc(fmtMin(u.secs_7d))}</span><span class="chip">${esc(t('adm.total'))}: ${esc(fmtMin(u.secs_total))}</span><span class="chip">${esc(t('adm.tests'))}: ${u.tests_total}${u.avg_percent !== null ? ' · ' + u.avg_percent + '%' : ''}</span>${u.last_seen ? `<span class="chip">${esc(t('adm.last'))}: ${esc(fmtDate(u.last_seen))}</span>` : ''}</div></div>
       <div class="col"><a class="btn sm" href="#/reports/user/${u.id}">${ic('chart', 14)} ${esc(t('adm.report'))}</a><a class="btn sm ghost" href="#/inbox/${u.id}">${ic('send', 14)}</a>

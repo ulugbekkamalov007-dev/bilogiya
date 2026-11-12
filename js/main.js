@@ -1,5 +1,5 @@
 // Ilova kirish nuqtasi: sessiya, qulf, navigatsiya, "orqaga" tugmasi mantig'i
-import { sb, state, t, $, $$, esc, ic, render, go, setShellHook, loadSettings, trackTime, toast, setLang, currentPath } from './core.js';
+import { sb, state, t, $, $$, esc, ic, render, go, setShellHook, loadSettings, trackTime, toast, setLang, currentPath, snapClear } from './core.js';
 import './i18n.js';
 import './auth.js';
 import './home.js';
@@ -89,7 +89,7 @@ async function onSignedIn(user) {
 
 sb.auth.onAuthStateChange((evt, session) => {
   setTimeout(async () => {
-    if (evt === 'SIGNED_OUT') { state.user = null; state.profile = null; state.isAdmin = false; appTimer?.stop(); document.body.dataset.shell = 'public'; go('/', true); render(); return; }
+    if (evt === 'SIGNED_OUT') { state.user = null; state.profile = null; state.isAdmin = false; appTimer?.stop(); snapClear(); document.body.dataset.shell = 'public'; go('/', true); render(); return; }
     if (session?.user && state.user?.id !== session.user.id && (evt === 'SIGNED_IN' || evt === 'INITIAL_SESSION')) await onSignedIn(session.user);
   }, 0);
 });

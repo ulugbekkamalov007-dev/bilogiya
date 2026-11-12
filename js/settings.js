@@ -1,5 +1,5 @@
 // Sozlamalar: profil, til va ko'rinish, xavfsizlik (parol, PIN, barmoq izi), bildirishnomalar, ilova haqida
-import { sb, state, t, addDict, route, go, esc, ic, $, $$, toast, btnBusy, compressImage, upload, publicUrl, setLang, confirmDlg, passScore } from './core.js';
+import { sb, state, t, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, btnBusy, compressImage, upload, publicUrl, setLang, confirmDlg, passScore } from './core.js';
 import { contactCards, bindContact } from './contact.js';
 import { aboutHtml } from './guide.js';
 import { strengthBar, bindStrength } from './auth.js';
@@ -128,7 +128,7 @@ route('/settings/:s', async ({ el, params }) => {
       const v = await sb.auth.verifyOtp({ email: state.user.email, token: code, type: 'recovery' });
       if (v.error) { btnBusy(b, false); return err.textContent = t('set.pw_bad'); }
       const { error } = await sb.auth.updateUser({ password: p1 }); btnBusy(b, false);
-      if (error) return err.textContent = error.message;
+      if (error) return err.textContent = friendlyErr(error.message);
       toast(t('rec.done'), 'ok'); go('/settings/security', true);
     };
   }

@@ -7,7 +7,7 @@ import { CONFIG } from './config.js';
 
 addDict({
   uz: { 'lib.title': 'Kutubxona', 'lib.root': 'Bosh papka', 'lib.empty': 'Bu yerda hali hech narsa yo\'q', 'lib.folder': 'Papka', 'lib.new_folder': 'Yangi papka',
-    'lib.add_video': 'Video', 'lib.add_audio': 'Audio', 'lib.k_audio': 'Audio', 'lib.src_aud': 'Audio fayl (mp3/m4a)', 'lib.add_file': 'Fayl (PDF / taqdimot / kitob)', 'lib.add_test': 'Test', 'lib.add_link': 'Havola', 'lib.add': 'Qo\'shish',
+    'lib.add_video': 'Video', 'lib.bad_media': 'Bu fayl brauzerda ochilmaydi. Videoni MP4 (H.264) formatiga o\'tkazib qayta yuklang (masalan HandBrake yoki telefon kamerasida "Eng mos" format).', 'lib.vid_hint': 'Tavsiya: MP4 (H.264 + AAC), 720p. Fayl tekshiriladi: ochilmaydigan format yuklanmaydi.', 'lib.add_audio': 'Audio', 'lib.k_audio': 'Audio', 'lib.src_aud': 'Audio fayl (mp3/m4a)', 'lib.add_file': 'Fayl (PDF / taqdimot / kitob)', 'lib.add_test': 'Test', 'lib.add_link': 'Havola', 'lib.add': 'Qo\'shish',
     'lib.title_f': 'Nomi', 'lib.desc': 'Tavsif (ixtiyoriy)', 'lib.price': 'Narxi, so\'m (0 = bepul)', 'lib.visible': 'Foydalanuvchilarga ko\'rinsin',
     'lib.hidden': 'Yashirin', 'lib.paid': 'Pullik', 'lib.locked_t': 'Pullik to\'plam', 'lib.locked_d': 'Bu to\'plamga kirish uchun so\'rov yuboring. Admin tasdiqlagach ochiladi.',
     'lib.request': 'Kirishni so\'rash', 'lib.requested': 'So\'rov yuborildi — admin javobini kuting', 'lib.pending': 'So\'rov ko\'rib chiqilmoqda',
@@ -19,7 +19,7 @@ addDict({
     'lib.url': 'Havola (URL)', 'lib.watched': 'Ko\'rilgan', 'lib.edit': 'Tahrirlash', 'lib.del_q': 'O\'chirilsinmi? Ichidagi hamma narsa ham o\'chadi.', 'lib.bad_yt': 'YouTube havolasi noto\'g\'ri',
     'lib.file_hint': 'Bepul rejada bitta fayl ≤ {mb} MB. Katta kitoblarni Google Drive/R2 ga qo\'yib, havola sifatida qo\'shing.' },
   ru: { 'lib.title': 'Библиотека', 'lib.root': 'Корневая папка', 'lib.empty': 'Здесь пока ничего нет', 'lib.folder': 'Папка', 'lib.new_folder': 'Новая папка',
-    'lib.add_video': 'Видео', 'lib.add_audio': 'Аудио', 'lib.k_audio': 'Аудио', 'lib.src_aud': 'Аудио файл (mp3/m4a)', 'lib.add_file': 'Файл (PDF / презентация / книга)', 'lib.add_test': 'Тест', 'lib.add_link': 'Ссылка', 'lib.add': 'Добавить',
+    'lib.add_video': 'Видео', 'lib.bad_media': 'Этот файл не открывается в браузере. Конвертируйте видео в MP4 (H.264) и загрузите снова (например, HandBrake).', 'lib.vid_hint': 'Рекомендуется: MP4 (H.264 + AAC), 720p. Файл проверяется: неподдерживаемый формат не загрузится.', 'lib.add_audio': 'Аудио', 'lib.k_audio': 'Аудио', 'lib.src_aud': 'Аудио файл (mp3/m4a)', 'lib.add_file': 'Файл (PDF / презентация / книга)', 'lib.add_test': 'Тест', 'lib.add_link': 'Ссылка', 'lib.add': 'Добавить',
     'lib.title_f': 'Название', 'lib.desc': 'Описание (необязательно)', 'lib.price': 'Цена, сум (0 = бесплатно)', 'lib.visible': 'Показывать пользователям',
     'lib.hidden': 'Скрыто', 'lib.paid': 'Платно', 'lib.locked_t': 'Платный набор', 'lib.locked_d': 'Отправьте запрос на доступ. После подтверждения админом набор откроется.',
     'lib.request': 'Запросить доступ', 'lib.requested': 'Запрос отправлен — ждите ответа админа', 'lib.pending': 'Запрос рассматривается',
@@ -31,7 +31,7 @@ addDict({
     'lib.url': 'Ссылка (URL)', 'lib.watched': 'Просмотрено', 'lib.edit': 'Изменить', 'lib.del_q': 'Удалить? Всё внутри тоже удалится.', 'lib.bad_yt': 'Неверная ссылка YouTube',
     'lib.file_hint': 'На бесплатном тарифе файл ≤ {mb} МБ. Большие книги загрузите в Google Drive/R2 и добавьте как ссылку.' },
   en: { 'lib.title': 'Library', 'lib.root': 'Root folder', 'lib.empty': 'Nothing here yet', 'lib.folder': 'Folder', 'lib.new_folder': 'New folder',
-    'lib.add_video': 'Video', 'lib.add_audio': 'Audio', 'lib.k_audio': 'Audio', 'lib.src_aud': 'Audio file (mp3/m4a)', 'lib.add_file': 'File (PDF / slides / book)', 'lib.add_test': 'Test', 'lib.add_link': 'Link', 'lib.add': 'Add',
+    'lib.add_video': 'Video', 'lib.bad_media': 'This file cannot be played in a browser. Convert the video to MP4 (H.264) and upload again (e.g. HandBrake).', 'lib.vid_hint': 'Recommended: MP4 (H.264 + AAC), 720p. The file is checked: unsupported formats will not upload.', 'lib.add_audio': 'Audio', 'lib.k_audio': 'Audio', 'lib.src_aud': 'Audio file (mp3/m4a)', 'lib.add_file': 'File (PDF / slides / book)', 'lib.add_test': 'Test', 'lib.add_link': 'Link', 'lib.add': 'Add',
     'lib.title_f': 'Title', 'lib.desc': 'Description (optional)', 'lib.price': 'Price, UZS (0 = free)', 'lib.visible': 'Visible to users',
     'lib.hidden': 'Hidden', 'lib.paid': 'Paid', 'lib.locked_t': 'Paid collection', 'lib.locked_d': 'Send an access request. It unlocks once the admin approves.',
     'lib.request': 'Request access', 'lib.requested': 'Request sent — wait for the admin', 'lib.pending': 'Request is being reviewed',
@@ -145,6 +145,13 @@ route('/item/:id', async ({ el, params, alive }) => {
 }, { auth: true });
 
 // ------------------------------------------------------------------ ADMIN: QO'SHISH / TAHRIRLASH
+// Yuklashdan oldin faylni tekshirish: brauzer ocha oladimi, o'lchami va davomiyligi qancha
+const probeMedia = (file, tag) => new Promise(res => {
+  const u = URL.createObjectURL(file), m = document.createElement(tag); m.preload = 'metadata'; let done = false;
+  const fin = r => { if (done) return; done = true; URL.revokeObjectURL(u); res(r); };
+  m.onloadedmetadata = () => fin({ ok: true, w: m.videoWidth || 0, h: m.videoHeight || 0, d: Math.round(m.duration || 0) });
+  m.onerror = () => fin({ ok: false }); setTimeout(() => fin({ ok: false }), 15000); m.src = u;
+});
 function addDialog(type, fid, done) {
   if (type === 'test') {
     const m = modal(`<h3>${esc(t('lib.add_test'))}</h3><div class="stack"><button class="btn lg" id="a">${esc(t('imp.title'))}</button></div>`);
@@ -170,7 +177,7 @@ function addDialog(type, fid, done) {
     const draw = () => { const s = $('input[name=s]:checked', el).value; $('#vsrc', el).innerHTML = s === 'youtube'
       ? `<label class="fld"><span>${esc(t('lib.src_yt'))}</span><input class="input" id="ur" placeholder="https://youtu.be/..." required></label><small class="muted">${esc(t('lib.yt_hint'))}</small>`
       : s === 'url' ? `<label class="fld"><span>${esc(t('lib.src_url'))}</span><input class="input" id="ur" type="url" required></label><label class="fld"><span>${esc(t('lib.variants'))}</span><textarea class="input" id="vr" rows="3" placeholder="360p|https://...&#10;720p|https://..."></textarea></label>`
-      : `<label class="fld"><span>${esc(t('lib.src_up'))} (mp4 ≤ ${CONFIG.MAX_UPLOAD_MB} MB)</span><input type="file" id="fl" accept="video/*" required></label>`; };
+      : `<label class="fld"><span>${esc(t('lib.src_up'))} (mp4 ≤ ${CONFIG.MAX_UPLOAD_MB} MB)</span><input type="file" id="fl" accept="video/*" required></label><small class="muted">${esc(t('lib.vid_hint'))}</small>`; };
     $$('input[name=s]', el).forEach(r => r.onchange = draw); draw();
   }
   if (type === 'audio') {
@@ -198,9 +205,9 @@ function addDialog(type, fid, done) {
           else if (s === 'url') {
             Object.assign(row, { source: 'url', url: $('#ur', el).value.trim() });
             const vs = ($('#vr', el).value || '').split('\n').map(l => l.split('|')).filter(p => p.length === 2).map(([label, url]) => ({ label: label.trim(), url: url.trim() })); if (vs.length) row.meta.sources = vs;
-          } else await putFile($('#fl', el).files[0]);
+          } else { const f = $('#fl', el).files[0], pr = await probeMedia(f, 'video'); if (!pr.ok) throw new Error(t('lib.bad_media')); Object.assign(row.meta, { width: pr.w, height: pr.h, duration: pr.d }); await putFile(f); }
         } else if (type === 'audio') {
-          row.kind = 'audio'; if ($('input[name=s]:checked', el).value === 'url') Object.assign(row, { source: 'url', url: $('#ur', el).value.trim() }); else await putFile($('#fl', el).files[0]);
+          row.kind = 'audio'; if ($('input[name=s]:checked', el).value === 'url') Object.assign(row, { source: 'url', url: $('#ur', el).value.trim() }); else { const f = $('#fl', el).files[0], pr = await probeMedia(f, 'audio'); if (!pr.ok) throw new Error(t('lib.bad_media')); row.meta.duration = pr.d; await putFile(f); }
         } else if (type === 'file') {
           row.kind = $('input[name=k]:checked', el).value; const f = $('#fl', el).files[0], u = $('#ur', el).value.trim();
           if (f) await putFile(f); else if (u) Object.assign(row, { source: 'url', url: u }); else throw new Error(t('lib.url_or_file'));

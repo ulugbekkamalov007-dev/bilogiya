@@ -40,7 +40,7 @@ export function tr(o) {
   return o[state.lang] || o.uz || o.ru || o.en || Object.values(o)[0] || '';
 }
 export function setLang(l) {
-  state.lang = l; localStorage.setItem('bio.lang', l); document.documentElement.lang = l;
+  SNAP.clear(); state.lang = l; localStorage.setItem('bio.lang', l); document.documentElement.lang = l;
   if (state.user) sb.from('profiles').update({ lang: l }).eq('id', state.user.id).then(() => {});
   render();
 }
@@ -122,7 +122,18 @@ export function fmtTime(ts) { return new Date(ts).toLocaleTimeString([], { hour:
 export const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
 
 // ---------- UI: toast / modal / confirm ----------
+// Texnik xatolarni (masalan "Could not find the function...") foydalanuvchiga ko'rsatmaymiz — o'z tilida tushunarli xabar
+addDict({ uz: { 'err.unavail': 'Ma\'lumotlar mavjud emas yoki xizmat hozircha tayyor emas', 'err.net': 'Internet bilan aloqa yo\'q' },
+  ru: { 'err.unavail': 'Данные недоступны или сервис пока не готов', 'err.net': 'Нет связи с интернетом' },
+  en: { 'err.unavail': 'No data available or the service is not ready yet', 'err.net': 'No internet connection' } });
+export function friendlyErr(msg) {
+  const m = String(msg || '');
+  if (/failed to fetch|networkerror|load failed/i.test(m)) return t('err.net');
+  if (/could not find|schema cache|does not exist|pgrst|permission denied|function public\.|relation |column |syntax|jwt|violates|internal server/i.test(m)) return t('err.unavail');
+  return m;
+}
 export function toast(msg, type = '') {
+  if (type === 'err') msg = friendlyErr(msg);
   let box = $('#toasts'); if (!box) { box = document.createElement('div'); box.id = 'toasts'; document.body.appendChild(box); }
   const el = document.createElement('div'); el.className = 'toast ' + type; el.textContent = msg; box.appendChild(el);
   setTimeout(() => el.classList.add('out'), 2800); setTimeout(() => el.remove(), 3300);
@@ -248,6 +259,9 @@ export const currentPath = () => (location.hash.slice(1) || '/').split('?')[0];
 let shellHook = () => {};
 export const setShellHook = fn => { shellHook = fn; };
 
+// Tez ochilish: avval ko'rilgan sahifa darhol (xira holda) ko'rsatiladi, yangi ma'lumot kelgach almashadi
+const SNAP = new Map(), SNAPPABLE = /^\/(home|library(\/[^/]+)?|groups|reports|rating|news|settings|inbox)$/;
+export const snapClear = () => SNAP.clear();
 export async function render() {
   const my = ++tok;
   const raw = location.hash.slice(1) || '/';
@@ -258,10 +272,15 @@ export async function render() {
     if (r.opts.auth && !state.user) return go('/', true);
     if (r.opts.admin && !state.isAdmin) return go('/home', true);
     const params = {}; r.keys.forEach((k, i) => params[k] = decodeURIComponent(m[i + 1]));
-    const el = $('#view'); el.innerHTML = spinner(); el.scrollTop = 0; window.scrollTo(0, 0);
+    const el = $('#view'); const sn = state.user && SNAPPABLE.test(path) ? SNAP.get(raw) : null;
+    if (sn) { el.innerHTML = sn; el.classList.add('stale'); } else el.innerHTML = spinner();
+    el.scrollTop = 0; window.scrollTo(0, 0);
     shellHook(path, r.opts);
-    try { await r.handler({ params, q, el, alive: () => my === tok }); }
-    catch (e) { console.error(e); if (my === tok) el.innerHTML = `<div class="card pad center"><p>⚠️ ${esc(e.message || e)}</p></div>`; }
+    try {
+      await r.handler({ params, q, el, alive: () => my === tok });
+      if (my === tok) { el.classList.remove('stale'); if (state.user && SNAPPABLE.test(path)) { SNAP.set(raw, el.innerHTML); if (SNAP.size > 14) SNAP.delete(SNAP.keys().next().value); } }
+    }
+    catch (e) { console.error(e); if (my === tok) el.classList.remove('stale'); if (my === tok) el.innerHTML = `<div class="card pad center"><p>⚠️ ${esc(e.message || e)}</p></div>`; }
     return;
   }
   go(state.user ? '/home' : '/', true);

@@ -25,12 +25,12 @@ const YTQ = { hd2160: '2160p', hd1440: '1440p', hd1080: '1080p', hd720: '720p', 
 // ---------- adapterlar
 async function html5Adapter(stage, item, startQuality) {
   const isAud = item.kind === 'audio';
-  const v = document.createElement(isAud ? 'audio' : 'video'); v.preload = 'metadata'; if (!isAud) { v.playsInline = true; v.disablePictureInPicture = true; }
+  const v = document.createElement(isAud ? 'audio' : 'video'); v.preload = 'auto'; if (!isAud) { v.playsInline = true; v.disablePictureInPicture = true; }
   v.setAttribute('controlslist', 'nodownload noremoteplayback'); v.oncontextmenu = e => e.preventDefault();
   stage.appendChild(v);
   const variants = (item.meta?.sources || []).filter(s => s.url);
   let src = item.url, hls = null, quals = [];
-  if (!src && item.storage_path) src = await signedUrl('content', item.storage_path, 7200);
+  if (!src && item.storage_path) src = await (item._urlP || signedUrl('content', item.storage_path, 7200));
   if (variants.length) { const pick = variants.find(s => s.label === startQuality) || variants.find(s => /720/.test(s.label)) || variants[0]; src = pick.url; quals = variants.map(s => s.label); }
   const load = async url => {
     hls?.destroy(); hls = null;
@@ -96,6 +96,9 @@ async function ytAdapter(stage, item) {
 export async function mountPlayer(host, item) {
   const S = { allow_forward_seek: false, forward_tolerance_s: 2, rewind_step_s: 10, allowed_speeds: [1], resume: true, complete_pct: 90, watermark: true, pause_when_hidden: true, ...(state.settings.video || {}) };
   const uid = state.user.id;
+  // tezroq ochilish: imzolangan havola va YouTube kutubxonasi progress so'rovi bilan PARALLEL tayyorlanadi
+  if (item.storage_path && !item.url) item._urlP = signedUrl('content', item.storage_path, 7200).catch(() => null);
+  if (item.source === 'youtube' || item.youtube_id) loadYT().catch(() => {});
   const { data: prog } = await sb.from('video_progress').select('*').eq('user_id', uid).eq('item_id', item.id).maybeSingle();
   let maxPos = prog?.max_pos || 0, completed = !!prog?.completed, lastSent = 0, lastT = 0;
 
@@ -123,7 +126,10 @@ export async function mountPlayer(host, item) {
 
   const q = s => $(s, root), vcur = q('.vcur'), vmax = q('.vmax'), knob = q('.vknob'), bar = q('.vbar');
   const msg = txt => { const m = q('.vtoast'); m.textContent = txt; m.hidden = false; clearTimeout(msg.t); msg.t = setTimeout(() => m.hidden = true, 2200); };
-  const timer = trackTime(isAud ? 'audio' : 'video', item.id, () => ad.playing());
+  // vaqt faqat video HAQIQATAN yurib turganda hisoblanadi: bufer kutish (waiting) va qotib qolish hisobga olinmaydi
+  let buffering = false, stalled = false, chkT = -1;
+  const timer = trackTime(isAud ? 'audio' : 'video', item.id, () => ad.playing() && !buffering && !stalled && navigator.onLine);
+  const stallIv = setInterval(() => { const c = ad.time(); stalled = ad.playing() && Math.abs(c - chkT) < 0.15; chkT = c; if (ad.playing()) q('.vspin').hidden = !(stalled || buffering); }, 2000);
   const dur = () => ad.duration() || prog?.duration || 0;
 
   const paint = () => {
@@ -146,7 +152,7 @@ export async function mountPlayer(host, item) {
   }
   ad.onEvents(ev => {
     if (ev === 'error') { q('.vspin').hidden = true; msg(t('pl.err')); return; }
-    if (ev === 'waiting') q('.vspin').hidden = false; if (ev === 'playing' || ev === 'play' || ev === 'pause') q('.vspin').hidden = true;
+    if (ev === 'waiting') { buffering = true; q('.vspin').hidden = false; } if (ev === 'playing') { buffering = false; stalled = false; } if (ev === 'playing' || ev === 'play' || ev === 'pause') q('.vspin').hidden = true;
     if (ev === 'loadedmetadata' && S.resume && prog && prog.last_pos > 5 && prog.last_pos < (dur() - 5) && !ad._resumed) { ad._resumed = true; ad.seek(Math.min(prog.last_pos, maxPos || prog.last_pos)); msg(t('pl.resume_at', { t: fmtDur(prog.last_pos) })); }
     if (ev === 'timeupdate' || ev === 'play') {
       const c = ad.time();
@@ -176,7 +182,7 @@ export async function mountPlayer(host, item) {
     else if (a === 'back') seekTo(ad.time() - S.rewind_step_s);
     else if (a === 'menu') { drawMenu(); menu.hidden = !menu.hidden; }
     else if (a === 'full' && !isAud) {
-      if (document.fullscreenElement) document.exitFullscreen(); else if (root.requestFullscreen) root.requestFullscreen().catch(() => root.classList.toggle('pseudo-full')); else root.classList.toggle('pseudo-full');
+      if (document.fullscreenElement) document.exitFullscreen(); else if (root.requestFullscreen) root.requestFullscreen().then(() => screen.orientation?.lock?.('landscape').catch(() => {})).catch(() => root.classList.toggle('pseudo-full')); else root.classList.toggle('pseudo-full');
     }
   };
   // progress bar
@@ -202,11 +208,14 @@ export async function mountPlayer(host, item) {
   const off = () => { if (ad.playing()) { ad.pause(); } msg(t('pl.offline')); };
   addEventListener('offline', off);
   const ui = setInterval(paint, 500);
-  const onFs = () => root.classList.toggle('is-full', !!document.fullscreenElement); document.addEventListener('fullscreenchange', onFs);
+  const onFs = () => { root.classList.toggle('is-full', !!document.fullscreenElement); if (!document.fullscreenElement) screen.orientation?.unlock?.(); }; document.addEventListener('fullscreenchange', onFs);
+  // telefon yonlatilsa (landshaft) video butun ekranga yoyiladi; tik holatga qaytsa — oddiy ko'rinish
+  const orient = () => { if (isAud) return; const land = innerWidth > innerHeight && innerHeight < 560; root.classList.toggle('land-full', land); document.body.classList.toggle('vland', land); };
+  addEventListener('orientationchange', orient); addEventListener('resize', orient); orient();
 
   return {
     async destroy() {
-      clearInterval(ui); clearInterval(markIv); document.removeEventListener('visibilitychange', vis); removeEventListener('offline', off); document.removeEventListener('fullscreenchange', onFs);
+      clearInterval(ui); clearInterval(markIv); clearInterval(stallIv); screen.orientation?.unlock?.(); removeEventListener('orientationchange', orient); document.removeEventListener('visibilitychange', vis); removeEventListener('offline', off); removeEventListener('resize', orient); document.body.classList.remove('vland'); document.removeEventListener('fullscreenchange', onFs);
       try { await save(true); } catch { /* */ } timer.stop(); ad.destroy();
     },
   };
