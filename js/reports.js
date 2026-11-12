@@ -3,17 +3,17 @@
 import { sb, state, t, tr, addDict, route, go, esc, ic, $, $$, modal, fmtMin, fmtDate, dayStr, addDays, fmtDur, spinner } from './core.js';
 
 addDict({
-  uz: { 'rep.unavail': 'Ma\'lumotlar mavjud emas', 'rep.period': 'Davr', 'rep.sortby': 'Tartiblash', 'rep.kind_hint': 'Kategoriyani bosing — qaysi materialga qancha vaqt ketgani ko\'rinadi', 'rep.mine': 'Mening hisobotim', 'rep.lb': 'Reyting', 'rep.all': 'Hammasi', 'rep.lb_off': 'Reyting o\'chirilgan', 'rep.title': 'Hisobot', 'rep.of': '{name} — hisobot', 'rep.today': 'Bugun', 'rep.week': 'Oxirgi 7 kun', 'rep.total': 'Jami', 'rep.p7': '7 kun', 'rep.p30': '30 kun', 'rep.p12w': '12 hafta',
+  uz: { 'rep.unavail': 'Ma\'lumotlar mavjud emas', 'rep.full': 'To\'liq hisobot', 'rep.tests_n': '{n} ta test', 'rep.browse_note': 'Ilovada sayr qilish — video, audio, kitob va testdan tashqari ilova ichida o\'tkazilgan vaqt', 'rep.period': 'Davr', 'rep.sortby': 'Tartiblash', 'rep.kind_hint': 'Kategoriyani bosing — qaysi materialga qancha vaqt ketgani ko\'rinadi', 'rep.mine': 'Mening hisobotim', 'rep.lb': 'Reyting', 'rep.all': 'Hammasi', 'rep.lb_off': 'Reyting o\'chirilgan', 'rep.title': 'Hisobot', 'rep.of': '{name} — hisobot', 'rep.today': 'Bugun', 'rep.week': 'Oxirgi 7 kun', 'rep.total': 'Jami', 'rep.p7': '7 kun', 'rep.p30': '30 kun', 'rep.p12w': '12 hafta',
     'rep.time_chart': 'O\'qish vaqti (daqiqa)', 'rep.by_kind': 'Bo\'limlar bo\'yicha', 'rep.video': 'Video', 'rep.book': 'Kitob/material', 'rep.test': 'Test', 'rep.other': 'Ilovada sayr qilish', 'rep.audio': 'Audio', 'rep.app': 'Ilovada',
     'rep.items': 'Materiallar bo\'yicha vaqt', 'rep.tests': 'Test natijalari', 'rep.attempts': 'Urinishlar', 'rep.avg': 'O\'rtacha', 'rep.best': 'Eng yaxshi', 'rep.correct': 'to\'g\'ri',
     'rep.no_data': 'Ma\'lumot hali yo\'q', 'rep.day_detail': 'Kunlik to\'liq hisobot', 'rep.day': 'Kun', 'rep.min': 'daq', 'rep.close': 'Yopish', 'rep.hint': 'Kartani yoki ustunni bosing — kunlik tafsilot ochiladi',
     'rep.week_of': 'hafta', 'rep.deleted': '(o\'chirilgan material)' },
-  ru: { 'rep.unavail': 'Данные недоступны', 'rep.period': 'Период', 'rep.sortby': 'Сортировка', 'rep.kind_hint': 'Нажмите на категорию — увидите, на какие материалы ушло время', 'rep.mine': 'Мой отчёт', 'rep.lb': 'Рейтинг', 'rep.all': 'Всё время', 'rep.lb_off': 'Рейтинг отключён', 'rep.title': 'Отчёт', 'rep.of': '{name} — отчёт', 'rep.today': 'Сегодня', 'rep.week': 'Последние 7 дней', 'rep.total': 'Всего', 'rep.p7': '7 дней', 'rep.p30': '30 дней', 'rep.p12w': '12 недель',
+  ru: { 'rep.unavail': 'Данные недоступны', 'rep.full': 'Полный отчёт', 'rep.tests_n': 'Тестов: {n}', 'rep.browse_note': 'Прогулка по приложению — время в приложении вне видео, аудио, книг и тестов', 'rep.period': 'Период', 'rep.sortby': 'Сортировка', 'rep.kind_hint': 'Нажмите на категорию — увидите, на какие материалы ушло время', 'rep.mine': 'Мой отчёт', 'rep.lb': 'Рейтинг', 'rep.all': 'Всё время', 'rep.lb_off': 'Рейтинг отключён', 'rep.title': 'Отчёт', 'rep.of': '{name} — отчёт', 'rep.today': 'Сегодня', 'rep.week': 'Последние 7 дней', 'rep.total': 'Всего', 'rep.p7': '7 дней', 'rep.p30': '30 дней', 'rep.p12w': '12 недель',
     'rep.time_chart': 'Время обучения (минуты)', 'rep.by_kind': 'По разделам', 'rep.video': 'Видео', 'rep.book': 'Книги/материалы', 'rep.test': 'Тесты', 'rep.other': 'Прогулка по приложению', 'rep.audio': 'Аудио', 'rep.app': 'В приложении',
     'rep.items': 'Время по материалам', 'rep.tests': 'Результаты тестов', 'rep.attempts': 'Попытки', 'rep.avg': 'Среднее', 'rep.best': 'Лучший', 'rep.correct': 'верно',
     'rep.no_data': 'Данных пока нет', 'rep.day_detail': 'Подробный отчёт по дням', 'rep.day': 'День', 'rep.min': 'мин', 'rep.close': 'Закрыть', 'rep.hint': 'Нажмите на карточку или столбец — откроется детализация по дням',
     'rep.week_of': 'неделя', 'rep.deleted': '(удалённый материал)' },
-  en: { 'rep.unavail': 'No data available', 'rep.period': 'Period', 'rep.sortby': 'Sort by', 'rep.kind_hint': 'Tap a category to see which items took the time', 'rep.mine': 'My report', 'rep.lb': 'Leaderboard', 'rep.all': 'All time', 'rep.lb_off': 'Leaderboard is off', 'rep.title': 'Report', 'rep.of': '{name} — report', 'rep.today': 'Today', 'rep.week': 'Last 7 days', 'rep.total': 'Total', 'rep.p7': '7 days', 'rep.p30': '30 days', 'rep.p12w': '12 weeks',
+  en: { 'rep.unavail': 'No data available', 'rep.full': 'Full report', 'rep.tests_n': '{n} tests', 'rep.browse_note': 'Browsing the app — time in the app outside video, audio, books and tests', 'rep.period': 'Period', 'rep.sortby': 'Sort by', 'rep.kind_hint': 'Tap a category to see which items took the time', 'rep.mine': 'My report', 'rep.lb': 'Leaderboard', 'rep.all': 'All time', 'rep.lb_off': 'Leaderboard is off', 'rep.title': 'Report', 'rep.of': '{name} — report', 'rep.today': 'Today', 'rep.week': 'Last 7 days', 'rep.total': 'Total', 'rep.p7': '7 days', 'rep.p30': '30 days', 'rep.p12w': '12 weeks',
     'rep.time_chart': 'Study time (minutes)', 'rep.by_kind': 'By section', 'rep.video': 'Video', 'rep.book': 'Books/materials', 'rep.test': 'Tests', 'rep.other': 'Browsing the app', 'rep.audio': 'Audio', 'rep.app': 'In app',
     'rep.items': 'Time per material', 'rep.tests': 'Test results', 'rep.attempts': 'Attempts', 'rep.avg': 'Average', 'rep.best': 'Best', 'rep.correct': 'correct',
     'rep.no_data': 'No data yet', 'rep.day_detail': 'Full daily report', 'rep.day': 'Day', 'rep.min': 'min', 'rep.close': 'Close', 'rep.hint': 'Tap a card or a bar to open the daily breakdown',
@@ -152,28 +152,70 @@ route('/reports/user/:uid', async ({ el, params, alive }) => {
 
 // ---- Reyting: barcha foydalanuvchilar, kategoriyalar bo'yicha vaqt
 const ini = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const CATS = ['total', 'video', 'audio', 'book', 'test', 'browse'];
+const CIC = { total: 'trophy', video: 'video', audio: 'audio', book: 'book', test: 'test', browse: 'globe' };
+const catName = k => t(k === 'total' ? 'rep.total' : k === 'browse' ? 'rep.other' : 'rep.' + k);
+const catCol = k => k === 'browse' ? COL.other : k === 'total' ? '#16a34a' : COL[k];
+
+// Reytingdagi foydalanuvchi bosilganda: shu kategoriyaga aloqador batafsil oyna
+async function userDetail(r, cat, from, to) {
+  const m = modal(`<div class="row" style="gap:10px"><span class="avatar sm">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span><div class="grow"><b>${esc(r.name || '—')}</b><br><small class="muted">${esc(catName(cat))} · ${esc(fmtMin(r[cat]))}</small></div></div>
+    <div class="chips mt">${['video', 'audio', 'book', 'test', 'browse'].map(k => `<span class="chip" style="border-color:${catCol(k)}">${esc(catName(k))}: ${esc(fmtMin(r[k]))}</span>`).join('')}</div>
+    <div id="ud" class="mt">${spinner()}</div><a class="btn block mt" href="#/reports/user/${r.user_id}" id="full">${ic('chart', 16)} ${esc(t('rep.full'))}</a>`, { cls: 'wide' });
+  $('#full', m.el).onclick = () => m.close();
+  const box = $('#ud', m.el);
+  try {
+    if (cat === 'test') {
+      const { data, error } = await sb.rpc('report_tests', { p_user: r.user_id, p_from: from, p_to: to }); if (error) throw error;
+      const ts = [...(data || [])].reverse().slice(0, 40);
+      box.innerHTML = ts.length ? `<div class="tbl">${ts.map(x => `<div class="trow"><small class="muted">${esc(fmtDate(x.day))}</small><span class="grow">${esc(tr(x.title) || t('rep.deleted'))}</span><span class="muted">${x.correct}/${x.total}</span><b class="${x.percent >= 70 ? 'ok' : x.percent >= 50 ? '' : 'bad'}">${Math.round(x.percent)}%</b></div>`).join('')}</div>` : `<p class="muted center">${esc(t('rep.no_data'))}</p>`;
+    } else if (cat === 'browse') {
+      box.innerHTML = `<p class="muted center">${esc(t('rep.browse_note'))}</p>`;
+    } else {
+      const { data, error } = await sb.rpc('report_usage_items', { p_user: r.user_id, p_from: from, p_to: to }); if (error) throw error;
+      const its = (data || []).filter(i => cat === 'total' || i.kind === cat);
+      box.innerHTML = its.length ? `<div class="tbl">${its.map(i => `<div class="trow"><span class="item-ic ${i.kind}">${ic(i.kind === 'video' ? 'video' : i.kind === 'audio' ? 'audio' : i.kind === 'test' ? 'test' : 'book', 16)}</span><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}</span><b>${esc(fmtMin(i.seconds))}</b></div>`).join('')}</div>` : `<p class="muted center">${esc(t('rep.no_data'))}</p>`;
+    }
+  } catch (e) { console.warn('detail:', e.message); box.innerHTML = `<p class="muted center">${esc(t('rep.unavail'))}</p>`; }
+}
+
 route('/rating', async ({ el, alive }) => {
   if (!state.isAdmin && state.settings?.app?.leaderboard === false) { el.innerHTML = `<div class="page"><p class="muted center pad">${esc(t('rep.lb_off'))}</p></div>`; return; }
-  let per = localStorage.getItem('bio.lbP') || 'today', sort = localStorage.getItem('bio.lbS') || 'total';
-  const draw = async () => {
-    el.innerHTML = `<div class="page"><div id="lb">${spinner()}</div></div>`;
-    const days = { today: 1, '7': 7, '30': 30, all: 3650 }[per], today = new Date();
-    const { data, error } = await sb.rpc('leaderboard', { p_from: dayStr(addDays(today, -(days - 1))), p_to: dayStr(today) });
-    if (!alive()) return;
-    const rows = (data || []).map(r => ({ ...r, video: +r.video, audio: +r.audio, book: +r.book, test: +r.test, browse: +r.browse, total: +r.total })).sort((a, b) => b[sort] - a[sort]);
-    const max = Math.max(1, ...rows.map(r => r[sort]));
-    const K = ['video', 'audio', 'book', 'test', 'browse'], C = { ...COL, browse: COL.other };
-    $('#lb', el).innerHTML = `<h1>${esc(t('rep.lb'))}</h1>
-      <div class="row wrap mb" style="gap:8px">${ddHtml('per', t('rep.period'), [['today', t('rep.today')], ['7', t('rep.p7')], ['30', t('rep.p30')], ['all', t('rep.all')]], per)}
-        ${ddHtml('sort', t('rep.sortby'), ['total', ...K].map(k => [k, t(k === 'total' ? 'rep.total' : k === 'browse' ? 'rep.other' : 'rep.' + k)]), sort)}</div>
-      ${error ? `<p class="muted center pad">${esc(t('rep.unavail'))}</p>` : rows.length ? `<div class="lb">${rows.map((r, i) => `<a class="lbrow card ${r.user_id === state.user.id ? 'me' : ''}" href="#/reports/user/${r.user_id}"><span class="lbrank r${i < 3 ? i + 1 : ''}">${i + 1}</span>
-        <span class="avatar sm">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span>
-        <span class="grow"><b>${esc(r.name || '—')}</b><span class="lbbar" style="width:${Math.max(3, r[sort] / max * 100)}%">${K.map(k => r.total > 0 && sort === 'total' ? `<i style="flex:${r[k]};background:${C[k]}"></i>` : '').join('') || ''}${sort !== 'total' ? `<i style="flex:1;background:${C[sort === 'browse' ? 'browse' : sort]}"></i>` : ''}</span></span>
-        <b>${esc(fmtMin(r[sort]))}</b></a>`).join('')}</div>` : `<p class="muted center pad">${esc(t('rep.no_data'))}</p>`}`;
-    if (error) console.warn('leaderboard:', error.message);
-    ddBind(el, (k, v) => { if (k === 'per') { per = v; localStorage.setItem('bio.lbP', per); } else { sort = v; localStorage.setItem('bio.lbS', sort); } draw(); });
+  let per = localStorage.getItem('bio.lbP') || 'today', cat = localStorage.getItem('bio.lbS') || 'total';
+  if (!CATS.includes(cat)) cat = 'total';
+  const cache = {}; let rows = [], err = false, range = ['', ''];
+  const load = async () => {
+    const days = { today: 1, '7': 7, '30': 30, all: 3650 }[per], today = new Date(); range = [dayStr(addDays(today, -(days - 1))), dayStr(today)];
+    if (!cache[per]) {
+      const { data, error } = await sb.rpc('leaderboard', { p_from: range[0], p_to: range[1] });
+      if (error) { console.warn('leaderboard:', error.message); cache[per] = { err: true, rows: [] }; }
+      else cache[per] = { err: false, rows: (data || []).map(r => ({ ...r, video: +r.video, audio: +r.audio, book: +r.book, test: +r.test, browse: +r.browse, total: +r.total })) };
+    }
+    ({ err, rows } = cache[per]);
   };
-  await draw();
+  const paint = () => {
+    const sorted = [...rows].sort((a, b) => b[cat] - a[cat]), max = Math.max(1, ...sorted.map(r => r[cat]));
+    const rank = k => { const l = [...rows].sort((a, b) => b[k] - a[k]), i = l.findIndex(r => r.user_id === state.user.id); return i < 0 || !l[i][k] ? null : i + 1; };
+    $('#lb', el).innerHTML = `<h1>${esc(t('rep.lb'))}</h1>
+      <div class="row wrap" style="gap:8px">${ddHtml('per', t('rep.period'), [['today', t('rep.today')], ['7', t('rep.p7')], ['30', t('rep.p30')], ['all', t('rep.all')]], per)}</div>
+      <div class="cats" id="cats">${CATS.map(k => { const rk = rank(k); return `<button type="button" class="cat ${k === cat ? 'on' : ''}" data-c="${k}" style="--cc:${catCol(k)}"><span class="cic">${ic(CIC[k], 22)}</span><b>${esc(catName(k))}</b><small>${rk ? '#' + rk : '—'}</small></button>`; }).join('')}</div>
+      <div id="lbody">${err ? `<p class="muted center pad">${esc(t('rep.unavail'))}</p>` : sorted.length ? `<div class="lb">${sorted.map((r, i) => `<button type="button" class="lbrow card ${r.user_id === state.user.id ? 'me' : ''}" data-u="${r.user_id}"><span class="lbrank r${i < 3 ? i + 1 : ''}">${i + 1}</span>
+        <span class="avatar sm">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span>
+        <span class="grow left"><b>${esc(r.name || '—')}</b>${cat === 'test' ? `<small class="muted">${esc(t('rep.tests_n', { n: r.tests || 0 }))}${r.avg_percent != null ? ' · ' + Math.round(r.avg_percent) + '%' : ''}</small>` : ''}
+          <span class="lbbar" style="width:${Math.max(3, r[cat] / max * 100)}%">${cat === 'total' && r.total > 0 ? ['video', 'audio', 'book', 'test', 'browse'].map(k => `<i style="flex:${r[k]};background:${catCol(k)}"></i>`).join('') : `<i style="flex:1;background:${catCol(cat)}"></i>`}</span></span>
+        <b>${esc(fmtMin(r[cat]))}</b>${ic('chev', 16)}</button>`).join('')}</div>` : `<p class="muted center pad">${esc(t('rep.no_data'))}</p>`}</div>`;
+    ddBind(el, async (k, v) => { per = v; localStorage.setItem('bio.lbP', per); $('#lbody', el).innerHTML = spinner(); await load(); if (alive()) paint(); });
+    $$('.cat', el).forEach(b => b.onclick = () => pick(b.dataset.c));
+    $$('[data-u]', el).forEach(b => b.onclick = () => { const r = rows.find(x => x.user_id === b.dataset.u); if (r) userDetail(r, cat, range[0], range[1]); });
+    $('.cat.on', el)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+    // o'ngga/chapga surish — kategoriyani almashtiradi
+    let sx = 0, sy = 0; const body = $('#lbody', el);
+    body.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    body.addEventListener('touchend', e => { const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) pick(CATS[Math.max(0, Math.min(CATS.length - 1, CATS.indexOf(cat) + (dx < 0 ? 1 : -1)))]); }, { passive: true });
+  };
+  const pick = k => { if (k === cat) return; cat = k; localStorage.setItem('bio.lbS', cat); paint(); };
+  el.innerHTML = `<div class="page"><div id="lb">${spinner()}</div></div>`;
+  await load(); if (!alive()) return; paint();
 }, { auth: true });
 
 route('/reports/all', async () => { location.replace('#/rating'); }, { auth: true });

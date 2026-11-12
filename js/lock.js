@@ -48,6 +48,7 @@ export async function checkPin(pin) { const l = get(); return !!l && await hashP
 export function setAutoLock(min) { const l = get(); if (l) put({ ...l, auto: min }); }
 export function removeLock() { localStorage.removeItem(KEY); }
 export async function registerBiometric() {
+  holdLock(60000);
   const cred = await navigator.credentials.create({ publicKey: {
     challenge: crypto.getRandomValues(new Uint8Array(32)), rp: { name: CONFIG.APP_NAME },
     user: { id: new TextEncoder().encode(state.user.id), name: state.user.email, displayName: state.profile?.full_name || state.user.email },
@@ -125,17 +126,25 @@ export function showLock() {
 }
 
 // ---- Avtomatik qulflash (ilovadan chiqib qaytganda)
-let hiddenAt = 0;
+// "Darhol" rejimida ilova fonga ketib (yoki ekran o'chib) qaytsa PIN so'raladi. Bir nechta signal birga tekshiriladi
+// (visibilitychange, pageshow, focus, resume + "yurak urishi"), shunda telefon ilovani muzlatib qo'ysa ham qulf ishlaydi.
+let hiddenAt = 0, alive = Date.now(), holdUntil = 0;
+export const holdLock = ms => { holdUntil = Date.now() + ms; };   // fayl tanlash / mikrofon / biometriya oynalarida qulflamaslik uchun
 export function initAutoLock() {
-  // eski o'rnatilgan qurilmalar: standart — "Darhol" (ilovadan chiqib qaytsa PIN so'raladi)
   const l0 = get(); if (l0 && l0.autoV !== 2) put({ ...l0, auto: l0.auto === 1 ? 0 : (l0.auto ?? 0), autoV: 2 });
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { hiddenAt = Date.now(); return; }
-    if (!lockEnabled() || !hiddenAt) return;
-    const mins = get().auto ?? 0, away = Date.now() - hiddenAt;
-    // "Darhol": 4 soniyadan ortiq chiqib turilsa (fayl tanlash oynasi kabi qisqa o'tishlar qulflamaydi)
-    if (mins >= 0 && away >= Math.max(mins * 60000, 4000)) showLock();
-  });
+  setInterval(() => { if (!document.hidden) alive = Date.now(); }, 1000);
+  document.addEventListener('click', e => { if (e.target?.closest?.('input[type=file]')) holdLock(120000); }, true);
+  const check = () => {
+    const now = Date.now(), had = hiddenAt, since = had || alive; hiddenAt = 0;
+    const l = get(); if (!lockEnabled() || !l) { alive = now; return; }
+    const mins = l.auto ?? 0; if (mins < 0 || now < holdUntil) { alive = now; return; }
+    const need = Math.max(mins * 60000, had ? 600 : 5000), away = now - since;
+    alive = now;
+    if (away >= need && !document.body.classList.contains('locked')) showLock();
+  };
+  const left = () => { if (!hiddenAt) hiddenAt = Date.now(); };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) left(); else check(); });
+  addEventListener('pagehide', left); addEventListener('pageshow', check); addEventListener('focus', check); document.addEventListener('resume', check);
 }
 
 // ---- Sozlash oynasi (PIN o'rnatish yoki o'zgartirish)

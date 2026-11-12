@@ -1,6 +1,7 @@
 // Ovozli xabar yozish, rasm/fayl yuborish va xabar media qismini chizish (guruh chati, vazifa, shaxsiy xabarlar)
 // Joy tejash: ovoz ~16 kbit/s Opus (≈120 KB/daqiqa), rasm WebP ≤1280px, fayl ≤10 MB.
 import { sb, state, t, addDict, esc, ic, $, $$, toast, compressImage, upload, uid8, safeName, fmtSize, fmtDur } from './core.js';
+import { holdLock } from './lock.js';
 
 addDict({
   uz: { 'med.rec': 'Yozilmoqda…', 'med.mic_denied': 'Mikrofonga ruxsat berilmadi', 'med.too_big': 'Fayl 10 MB dan katta', 'med.expired': 'Fayl joyni tejash uchun o\'chirilgan', 'med.file': 'Fayl', 'med.cancel': 'Bekor qilish' },
@@ -12,7 +13,7 @@ export const MAX_FILE = 10 * 1048576;
 
 export async function startRecording(maxSec = 120, onTick) {
   let stream;
-  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } }); }
+  try { holdLock(60000); stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } }); }
   catch { toast(t('med.mic_denied'), 'err'); return null; }
   const mime = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find(m => window.MediaRecorder?.isTypeSupported?.(m)) || '';
   const rec = new MediaRecorder(stream, { ...(mime ? { mimeType: mime } : {}), audioBitsPerSecond: 16000 });
