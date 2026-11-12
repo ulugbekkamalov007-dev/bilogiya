@@ -14,7 +14,8 @@ import './admin.js';
 import './guide.js';
 import { offList } from './offline.js';
 import { maybeDevNote } from './contact.js';
-import { lockEnabled, showLock, initAutoLock, offerQuickLogin } from './lock.js';
+import { initMiniBar } from './audiobar.js';
+import { lockEnabled, showLock, initAutoLock, offerQuickLogin, isReloadUnlocked } from './lock.js';
 import { registerSW, canInstall, installApp } from './pwa.js';
 import { CONFIG } from './config.js';
 
@@ -34,7 +35,7 @@ document.documentElement.lang = state.lang;
 const NAV = () => [
   ['/home', 'home', t('nav.home')], ['/library', 'book', t('nav.library')], ['/groups', 'users', t('nav.groups')],
   ...(state.isAdmin || state.settings?.app?.leaderboard !== false ? [['/rating', 'trophy', t('nav.rating')]] : []),
-  ['/reports', 'chart', t('nav.reports')], state.isAdmin ? ['/admin', 'shield', t('nav.admin')] : ['/settings', 'settings', t('nav.settings')],
+  ['/settings', 'user', t('nav.profile')],
 ];
 let unread = 0;
 function paintShell(path = currentPath()) {
@@ -49,7 +50,7 @@ function paintShell(path = currentPath()) {
     <a class="avatar" href="#/settings">${av ? `<img src="${esc(av)}" alt="">` : esc(ini)}</a>`;
   $('#tlang').onchange = e => setLang(e.target.value);
   $('#tinst')?.addEventListener('click', installApp);
-  $('#tabs').innerHTML = NAV().map(([p, i, l]) => `<a href="#${p}" class="${path.startsWith(p) ? 'on' : ''}">${ic(i, 22)}<span>${esc(l)}</span></a>`).join('');
+  $('#tabs').innerHTML = NAV().map(([p, i, l]) => `<a href="#${p}" class="${path.startsWith(p) || (p === '/settings' && /^\/(admin|offline|guide)/.test(path)) ? 'on' : ''}">${ic(i, 22)}<span>${esc(l)}</span></a>`).join('');
 }
 setShellHook((path, opts) => { document.body.dataset.shell = opts.auth ? 'app' : 'public'; paintShell(path); });
 document.addEventListener('pwa-can-install', () => paintShell());
@@ -72,7 +73,7 @@ async function onSignedIn(user) {
   state.profile = p || (() => { try { return JSON.parse(localStorage.getItem(pk)); } catch { return null; } })() || { id: user.id, full_name: user.email, role: 'user' };
   state.isAdmin = state.profile.role === 'admin';
   if (state.profile.lang && !localStorage.getItem('bio.lang')) { state.lang = state.profile.lang; document.documentElement.lang = state.lang; }
-  if (lockEnabled()) { $('#boot')?.remove(); await showLock(); }
+  if (lockEnabled() && !isReloadUnlocked()) { $('#boot')?.remove(); await showLock(); }
   appTimer?.stop(); appTimer = trackTime('app', null);
   rt?.unsubscribe?.();
   rt = sb.channel('dm-badge').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages' }, p => {
@@ -87,6 +88,7 @@ async function onSignedIn(user) {
   if (navigator.onLine) refreshUnread();
   if (!navigator.onLine && offList().length && !currentPath().startsWith('/offline')) go('/offline', true);
   else if (['/', '/login', '/register', '/verify', '/forgot'].includes(currentPath())) go('/home', true); else render();
+  if (!window._miniInit) { window._miniInit = 1; initMiniBar(); }
   watchBlocked();
   offerQuickLogin();
   setTimeout(() => { try { maybeDevNote(); } catch { /* */ } }, 2500);

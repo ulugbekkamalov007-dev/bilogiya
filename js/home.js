@@ -1,20 +1,21 @@
 // Bosh sahifa: salomlashish, reklama banneri, qisqa statistika, davom ettirish, e'lonlar
 import { sb, state, t, tr, addDict, route, esc, ic, $, $$, fmtMin, dayStr, addDays, rand, publicUrl, fmtDate, spinner } from './core.js';
 import { openAnnouncement, annCard } from './news.js';
+import { donut, bars, CCOL } from './charts.js';
 
 addDict({
   uz: { 'home.hello': 'Salom, {name}! 👋', 'home.sub': 'Bugun nimani o\'rganamiz?', 'home.today': 'Bugun', 'home.week': 'Bu hafta', 'home.avg': 'O\'rtacha test',
     'home.cont': 'Davom ettirish', 'home.news': 'E\'lonlar', 'home.no_news': 'Hozircha e\'lon yo\'q', 'home.to_lib': 'Kutubxonaga o\'tish',
     'home.pending': 'Kutayotgan so\'rovlar', 'home.p_join': 'Guruhga qo\'shilish', 'home.p_buy': 'To\'plamga kirish', 'home.p_rep': 'Shikoyatlar',
-    'home.admin_today': 'Bugun faol', 'home.admin_min': 'Bugungi jami vaqt', 'home.users': 'o\'quvchi', 'home.all_news': 'Hammasi', 'home.pinned': 'Muhim' },
+    'home.rep': 'Hisobotlar', 'home.all_users': 'Foydalanuvchilar', 'home.dau14': 'Faol foydalanuvchilar (14 kun)', 'home.by30': 'Vaqt bo\'limlar bo\'yicha (30 kun)', 'home.admin_today': 'Bugun faol', 'home.admin_min': 'Bugungi jami vaqt', 'home.users': 'o\'quvchi', 'home.all_news': 'Hammasi', 'home.pinned': 'Muhim' },
   ru: { 'home.hello': 'Привет, {name}! 👋', 'home.sub': 'Что изучим сегодня?', 'home.today': 'Сегодня', 'home.week': 'Эта неделя', 'home.avg': 'Средний тест',
     'home.cont': 'Продолжить', 'home.news': 'Объявления', 'home.no_news': 'Пока нет объявлений', 'home.to_lib': 'Перейти в библиотеку',
     'home.pending': 'Ожидающие заявки', 'home.p_join': 'Вступление в группу', 'home.p_buy': 'Доступ к набору', 'home.p_rep': 'Жалобы',
-    'home.admin_today': 'Активны сегодня', 'home.admin_min': 'Всего времени сегодня', 'home.users': 'учеников', 'home.all_news': 'Все', 'home.pinned': 'Важно' },
+    'home.rep': 'Отчёты', 'home.all_users': 'Пользователи', 'home.dau14': 'Активные пользователи (14 дней)', 'home.by30': 'Время по разделам (30 дней)', 'home.admin_today': 'Активны сегодня', 'home.admin_min': 'Всего времени сегодня', 'home.users': 'учеников', 'home.all_news': 'Все', 'home.pinned': 'Важно' },
   en: { 'home.hello': 'Hi, {name}! 👋', 'home.sub': 'What shall we learn today?', 'home.today': 'Today', 'home.week': 'This week', 'home.avg': 'Avg. test',
     'home.cont': 'Continue', 'home.news': 'Announcements', 'home.no_news': 'No announcements yet', 'home.to_lib': 'Go to library',
     'home.pending': 'Pending requests', 'home.p_join': 'Group join', 'home.p_buy': 'Collection access', 'home.p_rep': 'Reports',
-    'home.admin_today': 'Active today', 'home.admin_min': 'Total time today', 'home.users': 'learners', 'home.all_news': 'All', 'home.pinned': 'Pinned' },
+    'home.rep': 'Reports', 'home.all_users': 'Users', 'home.dau14': 'Active users (14 days)', 'home.by30': 'Time by section (30 days)', 'home.admin_today': 'Active today', 'home.admin_min': 'Total time today', 'home.users': 'learners', 'home.all_news': 'All', 'home.pinned': 'Pinned' },
 });
 
 route('/home', async ({ el, alive }) => {
@@ -36,14 +37,27 @@ route('/home', async ({ el, alive }) => {
   let adminBox = '';
   if (state.isAdmin) {
     const cnt = q => q.then(r => r.count || 0);
-    const [j, b, r, da] = await Promise.all([
+    const from14 = dayStr(addDays(new Date(), -13)), from30 = dayStr(addDays(new Date(), -29));
+    const [j, b, r, da, nu, d14, ov] = await Promise.all([
       cnt(sb.from('group_members').select('*', { count: 'exact', head: true }).eq('status', 'pending')),
       cnt(sb.from('access_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending')),
       cnt(sb.from('message_reports').select('*', { count: 'exact', head: true }).eq('status', 'open')),
       sb.rpc('admin_daily_active', { p_from: today, p_to: today }),
+      cnt(sb.from('profiles').select('*', { count: 'exact', head: true })),
+      sb.rpc('admin_daily_active', { p_from: from14, p_to: today }),
+      sb.rpc('admin_overview', { p_from: from30, p_to: today }),
     ]);
+    
     const d = (da.data || [])[0] || { users: 0, seconds: 0 };
-    adminBox = `<div class="card pad mb"><div class="row between"><h3>${esc(t('home.pending'))}</h3><a href="#/admin">${ic('chev')}</a></div>
+    const dm = {}; (d14.data || []).forEach(x => { dm[x.day] = +x.users; });
+    const dd = []; for (let i = 13; i >= 0; i--) { const dk = dayStr(addDays(new Date(), -i)); dd.push({ label: dk.slice(8), value: dm[dk] || 0, title: fmtDate(dk) + ': ' + (dm[dk] || 0) }); }
+    const ovr = ov.data || [], kinds = ['video', 'audio', 'book', 'test'], sec = k => +((ovr.find(x => x.kind === k) || {}).seconds || 0);
+    const parts = kinds.map(k => ({ label: t('rep.' + k), value: sec(k), color: CCOL[k] })), totS = parts.reduce((a, p) => a + p.value, 0);
+    adminBox = `<div class="card pad mb"><div class="row between"><h3>${esc(t('home.rep'))}</h3></div>
+      <div class="stats3"><a class="stat" href="#/admin?tab=users"><span>${esc(t('home.all_users'))}</span><b>${nu}</b></a><a class="stat" href="#/rating"><span>${esc(t('home.admin_today'))}</span><b>${d.users}</b></a><a class="stat" href="#/rating"><span>${esc(t('home.admin_min'))}</span><b>${esc(fmtMin(d.seconds))}</b></a></div>
+      <h4 class="mt">${esc(t('home.dau14'))}</h4>${bars(dd)}
+      <h4 class="mt">${esc(t('home.by30'))}</h4><div class="row donutrow">${donut(parts, fmtMin(totS), '30')}<div class="legend col">${parts.map(p => `<span><i style="background:${p.color}"></i>${esc(p.label)} · ${esc(fmtMin(p.value))}</span>`).join('')}</div></div></div>
+      <div class="card pad mb"><div class="row between"><h3>${esc(t('home.pending'))}</h3><a href="#/admin">${ic('chev')}</a></div>
       <div class="stats3"><a class="stat" href="#/groups"><b>${j}</b><span>${esc(t('home.p_join'))}</span></a><a class="stat" href="#/admin"><b>${b}</b><span>${esc(t('home.p_buy'))}</span></a><a class="stat" href="#/admin"><b>${r}</b><span>${esc(t('home.p_rep'))}</span></a></div>
       <p class="muted small mt">${esc(t('home.admin_today'))}: <b>${d.users}</b> ${esc(t('home.users'))} · ${esc(t('home.admin_min'))}: <b>${esc(fmtMin(d.seconds))}</b></p></div>`;
   }

@@ -11,6 +11,7 @@ addDict({
     'tests.result': 'Natija', 'tests.correct': 'To\'g\'ri', 'tests.wrong': 'Xato', 'tests.time': 'Vaqt', 'tests.retry': 'Qayta yechish', 'tests.retry_wrong': 'Xatolarni qayta yechish',
     'tests.review': 'Xatolar tahlili', 'tests.your': 'Sizning javobingiz', 'tests.right': 'To\'g\'ri javob', 'tests.back': 'Kutubxonaga',
     'tests.empty': 'Bu testda hali savol yo\'q', 'tests.exit': 'Testdan chiqasizmi? Natija saqlanmaydi.',
+    'tg.btn': 'Yo\'riqnoma va namunalar', 'tg.title': 'Test tayyorlash yo\'riqnomasi', 'tg.intro': 'Ilova hujjat turini (Word, PDF, TXT) va savol shaklini o\'zi aniqlaydi. Quyidagi 5 usuldan istalganini ishlating — hatto bir faylda aralash ham bo\'ladi. Har bir namunani «Sinab ko\'rish» tugmasi bilan darhol tekshirishingiz mumkin.', 'tg.s1': '1-usul. Eng oddiy: birinchi variant to\'g\'ri', 'tg.s1d': 'Har bir savoldan keyin variantlar yoziladi. BIRINCHI variant to\'g\'ri javob hisoblanadi. Harflar shart emas — ilova o\'zi aralashtiradi, shuning uchun to\'g\'ri javob har safar boshqa joyda chiqadi.', 'tg.s2': '2-usul. Yulduzcha (*) bilan belgilash', 'tg.s2d': 'To\'g\'ri variant oldiga * yoki + qo\'ying. U istalgan joyda bo\'lishi mumkin.', 'tg.s3': '3-usul. «Javob:» qatori', 'tg.s3d': 'Variantlar A) B) C) D) harflari bilan yozilib, oxirida «Javob: B» deb ko\'rsatiladi.', 'tg.s4': '4-usul. Bob (mavzu) sarlavhalari', 'tg.s4d': '«# Bob nomi», «Mavzu: ...» yoki «Bob: ...» qatori keyingi savollarni shu mavzuga biriktiradi. Natijalarda mavzular bo\'yicha statistika chiqadi.', 'tg.s5': '5-usul. Izoh qo\'shish', 'tg.s5d': '«Izoh: ...» qatori savol tagida, javobdan keyin tushuntirish sifatida ko\'rsatiladi.', 'tg.tips': 'Muhim maslahatlar', 'tg.t1': 'Savollar orasiga bo\'sh qator qo\'ying yoki raqamlang (1. 2. 3.).', 'tg.t2': 'Word: oddiy matn yozing. Jadval va rasmlar o\'qilmaydi.', 'tg.t3': 'PDF: matnli bo\'lishi kerak. Telefon bilan suratga olingan (skan) PDF o\'qilmaydi — uni Word\'ga o\'tkazing.', 'tg.t4': 'Eng ko\'pi bilan 8 ta variant. Nechta variant bo\'lishini oynadagi «Variantlar soni» orqali belgilaysiz.', 'tg.t5': 'Yuklangach «Tahlil qilish»ni bosing: topilgan savollar ko\'rinadi, keraksizini ✕ bilan o\'chirasiz.', 'tg.try': 'Sinab ko\'rish', 'tg.dl': 'Namuna faylni yuklab olish (.txt)', 'tg.insert': 'Namunani maydonga qo\'yish', 'tg.sample_name': 'namuna-test', 'tg.close': 'Yopish',
     'imp.title': 'Test import qilish', 'imp.how': 'Word (.docx), PDF yoki TXT fayl yuklang yoki matnni shu yerga qo\'ying. Javob harflari (A, B, C, D) shart emas — ilova o\'zi aralashtiradi.',
     'imp.rules': 'Qoida: savol → variantlar. To\'g\'ri javob — BIRINCHI variant (yoki * bilan belgilang). Savollar raqamlangan yoki bo\'sh qator bilan ajratilgan bo\'lsin. Bob: «# Bob nomi».',
     'imp.file': 'Fayl', 'imp.paste': 'yoki matnni qo\'ying', 'imp.opts': 'Har savolda variantlar soni (raqamsiz, bo\'sh qatorsiz hujjatlar uchun)', 'imp.parse': 'Tahlil qilish',
@@ -25,6 +26,7 @@ addDict({
     'tests.result': 'Результат', 'tests.correct': 'Верно', 'tests.wrong': 'Ошибок', 'tests.time': 'Время', 'tests.retry': 'Пройти снова', 'tests.retry_wrong': 'Повторить ошибки',
     'tests.review': 'Разбор ошибок', 'tests.your': 'Ваш ответ', 'tests.right': 'Правильный ответ', 'tests.back': 'В библиотеку',
     'tests.empty': 'В этом тесте пока нет вопросов', 'tests.exit': 'Выйти из теста? Результат не сохранится.',
+    'tg.btn': 'Инструкция и образцы', 'tg.title': 'Инструкция по подготовке теста', 'tg.intro': 'Приложение само определяет тип файла (Word, PDF, TXT) и форму вопросов. Используйте любой из 5 способов — даже вперемешку в одном файле. Каждый образец можно сразу проверить кнопкой «Попробовать».', 'tg.s1': 'Способ 1. Самый простой: первый вариант верный', 'tg.s1d': 'После вопроса идут варианты. ПЕРВЫЙ вариант считается правильным. Буквы не нужны — приложение само перемешает, поэтому правильный ответ каждый раз на новом месте.', 'tg.s2': 'Способ 2. Пометка звёздочкой (*)', 'tg.s2d': 'Поставьте * или + перед верным вариантом. Он может стоять где угодно.', 'tg.s3': 'Способ 3. Строка «Ответ:»', 'tg.s3d': 'Варианты с буквами A) B) C) D), в конце «Ответ: B».', 'tg.s4': 'Способ 4. Заголовки глав (тем)', 'tg.s4d': 'Строка «# Название», «Тема: ...» или «Глава: ...» привязывает следующие вопросы к теме. В результатах появится статистика по темам.', 'tg.s5': 'Способ 5. Пояснение', 'tg.s5d': 'Строка «Объяснение: ...» показывается под вопросом после ответа.', 'tg.tips': 'Важные советы', 'tg.t1': 'Разделяйте вопросы пустой строкой или нумеруйте (1. 2. 3.).', 'tg.t2': 'Word: пишите обычный текст. Таблицы и картинки не читаются.', 'tg.t3': 'PDF должен быть текстовым. Скан с телефона не читается — переведите в Word.', 'tg.t4': 'Не более 8 вариантов. Число вариантов задаётся полем «Число вариантов».', 'tg.t5': 'После загрузки нажмите «Разобрать»: найденные вопросы появятся, лишние удаляются крестиком.', 'tg.try': 'Попробовать', 'tg.dl': 'Скачать образец (.txt)', 'tg.insert': 'Вставить образец в поле', 'tg.sample_name': 'obrazets-testa', 'tg.close': 'Закрыть',
     'imp.title': 'Импорт теста', 'imp.how': 'Загрузите файл Word (.docx), PDF или TXT либо вставьте текст. Буквы ответов (A, B, C, D) не нужны — приложение перемешает само.',
     'imp.rules': 'Правило: вопрос → варианты. Правильный — ПЕРВЫЙ вариант (или отметьте *). Вопросы нумеруйте или разделяйте пустой строкой. Глава: «# Название».',
     'imp.file': 'Файл', 'imp.paste': 'или вставьте текст', 'imp.opts': 'Вариантов в вопросе (для документов без нумерации и пустых строк)', 'imp.parse': 'Разобрать',
@@ -39,6 +41,7 @@ addDict({
     'tests.result': 'Result', 'tests.correct': 'Correct', 'tests.wrong': 'Wrong', 'tests.time': 'Time', 'tests.retry': 'Try again', 'tests.retry_wrong': 'Retry mistakes',
     'tests.review': 'Review mistakes', 'tests.your': 'Your answer', 'tests.right': 'Correct answer', 'tests.back': 'Back to library',
     'tests.empty': 'This test has no questions yet', 'tests.exit': 'Leave the test? Your result will not be saved.',
+    'tg.btn': 'Guide & samples', 'tg.title': 'How to prepare a test', 'tg.intro': 'The app detects the file type (Word, PDF, TXT) and question style by itself. Use any of the 5 styles below — they can even be mixed in one file. Each sample can be tried right away with the “Try it” button.', 'tg.s1': 'Style 1. Simplest: first option is correct', 'tg.s1d': 'Options follow each question. The FIRST option is treated as correct. No letters needed — the app shuffles them, so the right answer appears in a different place every time.', 'tg.s2': 'Style 2. Mark with an asterisk (*)', 'tg.s2d': 'Put * or + before the correct option. It can be anywhere.', 'tg.s3': 'Style 3. An “Answer:” line', 'tg.s3d': 'Options with letters A) B) C) D), then “Answer: B” at the end.', 'tg.s4': 'Style 4. Chapter (topic) headings', 'tg.s4d': 'A line like “# Name”, “Topic: ...” or “Chapter: ...” attaches the following questions to that topic. Results then show per-topic statistics.', 'tg.s5': 'Style 5. Add an explanation', 'tg.s5d': 'An “Explanation: ...” line is shown under the question after answering.', 'tg.tips': 'Important tips', 'tg.t1': 'Separate questions with a blank line or number them (1. 2. 3.).', 'tg.t2': 'Word: write plain text. Tables and pictures are not read.', 'tg.t3': 'PDF must contain real text. A phone scan is not readable — convert it to Word.', 'tg.t4': 'Up to 8 options. Set the count with the “Options” field.', 'tg.t5': 'After loading press “Parse”: found questions are listed and you can remove extras with ✕.', 'tg.try': 'Try it', 'tg.dl': 'Download sample file (.txt)', 'tg.insert': 'Put sample into the field', 'tg.sample_name': 'sample-test', 'tg.close': 'Close',
     'imp.title': 'Import a test', 'imp.how': 'Upload a Word (.docx), PDF or TXT file, or paste the text. Answer letters (A, B, C, D) are not required — the app shuffles for you.',
     'imp.rules': 'Rule: question → options. The correct one is the FIRST option (or mark it with *). Number the questions or separate them with a blank line. Chapter: "# Name".',
     'imp.file': 'File', 'imp.paste': 'or paste text', 'imp.opts': 'Options per question (for documents with no numbering / blank lines)', 'imp.parse': 'Parse',
@@ -105,8 +108,26 @@ export async function extractText(file) {
 }
 
 // ---------- import oynasi (admin)
+const SAMPLES = [
+  ['tg.s1', 'tg.s1d', `Hujayra nazariyasini kim yaratgan?\nSchleiden va Schwann\nDarvin\nMendel\nPasteur\n\nDNK qayerda joylashgan?\nYadroda\nRibosomada\nLizosomada\nGolji apparatida`],
+  ['tg.s2', 'tg.s2d', `1. Fotosintez qayerda boradi?\nMitoxondriyada\n*Xloroplastda\nYadroda\nRibosomada\n\n2. Qon guruhlari nechta?\n2\n3\n+4\n8`],
+  ['tg.s3', 'tg.s3d', `1. Insulin qaysi bez gormoni?\nA) Qalqonsimon\nB) Oshqozon osti\nC) Buyrak usti\nD) Gipofiz\nJavob: B`],
+  ['tg.s4', 'tg.s4d', `# Genetika\nIrsiyat birligi nima?\nGen\nHujayra\nTo'qima\nOrgan\n\n# Ekologiya\nProdutsentlar kimlar?\nYashil o'simliklar\nBakteriyalar\nHayvonlar\nVirus`],
+  ['tg.s5', 'tg.s5d', `Yurak necha kamerali?\n4 kamerali\n2 kamerali\n3 kamerali\n5 kamerali\nIzoh: Odam yuragi ikki bo'lmacha va ikki qorinchadan iborat.`],
+];
+export function testGuide(onInsert) {
+  const m = modal(`<h3>${ic('book')} ${esc(t('tg.title'))}</h3><p class="muted">${esc(t('tg.intro'))}</p>
+    ${SAMPLES.map(([h, d, ex], i) => `<div class="card pad mb"><h4>${esc(t(h))}</h4><p class="small muted">${esc(t(d))}</p><pre class="code">${esc(ex)}</pre><button class="btn sm soft" data-try="${i}">${esc(t('tg.try'))}</button></div>`).join('')}
+    <div class="card pad mb"><h4>💡 ${esc(t('tg.tips'))}</h4><ul class="small">${[1, 2, 3, 4, 5].map(i => `<li>${esc(t('tg.t' + i))}</li>`).join('')}</ul></div>
+    <div class="row wrap"><button class="btn ghost" id="gdl">⬇ ${esc(t('tg.dl'))}</button><span class="grow"></span><button class="btn" id="gx">${esc(t('tg.close'))}</button></div>`, { cls: 'wide' });
+  $$('[data-try]', m.el).forEach(b => b.onclick = () => { onInsert(SAMPLES[+b.dataset.try][2]); m.close(); });
+  $('#gx', m.el).onclick = () => m.close();
+  $('#gdl', m.el).onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([SAMPLES.map(x => x[2]).join('\n\n\n')], { type: 'text/plain;charset=utf-8' })); a.download = t('tg.sample_name') + '.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); };
+}
+
 export function testImportModal({ folderId = null, itemId = null, onDone } = {}) {
   const m = modal(`<h3>${ic('test')} ${esc(t('imp.title'))}</h3><p class="muted small">${esc(t('imp.how'))}</p><p class="small">${esc(t('imp.rules'))}</p>
+    <button class="btn soft mb" id="tgb" type="button">${ic('book', 16)} ${esc(t('tg.btn'))}</button>
     <details class="mb"><summary>${esc(t('imp.example'))}</summary><pre class="code">${esc(t('imp.ex_text'))}</pre></details>
     <div class="form">
       ${itemId ? '' : `<label class="fld"><span>${esc(t('imp.name'))}</span><input class="input" id="nm" required></label>`}
@@ -116,6 +137,7 @@ export function testImportModal({ folderId = null, itemId = null, onDone } = {})
       <div class="err" id="err"></div><button class="btn" id="pr">${esc(t('imp.parse'))}</button>
       <div id="prev"></div></div>`, { cls: 'wide' });
   const el = m.el; let qs = [];
+  $('#tgb', el).onclick = () => testGuide(txt => { $('#tx', el).value = txt; if (!itemId && !$('#nm', el).value) $('#nm', el).value = t('tg.sample_name'); $('#pr', el).click(); });
   const err = x => $('#err', el).textContent = x || '';
   $('#fl', el).onchange = async e => {
     const f = e.target.files[0]; if (!f) return; err(); $('#tx', el).value = t('imp.reading');

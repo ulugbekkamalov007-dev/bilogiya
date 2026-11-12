@@ -4,6 +4,9 @@ import { mountPlayer } from './player.js';
 import { offlineBox, offList } from './offline.js';
 import { testImportModal } from './tests.js';
 import { renderPdf } from './pdfjs.js';
+import { openReader } from './reader.js';
+import { audioPage, audioList, folderAudios, AP } from './audiobar.js';
+import { openAddWizard } from './addwiz.js';
 import { CONFIG } from './config.js';
 
 addDict({
@@ -14,7 +17,7 @@ addDict({
     'lib.request': 'Kirishni so\'rash', 'lib.requested': 'So\'rov yuborildi — admin javobini kuting', 'lib.pending': 'So\'rov ko\'rib chiqilmoqda',
     'lib.src': 'Manba', 'lib.src_yt': 'YouTube havolasi', 'lib.src_url': 'Video URL (mp4 / m3u8)', 'lib.src_up': 'Fayl yuklash',
     'lib.yt_hint': 'YouTube videoni «Unlisted» (havola orqali) qilib qo\'ying — ilova uni o\'z pleyerida, havolasiz ko\'rsatadi.',
-    'lib.variants': 'Sifat variantlari (ixtiyoriy). Har qatorda: 720p|https://...mp4', 'lib.kind': 'Turi', 'lib.k_pdf': 'PDF', 'lib.k_presentation': 'Taqdimot', 'lib.k_book': 'Kitob',
+    'lib.variants': 'Sifat variantlari (ixtiyoriy). Har qatorda: 720p|https://...mp4', 'lib.kind': 'Turi', 'lib.k_pdf': 'Hujjat', 'lib.k_presentation': 'Hujjat', 'lib.k_book': 'Kitob',
     'lib.k_video': 'Video', 'lib.k_test': 'Test', 'lib.k_link': 'Havola', 'lib.uploading': 'Yuklanmoqda…', 'lib.too_big': 'Fayl {mb} MB dan katta. Kattaroq fayl uchun tashqi havoladan foydalaning.',
     'lib.url_or_file': 'Fayl yoki havola kerak', 'lib.saved': 'Saqlandi', 'lib.open': 'Ochish', 'lib.download': 'Yuklab olish', 'lib.start_test': 'Testni boshlash', 'lib.add_q': 'Savollar qo\'shish',
     'lib.url': 'Havola (URL)', 'lib.watched': 'Ko\'rilgan', 'lib.edit': 'Tahrirlash', 'lib.del_q': 'O\'chirilsinmi? Ichidagi hamma narsa ham o\'chadi.', 'lib.bad_yt': 'YouTube havolasi noto\'g\'ri',
@@ -26,7 +29,7 @@ addDict({
     'lib.request': 'Запросить доступ', 'lib.requested': 'Запрос отправлен — ждите ответа админа', 'lib.pending': 'Запрос рассматривается',
     'lib.src': 'Источник', 'lib.src_yt': 'Ссылка YouTube', 'lib.src_url': 'URL видео (mp4 / m3u8)', 'lib.src_up': 'Загрузить файл',
     'lib.yt_hint': 'Сделайте видео на YouTube «по ссылке» (Unlisted) — приложение покажет его в своём плеере, без ссылки.',
-    'lib.variants': 'Варианты качества (необязательно). В строке: 720p|https://...mp4', 'lib.kind': 'Тип', 'lib.k_pdf': 'PDF', 'lib.k_presentation': 'Презентация', 'lib.k_book': 'Книга',
+    'lib.variants': 'Варианты качества (необязательно). В строке: 720p|https://...mp4', 'lib.kind': 'Тип', 'lib.k_pdf': 'Документ', 'lib.k_presentation': 'Документ', 'lib.k_book': 'Книга',
     'lib.k_video': 'Видео', 'lib.k_test': 'Тест', 'lib.k_link': 'Ссылка', 'lib.uploading': 'Загрузка…', 'lib.too_big': 'Файл больше {mb} МБ. Для крупных файлов используйте внешнюю ссылку.',
     'lib.url_or_file': 'Нужен файл или ссылка', 'lib.saved': 'Сохранено', 'lib.open': 'Открыть', 'lib.download': 'Скачать', 'lib.start_test': 'Начать тест', 'lib.add_q': 'Добавить вопросы',
     'lib.url': 'Ссылка (URL)', 'lib.watched': 'Просмотрено', 'lib.edit': 'Изменить', 'lib.del_q': 'Удалить? Всё внутри тоже удалится.', 'lib.bad_yt': 'Неверная ссылка YouTube',
@@ -38,7 +41,7 @@ addDict({
     'lib.request': 'Request access', 'lib.requested': 'Request sent — wait for the admin', 'lib.pending': 'Request is being reviewed',
     'lib.src': 'Source', 'lib.src_yt': 'YouTube link', 'lib.src_url': 'Video URL (mp4 / m3u8)', 'lib.src_up': 'Upload a file',
     'lib.yt_hint': 'Set the YouTube video to "Unlisted" — the app plays it in its own player with no visible link.',
-    'lib.variants': 'Quality variants (optional). One per line: 720p|https://...mp4', 'lib.kind': 'Type', 'lib.k_pdf': 'PDF', 'lib.k_presentation': 'Slides', 'lib.k_book': 'Book',
+    'lib.variants': 'Quality variants (optional). One per line: 720p|https://...mp4', 'lib.kind': 'Type', 'lib.k_pdf': 'Document', 'lib.k_presentation': 'Document', 'lib.k_book': 'Book',
     'lib.k_video': 'Video', 'lib.k_test': 'Test', 'lib.k_link': 'Link', 'lib.uploading': 'Uploading…', 'lib.too_big': 'File exceeds {mb} MB. Use an external link for bigger files.',
     'lib.url_or_file': 'A file or a link is required', 'lib.saved': 'Saved', 'lib.open': 'Open', 'lib.download': 'Download', 'lib.start_test': 'Start the test', 'lib.add_q': 'Add questions',
     'lib.url': 'Link (URL)', 'lib.watched': 'Watched', 'lib.edit': 'Edit', 'lib.del_q': 'Delete? Everything inside will be removed.', 'lib.bad_yt': 'Invalid YouTube link',
@@ -76,10 +79,7 @@ const browse = async ({ el, params, alive }) => {
   if (vids.length) (await sb.from('video_progress').select('item_id,last_pos,duration,completed').eq('user_id', state.user.id).in('item_id', vids)).data?.forEach(p => prog[p.item_id] = p);
 
   const crumbHtml = `<nav class="crumbs"><a href="#/library">${ic('home', 16)} ${esc(t('lib.title'))}</a>${path.map(p => ` ${ic('chev', 14)} <a href="#/library/${p.id}">${esc(tr(p.title))}</a>`).join('')}</nav>`;
-  const adminBar = state.isAdmin && !lockedAnc ? `<div class="toolbar">
-    <button class="btn sm" data-add="folder">${ic('folder', 16)} ${esc(t('lib.new_folder'))}</button><button class="btn sm" data-add="video">${ic('video', 16)} ${esc(t('lib.add_video'))}</button>
-    <button class="btn sm" data-add="audio">${ic('audio', 16)} ${esc(t('lib.add_audio'))}</button><button class="btn sm" data-add="file">${ic('file', 16)} ${esc(t('lib.add_file'))}</button><button class="btn sm" data-add="test">${ic('test', 16)} ${esc(t('lib.add_test'))}</button>
-    <button class="btn sm" data-add="link">${ic('link', 16)} ${esc(t('lib.add_link'))}</button></div>` : '';
+  const adminBar = state.isAdmin && !lockedAnc ? `<button class="fab" id="fab" aria-label="add">${ic('plus', 28)}</button>` : '';
   const adm = (type, id, vis) => state.isAdmin ? `<span class="acts"><button data-vis="${type}:${id}:${vis ? 1 : 0}" title="visible">${ic(vis ? 'eye' : 'eyeoff', 16)}</button><button data-edit="${type}:${id}">${ic('edit', 16)}</button><button data-del="${type}:${id}">${ic('trash', 16)}</button></span>` : '';
 
   el.innerHTML = `<div class="page"><h1 class="mb0">${esc(path.length ? tr(path[path.length - 1].title) : t('lib.title'))}</h1>${crumbHtml}${!path.length && offList().length ? `<a class="btn sm soft mt" href="#/offline">${ic('download', 14)} ${esc(t('off.open'))} (${offList().length})</a>` : ''}${adminBar}
@@ -103,7 +103,7 @@ const browse = async ({ el, params, alive }) => {
   const refresh = () => { memoClear('lib:'); return browse({ el, params, alive }); };
   $$('[data-open]', el).forEach(c => c.onclick = e => { if (e.target.closest('.acts')) return; const fo = folders.find(x => x.id === c.dataset.open); if (isLocked(fo)) lockedModal(fo, reqMap[fo.id]); else go('/library/' + fo.id); });
   $$('[data-item]', el).forEach(c => c.onclick = e => { if (e.target.closest('.acts')) return; openItem(items.find(x => x.id === c.dataset.item)); });
-  $$('[data-add]', el).forEach(b => b.onclick = () => addDialog(b.dataset.add, fid, refresh));
+  $('#fab', el)?.addEventListener('click', () => openAddWizard(fid, refresh, { probeMedia, mimeOf, ytId, safeName, fmtSize, testImportModal }));
   $$('[data-vis]', el).forEach(b => b.onclick = async () => { const [ty, id, v] = b.dataset.vis.split(':'); await sb.from(ty === 'folder' ? 'folders' : 'items').update({ visible: v !== '1' }).eq('id', id); refresh(); });
   $$('[data-del]', el).forEach(b => b.onclick = async () => { const [ty, id] = b.dataset.del.split(':'); if (!(await confirmDlg(t('lib.del_q')))) return; const { error } = await sb.from(ty === 'folder' ? 'folders' : 'items').delete().eq('id', id); if (error) toast(error.message, 'err'); refresh(); });
   $$('[data-edit]', el).forEach(b => b.onclick = () => { const [ty, id] = b.dataset.edit.split(':'); editDialog(ty, (ty === 'folder' ? folders : items).find(x => x.id === id), refresh); });
@@ -134,19 +134,25 @@ route('/item/:id', async ({ el, params, alive }) => {
   const back = `#/library/${it.folder_id || ''}`;
   el.innerHTML = `<div class="page"><a class="btn ghost sm" href="${back}">${ic('back')}</a><h2 class="mt">${esc(tr(it.title))}</h2><div id="host" class="mb"></div>${tr(it.description) ? `<p class="pre muted">${esc(tr(it.description))}</p>` : ''}</div>`;
   const host = $('#host', el);
-  if (it.kind === 'video' || it.kind === 'audio') {
+  if (it.kind === 'audio') {
+    const list = await folderAudios(it.folder_id); if (!alive()) return;
+    const box = document.createElement('div'); box.className = 'mb'; host.after(box); let ob;
+    const ap = audioPage(host, it, list, { onDone: () => ob?.repaint() }); onLeave(() => ap.destroy());
+    ob = offlineBox(box, it, () => ap.completed());
+    const lst = document.createElement('div'); lst.className = 'mt'; box.after(lst); audioList(lst, list, it.id);
+    return;
+  }
+  if (it.kind === 'video') {
     const box = document.createElement('div'); box.className = 'mb'; host.after(box); let ob;
     const pl = await mountPlayer(host, it, { onDone: () => ob?.repaint() }); onLeave(() => pl.destroy());
     ob = offlineBox(box, it, () => pl.completed()); return;
   }
-  // o'qiladigan materiallar — o'qish vaqtini hisoblaymiz
+  // o'qiladigan materiallar (hujjat, kitob) — butun ekranda, o'qish vaqti hisoblanadi
   const tm = trackTime('book', it.id); onLeave(() => tm.stop());
   let url = it.url; if (!url && it.storage_path) url = await signedUrl('content', it.storage_path, 7200);
   const ext = (it.storage_path || it.url || '').split('?')[0].split('.').pop().toLowerCase();
-  const btns = `<div class="row wrap mt"><a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">${ic('link', 16)} ${esc(t('lib.open'))}</a><a class="btn sm ghost" href="${esc(url)}" download>${ic('download', 16)} ${esc(t('lib.download'))}</a></div>`;
-  if (ext === 'pdf') { host.innerHTML = '<div class="pdfhost"></div>' + btns; const v = await renderPdf($('.pdfhost', host), url).catch(() => null); if (v) onLeave(() => v.destroy()); }
-  else if (['ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'odp'].includes(ext)) host.innerHTML = `<iframe class="docframe" src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}" allowfullscreen></iframe>${btns}`;
-  else host.innerHTML = `<div class="card pad center"><a class="btn lg" href="${esc(url)}" target="_blank" rel="noopener">${esc(t('lib.open'))}</a></div>`;
+  if (!url) return go('/library', true);
+  return openReader(el, it, url, ext, back);
 }, { auth: true });
 
 // ------------------------------------------------------------------ ADMIN: QO'SHISH / TAHRIRLASH

@@ -101,6 +101,14 @@ function keypad(len, onDone, { bio = false, onBio } = {}) {
 
 // ---- Qulf ekrani (overlay — ilova holati yo'qolmaydi)
 let lockP = null;
+// sahifa tortib yangilanganda (reload) — qulf so'ralmaydi, agar ilova yaqinda ochiq va qulfsiz bo'lgan bo'lsa
+export function isReloadUnlocked() {
+  try {
+    const nav = performance.getEntriesByType('navigation')[0]; if (nav?.type !== 'reload') return false;
+    if (sessionStorage.getItem('bio.lk')) return false;
+    return Date.now() - +(sessionStorage.getItem('bio.ua') || 0) < 20000;
+  } catch { return false; }
+}
 export function showLock() {
   if (lockP) return lockP;
   lockP = new Promise(resolve => {
@@ -108,8 +116,8 @@ export function showLock() {
     wrap.innerHTML = `<div class="lock-in"><div class="lock-av">${state.profile?.avatar_url ? `<img src="${esc(state.profile.avatar_url)}" alt="">` : esc((state.profile?.full_name || state.user?.email || '?').trim()[0]?.toUpperCase())}</div><h2>${esc(t('lock.hello', { name: (state.profile?.full_name || '').split(' ')[0] }))}</h2>
       <p class="muted" id="lm">${esc(t('lock.enter'))}</p><div id="kp"></div>
       <button class="link mt" id="lo">${esc(t('lock.forgot'))}</button></div>`;
-    document.body.appendChild(wrap); document.body.classList.add('locked');
-    const done = () => { wrap.remove(); document.body.classList.remove('locked'); lockP = null; resolve(true); };
+    document.body.appendChild(wrap); document.body.classList.add('locked'); try { sessionStorage.setItem('bio.lk', '1'); } catch { /* */ }
+    const done = () => { try { sessionStorage.removeItem('bio.lk'); sessionStorage.setItem('bio.ua', Date.now()); } catch { /* */ } wrap.remove(); document.body.classList.remove('locked'); lockP = null; resolve(true); };
     const bioOn = !!l.cred;
     const pad = keypad(l.len || 4, async pin => {
       if (await checkPin(pin)) { put({ ...get(), fails: 0 }); return done(); }
@@ -132,7 +140,7 @@ let hiddenAt = 0, alive = Date.now(), holdUntil = 0;
 export const holdLock = ms => { holdUntil = Date.now() + ms; };   // fayl tanlash / mikrofon / biometriya oynalarida qulflamaslik uchun
 export function initAutoLock() {
   const l0 = get(); if (l0 && l0.autoV !== 2) put({ ...l0, auto: l0.auto === 1 ? 0 : (l0.auto ?? 0), autoV: 2 });
-  setInterval(() => { if (!document.hidden) alive = Date.now(); }, 1000);
+  setInterval(() => { if (!document.hidden) { alive = Date.now(); if (!document.body.classList.contains('locked')) try { sessionStorage.setItem('bio.ua', alive); } catch { /* */ } } }, 1000);
   document.addEventListener('click', e => { if (e.target?.closest?.('input[type=file]')) holdLock(120000); }, true);
   const check = () => {
     const now = Date.now(), had = hiddenAt, since = had || alive; hiddenAt = 0;

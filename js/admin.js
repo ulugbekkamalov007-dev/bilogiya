@@ -3,7 +3,7 @@ import { sb, state, t, tr, addDict, friendlyErr, route, go, esc, ic, $, $$, toas
 import { composeAnnouncement } from './news.js';
 
 addDict({
-  uz: { 'nav.admin': 'Admin', 'adm.title': 'Admin paneli', 'adm.users': 'Foydalanuvchilar', 'adm.requests': 'So\'rovlar', 'adm.video': 'Video qoidalari', 'adm.app': 'Ilova', 'adm.stats': 'Platforma', 'adm.storage': 'Saqlash joyi', 'adm.news': 'E\'lonlar',
+  uz: { 'adm.news_t': 'E\'lon va reklama', 'adm.sections': 'Boshqaruv bo\'limlari', 'nav.admin': 'Admin', 'adm.title': 'Admin paneli', 'adm.users': 'Foydalanuvchilar', 'adm.requests': 'So\'rovlar', 'adm.video': 'Video qoidalari', 'adm.app': 'Ilova', 'adm.stats': 'Platforma', 'adm.storage': 'Saqlash joyi', 'adm.news': 'E\'lonlar',
     'adm.search': 'Ism yoki email…', 'adm.7d': '7 kun', 'adm.total': 'Jami', 'adm.tests': 'Testlar', 'adm.avg': 'O\'rtacha', 'adm.last': 'Oxirgi faollik', 'adm.make_admin': 'Admin qilish', 'adm.make_user': 'Oddiy foydalanuvchi qilish', 'adm.report': 'Hisobot',
     'adm.buy_req': 'To\'plamga kirish so\'rovlari', 'adm.no_req': 'So\'rovlar yo\'q', 'adm.approve': 'Tasdiqlash', 'adm.reject': 'Rad etish', 'adm.reports': 'Xabarlarga shikoyatlar', 'adm.resolve': 'Hal qilindi', 'adm.open_group': 'Guruhga o\'tish',
     'adm.v_fwd': 'Videoni oldinga o\'tkazishga ruxsat', 'adm.v_tol': 'Oldinga o\'tishga ruxsat etilgan farq (soniya)', 'adm.v_rw': 'Orqaga qaytarish qadami (soniya)', 'adm.v_speeds': 'Ruxsat etilgan tezliklar (vergul bilan)', 'adm.v_q': 'Boshlang\'ich sifat',
@@ -12,7 +12,7 @@ addDict({
     'adm.users_n': 'Foydalanuvchilar soni', 'adm.active': 'Faol foydalanuvchilar', 'adm.time_by': 'Bo\'limlar bo\'yicha vaqt', 'adm.dau': 'Kunlik faol foydalanuvchilar', 'adm.st_used': 'Ishlatilgan joy', 'adm.st_free': 'Bepul reja: 1 GB',
     'adm.cleanup': 'Eski chat fayllarini tozalash', 'adm.cleanup_d': 'Belgilangan muddatdan eski ovoz, rasm va topshiriq fayllari o\'chiriladi (matn qoladi).', 'adm.cleaned': '{n} ta fayl o\'chirildi', 'adm.new_ad': 'Yangi reklama', 'adm.new_news': 'Yangi e\'lon', 'adm.all_news': 'Barcha e\'lonlar',
     'rep.video': 'Video', 'rep.book': 'Kitob/material', 'rep.test': 'Test', 'rep.app': 'Ilovada' },
-  ru: { 'nav.admin': 'Админ', 'adm.title': 'Панель админа', 'adm.users': 'Пользователи', 'adm.requests': 'Заявки', 'adm.video': 'Правила видео', 'adm.app': 'Приложение', 'adm.stats': 'Платформа', 'adm.storage': 'Хранилище', 'adm.news': 'Объявления',
+  ru: { 'adm.news_t': 'Объявления и реклама', 'adm.sections': 'Разделы управления', 'nav.admin': 'Админ', 'adm.title': 'Панель админа', 'adm.users': 'Пользователи', 'adm.requests': 'Заявки', 'adm.video': 'Правила видео', 'adm.app': 'Приложение', 'adm.stats': 'Платформа', 'adm.storage': 'Хранилище', 'adm.news': 'Объявления',
     'adm.search': 'Имя или email…', 'adm.7d': '7 дней', 'adm.total': 'Всего', 'adm.tests': 'Тесты', 'adm.avg': 'Среднее', 'adm.last': 'Последняя активность', 'adm.make_admin': 'Сделать админом', 'adm.make_user': 'Сделать обычным', 'adm.report': 'Отчёт',
     'adm.buy_req': 'Заявки на доступ к наборам', 'adm.no_req': 'Заявок нет', 'adm.approve': 'Подтвердить', 'adm.reject': 'Отклонить', 'adm.reports': 'Жалобы на сообщения', 'adm.resolve': 'Решено', 'adm.open_group': 'Перейти в группу',
     'adm.v_fwd': 'Разрешить перемотку видео вперёд', 'adm.v_tol': 'Допуск перемотки вперёд (сек)', 'adm.v_rw': 'Шаг перемотки назад (сек)', 'adm.v_speeds': 'Разрешённые скорости (через запятую)', 'adm.v_q': 'Качество по умолчанию',
@@ -21,7 +21,7 @@ addDict({
     'adm.users_n': 'Всего пользователей', 'adm.active': 'Активные пользователи', 'adm.time_by': 'Время по разделам', 'adm.dau': 'Активные пользователи по дням', 'adm.st_used': 'Занято', 'adm.st_free': 'Бесплатный тариф: 1 ГБ',
     'adm.cleanup': 'Очистить старые файлы чата', 'adm.cleanup_d': 'Голос, фото и файлы работ старше срока будут удалены (текст останется).', 'adm.cleaned': 'Удалено файлов: {n}', 'adm.new_ad': 'Новая реклама', 'adm.new_news': 'Новое объявление', 'adm.all_news': 'Все объявления',
     'rep.video': 'Видео', 'rep.book': 'Книги/материалы', 'rep.test': 'Тесты', 'rep.app': 'В приложении' },
-  en: { 'nav.admin': 'Admin', 'adm.title': 'Admin panel', 'adm.users': 'Users', 'adm.requests': 'Requests', 'adm.video': 'Video rules', 'adm.app': 'App', 'adm.stats': 'Platform', 'adm.storage': 'Storage', 'adm.news': 'Announcements',
+  en: { 'adm.news_t': 'News & ads', 'adm.sections': 'Management sections', 'nav.admin': 'Admin', 'adm.title': 'Admin panel', 'adm.users': 'Users', 'adm.requests': 'Requests', 'adm.video': 'Video rules', 'adm.app': 'App', 'adm.stats': 'Platform', 'adm.storage': 'Storage', 'adm.news': 'Announcements',
     'adm.search': 'Name or email…', 'adm.7d': '7 days', 'adm.total': 'Total', 'adm.tests': 'Tests', 'adm.avg': 'Average', 'adm.last': 'Last seen', 'adm.make_admin': 'Make admin', 'adm.make_user': 'Make regular user', 'adm.report': 'Report',
     'adm.buy_req': 'Collection access requests', 'adm.no_req': 'No requests', 'adm.approve': 'Approve', 'adm.reject': 'Reject', 'adm.reports': 'Message reports', 'adm.resolve': 'Resolved', 'adm.open_group': 'Open group',
     'adm.v_fwd': 'Allow skipping forward in videos', 'adm.v_tol': 'Forward-seek tolerance (sec)', 'adm.v_rw': 'Rewind step (sec)', 'adm.v_speeds': 'Allowed speeds (comma-separated)', 'adm.v_q': 'Default quality',
@@ -32,20 +32,22 @@ addDict({
     'rep.video': 'Video', 'rep.book': 'Books/materials', 'rep.test': 'Tests', 'rep.app': 'In app' },
 });
 
-const TABS = [['users', 'adm.users'], ['requests', 'adm.requests'], ['video', 'adm.video'], ['app', 'adm.app'], ['stats', 'adm.stats'], ['storage', 'adm.storage']];
+export const TABS = [['users', 'adm.users', 'users'], ['requests', 'adm.requests', 'bell'], ['video', 'adm.video', 'video'], ['app', 'adm.app', 'settings'], ['stats', 'adm.stats', 'chart'], ['news', 'adm.news_t', 'mega'], ['storage', 'adm.storage', 'download']];
 const save = async (key, value) => { const { error } = await sb.from('app_settings').upsert({ key, value, updated_at: new Date().toISOString() }); if (error) return toast(error.message, 'err'); await loadSettings(); toast(t('adm.saved'), 'ok'); };
 
 route('/admin', async ({ el, q, alive }) => {
-  let tab = q.tab || 'users';
-  const paint = async () => {
-    el.innerHTML = `<div class="page"><div class="row between wrap"><h1>${esc(t('adm.title'))}</h1><div class="row wrap"><button class="btn sm" id="nn">${ic('mega', 16)} ${esc(t('adm.new_news'))}</button><button class="btn sm soft" id="na">${esc(t('adm.new_ad'))}</button><a class="btn sm ghost" href="#/news">${esc(t('adm.all_news'))}</a></div></div>
-      <div class="tabs scroll">${TABS.map(([k, l]) => `<button class="${k === tab ? 'on' : ''}" data-tab="${k}">${esc(t(l))}</button>`).join('')}</div><div id="body">${spinner()}</div></div>`;
-    $$('[data-tab]', el).forEach(b => b.onclick = () => { tab = b.dataset.tab; paint(); });
-    $('#nn', el).onclick = () => composeAnnouncement(); $('#na', el).onclick = () => composeAnnouncement(null, { kind: 'ad' });
-    await ({ users: usersTab, requests: requestsTab, video: videoTab, app: appTab, stats: statsTab, storage: storageTab })[tab]($('#body', el));
-  };
-  paint();
+  const tab = q.tab; if (!tab || !TABS.some(x => x[0] === tab)) { location.replace('#/settings'); return; }
+  const title = t(TABS.find(x => x[0] === tab)[1]);
+  el.innerHTML = `<div class="page"><div class="row"><a class="icon-btn" href="#/settings" aria-label="back">${ic('back')}</a><h1 class="mb0">${esc(title)}</h1></div><div id="body" class="mt">${spinner()}</div></div>`;
+  await ({ users: usersTab, requests: requestsTab, video: videoTab, app: appTab, stats: statsTab, storage: storageTab, news: newsTab })[tab]($('#body', el));
 }, { auth: true, admin: true });
+
+function newsTab(body) {
+  body.innerHTML = `<div class="cards"><button class="card pad item-row" id="nn"><span class="item-ic">${ic('mega')}</span><b class="grow left">${esc(t('adm.new_news'))}</b></button>
+    <button class="card pad item-row" id="na"><span class="item-ic">${ic('mega')}</span><b class="grow left">${esc(t('adm.new_ad'))}</b></button>
+    <a class="card pad item-row" href="#/news"><span class="item-ic">${ic('book')}</span><b class="grow">${esc(t('adm.all_news'))}</b>${ic('chev')}</a></div>`;
+  $('#nn', body).onclick = () => composeAnnouncement(); $('#na', body).onclick = () => composeAnnouncement(null, { kind: 'ad' });
+}
 
 // ---------------- foydalanuvchilar
 async function usersTab(body) {
@@ -58,6 +60,7 @@ async function usersTab(body) {
       ${u.id !== state.user.id ? `<button class="btn sm ghost" data-role="${u.id}:${u.role}">${esc(t(u.role === 'admin' ? 'adm.make_user' : 'adm.make_admin'))}</button>` : ''}
       ${u.id !== state.user.id && u.role !== 'admin' ? `<button class="btn sm ghost" data-blk="${u.id}:${u.blocked ? 0 : 1}">${esc(t(u.blocked ? 'adm.unblock' : 'adm.block'))}</button><button class="btn sm danger" data-del="${u.id}">${ic('trash', 14)} ${esc(t('adm.delete'))}</button>` : ''}</div></div>`).join('')}</div>`;
     const act = async (fn, args, q, ok) => { if (!(await confirmDlg(q, ok))) return; const { error } = await sb.rpc(fn, args); if (error) return toast(friendlyErr(error.message), 'err'); toast(t('adm.done'), 'ok'); load($('#s', body).value.trim()); };
+    $$('.urow', body).forEach((r, i) => r.onclick = e => { if (e.target.closest('a,button')) return; const u = (data || [])[i]; if (u) location.hash = '#/reports/user/' + u.id; });
     $$('[data-blk]', body).forEach(b => b.onclick = () => { const [id, bl] = b.dataset.blk.split(':'); act('admin_set_block', { p_id: id, p_block: bl === '1' }, t(bl === '1' ? 'adm.block_q' : 'adm.unblock_q')); });
     $$('[data-del]', body).forEach(b => b.onclick = () => act('admin_delete_user', { p_id: b.dataset.del }, t('adm.del_q'), t('adm.delete')));
     $$('[data-role]', body).forEach(b => b.onclick = async () => { const [id, r] = b.dataset.role.split(':'); if (!(await confirmDlg(b.textContent + '?'))) return; await sb.from('profiles').update({ role: r === 'admin' ? 'user' : 'admin' }).eq('id', id); load($('#s', body).value.trim()); });

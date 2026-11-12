@@ -1,4 +1,5 @@
 // Sozlamalar: profil, til va ko'rinish, xavfsizlik (parol, PIN, barmoq izi), bildirishnomalar, ilova haqida
+import { TABS as ADM_TABS } from './admin.js';
 import { sb, state, t, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, btnBusy, compressImage, upload, publicUrl, setLang, confirmDlg, passScore } from './core.js';
 import { contactCards, bindContact } from './contact.js';
 import { aboutHtml } from './guide.js';
@@ -55,12 +56,12 @@ const saveProfile = async patch => { const { error } = await sb.from('profiles')
 
 route('/settings', async ({ el }) => {
   const p = state.profile;
-  el.innerHTML = `<div class="page narrow"><h1>${esc(t('settings.title'))}</h1>
+  el.innerHTML = `<div class="page narrow"><h1>${esc(t('nav.profile'))}</h1>
     <div class="card pad row"><span class="avatar lg">${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="">` : esc((p.full_name || '?')[0])}</span><div class="grow"><b>${esc(p.full_name)}</b><br><small class="muted">${esc(state.user.email)} · ${esc(t(state.isAdmin ? 'set.admin' : 'set.user'))}</small></div></div>
+    ${state.isAdmin ? `<h3 class="mt">${esc(t('adm.sections'))}</h3><div class="cards">${ADM_TABS.map(([k, l, i]) => `<a class="card pad item-row" href="#/admin?tab=${k}"><span class="item-ic">${ic(i)}</span><b class="grow">${esc(t(l))}</b>${ic('chev')}</a>`).join('')}</div>` : ''}
     <div class="cards mt">${SECTIONS.map(([k, i]) => `<a class="card pad item-row" href="#/settings/${k}"><span class="item-ic">${ic(i)}</span><b class="grow">${esc(t('settings.' + k))}</b>${ic('chev')}</a>`).join('')}
       <a class="card pad item-row" href="#/offline"><span class="item-ic">${ic('download')}</span><b class="grow">${esc(t('off.title'))}</b>${ic('chev')}</a>
       <a class="card pad item-row" href="#/guide"><span class="item-ic">${ic('book')}</span><b class="grow">${esc(t('settings.guide'))}</b>${ic('chev')}</a>
-      ${state.isAdmin ? `<a class="card pad item-row" href="#/admin"><span class="item-ic">${ic('shield')}</span><b class="grow">${esc(t('nav.admin'))}</b>${ic('chev')}</a>` : ''}
       <button class="card pad item-row danger-row" id="lo"><span class="item-ic">${ic('logout')}</span><b class="grow left">${esc(t('settings.logout'))}</b></button></div></div>`;
   $('#lo', el).onclick = () => doLogout(true);
 }, { auth: true });

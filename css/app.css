@@ -229,3 +229,82 @@ button.lbrow { width: 100%; text-align: left; font: inherit; color: inherit; cur
 .offbox .prog { margin-top: 6px; } .warnbox { background: #fef3c7; color: #78350f; border: 1px solid #fcd34d; }
 #offbar { display: block; background: #f59e0b; color: #fff; font: 600 .85rem system-ui; text-align: center; padding: 8px 12px; text-decoration: none; } #offbar[hidden] { display: none; }
 .tag.bad { background: #fee2e2; color: #b91c1c; margin-left: 4px; }
+
+.donut{width:140px;height:140px;flex:none}.dn-t{font:700 15px system-ui;fill:var(--tx,#0f172a)}.dn-s{font:11px system-ui;fill:#64748b}
+.donutrow{gap:16px;align-items:center;flex-wrap:wrap}.legend.col{display:flex;flex-direction:column;gap:6px}
+a.stat{text-decoration:none;color:inherit;cursor:pointer}h4{margin:.4rem 0}
+.urow{cursor:pointer}
+
+/* ---- FAB (Google Drive uslubidagi "+") */
+.fab { position: fixed; right: 18px; bottom: calc(var(--safe-b) + 78px); z-index: 60; width: 58px; height: 58px; border-radius: 18px; border: 0; background: var(--brand); color: #fff; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(22,163,74,.45); cursor: pointer; }
+.fab:active { transform: scale(.94); }
+@media (min-width: 900px) { .fab { bottom: 28px; right: 28px; } }
+/* ---- butun ekranli oyna */
+.fscr { position: fixed; inset: 0; z-index: 300; background: var(--bg); display: flex; flex-direction: column; padding-top: var(--safe-t); animation: fsin .18s ease-out; }
+@keyframes fsin { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.fs-h { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--card); }
+.fs-b { flex: 1; overflow-y: auto; padding: 18px 16px calc(var(--safe-b) + 24px); width: 100%; max-width: 640px; margin: 0 auto; }
+body.noscroll { overflow: hidden; }
+.wheel { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 28px 8vw; margin: 0 -16px; scrollbar-width: none; }
+.wheel::-webkit-scrollbar { display: none; }
+.wcard { flex: none; width: min(64vw, 240px); scroll-snap-align: center; border: 1px solid var(--line); background: var(--card); border-radius: 26px; padding: 30px 14px; display: grid; gap: 10px; justify-items: center; text-align: center; cursor: pointer; box-shadow: var(--shadow); color: var(--text); font: inherit; }
+.wcard b { font-size: 1.25rem; } .wcard small { color: var(--muted); } .wcard:active { transform: scale(.97); }
+.wic { width: 88px; height: 88px; border-radius: 26px; display: grid; place-items: center; background: var(--brand-l); color: var(--brand-d); }
+.wic.video { background: #dbeafe; color: #2563eb; } .wic.audio { background: #ede9fe; color: #7c3aed; } .wic.doc { background: #fef3c7; color: #b45309; } .wic.book { background: #ffedd5; color: #c2410c; } .wic.test { background: #dcfce7; color: #15803d; }
+.addbox { width: 100%; border: 2px dashed var(--brand); border-radius: 20px; background: var(--brand-l); color: var(--brand-d); padding: 30px 10px; display: grid; justify-items: center; gap: 6px; cursor: pointer; font: inherit; }
+.addbox .plus { width: 60px; height: 60px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; }
+.sheetbg { position: absolute; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; z-index: 5; animation: fsin .15s; }
+.sheet { width: 100%; max-width: 640px; margin: 0 auto; background: var(--card); border-radius: 24px 24px 0 0; padding: 18px 14px calc(var(--safe-b) + 18px); display: grid; gap: 8px; }
+.sopt { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); color: var(--text); font: inherit; cursor: pointer; }
+.left { text-align: left; }
+/* ---- audio sahifasi */
+.aplay { display: grid; justify-items: center; gap: 14px; padding: 8px 0; }
+.aring { position: relative; width: min(72vw, 280px); aspect-ratio: 1; }
+.aring svg { width: 100%; height: 100%; } .aring circle { fill: none; stroke-width: 9; stroke-linecap: round; }
+.ar-bg { stroke: var(--line); } .ar-mx { stroke: color-mix(in srgb, var(--brand) 30%, transparent); } .ar-fg { stroke: var(--brand); transition: stroke-dashoffset .4s linear; }
+.ar-c { position: absolute; inset: 14%; border-radius: 50%; border: 0; background: var(--card); box-shadow: var(--shadow); color: var(--brand-d); display: grid; place-items: center; align-content: center; gap: 2px; cursor: pointer; font: inherit; }
+.aring.on .ar-c { animation: pulse 2.4s ease-in-out infinite; } @keyframes pulse { 50% { transform: scale(1.04); } }
+.ar-c small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.aseek { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 420px; font-size: .85rem; color: var(--muted); } .aseek input { flex: 1; accent-color: var(--brand); }
+.actl { display: flex; align-items: center; gap: 26px; } .actl .vb { position: relative; background: none; border: 0; color: var(--text); cursor: pointer; } .actl .vb small { position: absolute; inset: 0; display: grid; place-items: center; font-size: .6rem; font-weight: 700; padding-top: 2px; }
+.btn.round { width: 70px; height: 70px; border-radius: 50%; padding: 0; }
+.item-row.cur { border-color: var(--brand); background: var(--brand-l); }
+/* ---- mini audio panel */
+#mini { position: sticky; top: var(--top-h); z-index: 49; display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: var(--brand); color: #fff; cursor: pointer; }
+body:not([data-shell=public]) #mini { margin-left: var(--nav-w); }
+@media (max-width: 899px) { body:not([data-shell=public]) #mini { margin-left: 0; } }
+.mb-pp, .mb-x { border: 0; background: rgba(255,255,255,.2); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; flex: none; }
+.mb-t { position: relative; overflow: hidden; } .mb-t b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .92rem; }
+.mb-t i { display: block; height: 3px; background: #fff; border-radius: 2px; margin-top: 4px; width: 0; }
+/* ---- o'qish (Mutolaa uslubi) */
+body.fs-read #top, body.fs-read #tabs, body.fs-read #mini { display: none !important; } body.fs-read #view { margin-left: 0 !important; padding: 0 !important; }
+.reader { position: fixed; inset: 0; z-index: 120; background: var(--bg); display: flex; flex-direction: column; }
+.rd-h { display: flex; align-items: center; gap: 8px; padding: calc(var(--safe-t) + 6px) 10px 6px; border-bottom: 1px solid var(--line); background: var(--card); }
+.rd-t { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; } .rd-b { flex: 1; overflow-y: auto; padding: 10px 0 calc(var(--safe-b) + 20px); -webkit-overflow-scrolling: touch; }
+.rd-b .pdfhost { max-width: 900px; margin: 0 auto; }
+.docx { max-width: 760px; margin: 0 auto; padding: 14px 18px; background: var(--card); min-height: 100%; line-height: 1.65; overflow-wrap: anywhere; } .docx img { height: auto; } .docx table { border-collapse: collapse; max-width: 100%; display: block; overflow-x: auto; } .docx td, .docx th { border: 1px solid var(--line); padding: 4px 8px; }
+.slides { display: grid; gap: 12px; max-width: 760px; margin: 0 auto; padding: 12px; }
+.slide-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); } .slide-card h3 { margin: .3em 0; }
+
+/* ---- guruh chati: butun ekran + javob (Telegram uslubi) */
+body.fs-chat .page.fsg { position: fixed; inset: 0; z-index: 120; max-width: none; margin: 0; padding: calc(var(--safe-t) + 6px) 0 0; display: flex; flex-direction: column; background: var(--bg); }
+body.fs-chat .fsg > .row, body.fs-chat .fsg > .tabs { padding: 0 12px; }
+body.fs-chat .fsg #body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; padding: 0; }
+body.fs-chat .fsg #body > :not(.chat) { margin: 12px; }
+body.fs-chat .fsg .chat { height: auto; flex: 1; min-height: 0; border: 0; border-radius: 0; }
+.page.fst { position: fixed; inset: 0; z-index: 120; max-width: none; margin: 0; padding: calc(var(--safe-t) + 8px) 12px calc(var(--safe-b) + 16px); overflow-y: auto; background: var(--bg); }
+.page.fst .chat { height: 62vh; }
+.msg { transition: transform .12s; } .msg.flash { animation: flash 1.2s; } @keyframes flash { 30% { background: color-mix(in srgb, var(--brand) 35%, transparent); } }
+.mquote { border-left: 3px solid var(--brand); background: rgba(0,0,0,.06); border-radius: 6px; padding: 3px 8px; margin-bottom: 4px; font-size: .82rem; cursor: pointer; display: grid; } .mquote span { opacity: .8; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.rpbar { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-left: 3px solid var(--brand); background: var(--brand-l); font-size: .85rem; margin-bottom: 4px; border-radius: 8px; } .rpbar .grow { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+button.card.item-row { width: 100%; font: inherit; color: inherit; cursor: pointer; }
+
+/* ---- reyting: podium + bitta ekranda hammasi */
+.podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin: 14px 0 10px; }
+.pod { flex: 1; max-width: 120px; border: 0; background: none; display: grid; justify-items: center; gap: 2px; color: var(--text); font: inherit; cursor: pointer; position: relative; }
+.pod .avatar.lg { width: 58px; height: 58px; } .pod.p1 .avatar.lg { width: 74px; height: 74px; box-shadow: 0 0 0 3px #f59e0b; } .pod.p2 .avatar.lg { box-shadow: 0 0 0 3px #94a3b8; } .pod.p3 .avatar.lg { box-shadow: 0 0 0 3px #c2763a; }
+.pod .pn { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; } .pod .pv { font-size: .78rem; color: var(--muted); }
+.pod .pb { width: 100%; border-radius: 10px 10px 0 0; background: var(--brand-l); color: var(--brand-d); font-weight: 800; padding: 6px 0; margin-top: 4px; } .pod.p1 .pb { padding: 18px 0; background: #fef3c7; color: #b45309; } .pod.p2 .pb { padding: 11px 0; } .pod.p3 .pb { padding: 6px 0; }
+.crown { position: absolute; top: -16px; font-size: 1.2rem; }
+.merank { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border-color: var(--brand); background: var(--brand-l); }
+.minis { display: flex; gap: 8px; flex-wrap: wrap; font-size: .72rem; margin-top: 2px; } .minis span { display: inline-flex; align-items: center; gap: 2px; }

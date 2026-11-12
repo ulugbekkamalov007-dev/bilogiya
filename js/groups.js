@@ -4,7 +4,7 @@ import { mountChat } from './chat.js';
 import { startRecording, uploadAttachment, uploadVoice, mediaHtml, fillMedia, MAX_FILE } from './media.js';
 
 addDict({
-  uz: { 'grp.title': 'Guruhlar', 'grp.my': 'Mening guruhlarim', 'grp.none': 'Hali guruhga qo\'shilmagansiz', 'grp.find': 'Guruh qidirish', 'grp.find_ph': 'Guruh nomini yozing…',
+  uz: { 'grp.title': 'Guruhlar', 'grp.vis': 'Guruhni kimlar topa oladi?', 'grp.vis_all': 'Hamma (qidiruvda chiqadi)', 'grp.vis_free': 'Hech bir guruhda yo\'qlar (mavjud a\'zolarga ko\'rinmaydi)', 'grp.vis_priv': 'Hech kim — faqat men qo\'shaman', 'grp.add_m': 'A\'zo qo\'shish', 'grp.add_ph': 'Ism yoki email yozing…', 'grp.added': 'Qo\'shildi', 'grp.in': 'Guruhda', 'grp.test_att': 'Test biriktirish (ixtiyoriy)', 'grp.no_test': 'Testsiz', 'grp.take_test': 'Testni boshlash', 'grp.ov': 'Natijalar', 'grp.ov_sent': 'Topshirdi', 'grp.ov_audio': 'Audio', 'grp.ov_text': 'Matn', 'grp.ov_file': 'Fayl', 'grp.ov_test': 'Test o\'rtacha', 'grp.ov_none': 'Topshirmagan', 'grp.attempts': 'urinish', 'grp.best': 'Eng yaxshi', 'grp.my': 'Mening guruhlarim', 'grp.none': 'Hali guruhga qo\'shilmagansiz', 'grp.find': 'Guruh qidirish', 'grp.find_ph': 'Guruh nomini yozing…',
     'grp.join': 'So\'rov yuborish', 'grp.sent': 'So\'rov yuborildi', 'grp.pending': 'Tasdiq kutilmoqda', 'grp.new': 'Yangi guruh', 'grp.name': 'Guruh nomi', 'grp.desc': 'Tavsif',
     'grp.created': 'Guruh yaratildi', 'grp.tab_chat': 'Chat', 'grp.tab_tasks': 'Vazifalar', 'grp.tab_members': 'A\'zolar', 'grp.tab_set': 'Sozlamalar', 'grp.help': 'Yordam / murojaat',
     'grp.leave': 'Guruhdan chiqish', 'grp.new_task': 'Yangi vazifa', 'grp.task_title': 'Vazifa nomi', 'grp.task_body': 'Topshiriq matni', 'grp.due': 'Muddat', 'grp.no_tasks': 'Vazifalar yo\'q',
@@ -15,7 +15,7 @@ addDict({
     'grp.privacy': 'Talabalar bir-birining ro\'yxati, profili va shaxsiy xabarlarini ko\'rmaydi. Shikoyat tugmasi har bir xabarda bor.', 'grp.archive': 'Arxivlash', 'grp.delete': 'Guruhni o\'chirish',
     'grp.rep_title': 'Xabar ustidan shikoyat', 'grp.rep_ph': 'Sababini yozing (ixtiyoriy)', 'grp.rep_sent': 'Shikoyat adminga yuborildi', 'grp.pending_n': '{n} ta so\'rov', 'grp.empty_members': 'A\'zolar yo\'q',
     'grp.too_big': 'Fayl 10 MB dan katta', 'grp.open': 'Ochish', 'grp.closed_task': 'Vazifa yopilgan', 'grp.close_task': 'Yopish', 'grp.reopen': 'Qayta ochish', 'grp.new_task_msg': '📌 Yangi vazifa: {t}' },
-  ru: { 'grp.title': 'Группы', 'grp.my': 'Мои группы', 'grp.none': 'Вы ещё не вступили ни в одну группу', 'grp.find': 'Поиск группы', 'grp.find_ph': 'Введите название группы…',
+  ru: { 'grp.title': 'Группы', 'grp.vis': 'Кто может найти группу?', 'grp.vis_all': 'Все (видна в поиске)', 'grp.vis_free': 'Те, кто ни в одной группе (текущим участникам не видна)', 'grp.vis_priv': 'Никто — добавляю только я', 'grp.add_m': 'Добавить участника', 'grp.add_ph': 'Имя или email…', 'grp.added': 'Добавлен', 'grp.in': 'В группе', 'grp.test_att': 'Прикрепить тест (необязательно)', 'grp.no_test': 'Без теста', 'grp.take_test': 'Начать тест', 'grp.ov': 'Результаты', 'grp.ov_sent': 'Сдали', 'grp.ov_audio': 'Аудио', 'grp.ov_text': 'Текст', 'grp.ov_file': 'Файл', 'grp.ov_test': 'Тест, средний', 'grp.ov_none': 'Не сдал(а)', 'grp.attempts': 'попыток', 'grp.best': 'Лучший', 'grp.my': 'Мои группы', 'grp.none': 'Вы ещё не вступили ни в одну группу', 'grp.find': 'Поиск группы', 'grp.find_ph': 'Введите название группы…',
     'grp.join': 'Подать заявку', 'grp.sent': 'Заявка отправлена', 'grp.pending': 'Ожидает подтверждения', 'grp.new': 'Новая группа', 'grp.name': 'Название группы', 'grp.desc': 'Описание',
     'grp.created': 'Группа создана', 'grp.tab_chat': 'Чат', 'grp.tab_tasks': 'Задания', 'grp.tab_members': 'Участники', 'grp.tab_set': 'Настройки', 'grp.help': 'Помощь / обращение',
     'grp.leave': 'Выйти из группы', 'grp.new_task': 'Новое задание', 'grp.task_title': 'Название задания', 'grp.task_body': 'Текст задания', 'grp.due': 'Срок', 'grp.no_tasks': 'Заданий нет',
@@ -26,7 +26,7 @@ addDict({
     'grp.privacy': 'Ученики не видят список, профили и личные сообщения друг друга. У каждого сообщения есть кнопка жалобы.', 'grp.archive': 'В архив', 'grp.delete': 'Удалить группу',
     'grp.rep_title': 'Жалоба на сообщение', 'grp.rep_ph': 'Укажите причину (необязательно)', 'grp.rep_sent': 'Жалоба отправлена админу', 'grp.pending_n': 'Заявок: {n}', 'grp.empty_members': 'Участников нет',
     'grp.too_big': 'Файл больше 10 МБ', 'grp.open': 'Открыть', 'grp.closed_task': 'Задание закрыто', 'grp.close_task': 'Закрыть', 'grp.reopen': 'Открыть снова', 'grp.new_task_msg': '📌 Новое задание: {t}' },
-  en: { 'grp.title': 'Groups', 'grp.my': 'My groups', 'grp.none': 'You haven\'t joined any group yet', 'grp.find': 'Find a group', 'grp.find_ph': 'Type the group name…',
+  en: { 'grp.title': 'Groups', 'grp.vis': 'Who can find this group?', 'grp.vis_all': 'Everyone (shown in search)', 'grp.vis_free': 'People in no group yet (hidden from current members)', 'grp.vis_priv': 'Nobody — I add people myself', 'grp.add_m': 'Add member', 'grp.add_ph': 'Name or email…', 'grp.added': 'Added', 'grp.in': 'In group', 'grp.test_att': 'Attach a test (optional)', 'grp.no_test': 'No test', 'grp.take_test': 'Start test', 'grp.ov': 'Results', 'grp.ov_sent': 'Submitted', 'grp.ov_audio': 'Audio', 'grp.ov_text': 'Text', 'grp.ov_file': 'File', 'grp.ov_test': 'Test average', 'grp.ov_none': 'Not submitted', 'grp.attempts': 'attempts', 'grp.best': 'Best', 'grp.my': 'My groups', 'grp.none': 'You haven\'t joined any group yet', 'grp.find': 'Find a group', 'grp.find_ph': 'Type the group name…',
     'grp.join': 'Request to join', 'grp.sent': 'Request sent', 'grp.pending': 'Awaiting approval', 'grp.new': 'New group', 'grp.name': 'Group name', 'grp.desc': 'Description',
     'grp.created': 'Group created', 'grp.tab_chat': 'Chat', 'grp.tab_tasks': 'Assignments', 'grp.tab_members': 'Members', 'grp.tab_set': 'Settings', 'grp.help': 'Help / contact',
     'grp.leave': 'Leave group', 'grp.new_task': 'New assignment', 'grp.task_title': 'Assignment title', 'grp.task_body': 'Instructions', 'grp.due': 'Due', 'grp.no_tasks': 'No assignments',
@@ -71,9 +71,10 @@ route('/groups', async ({ el, alive }) => {
   draw();
   function createGroup() {
     const m = modal(`<h3>${esc(t('grp.new'))}</h3><form class="form" id="f"><label class="fld"><span>${esc(t('grp.name'))}</span><input class="input" id="n" required maxlength="80"></label>
-      <label class="fld"><span>${esc(t('grp.desc'))}</span><textarea class="input" id="d" rows="2"></textarea></label><button class="btn lg block">${esc(t('grp.new'))}</button></form>`);
-    $('#f', m.el).onsubmit = async e => { e.preventDefault(); const { data, error } = await sb.from('groups').insert({ name: $('#n', m.el).value.trim(), description: $('#d', m.el).value.trim(), owner_id: uid }).select().single();
-      if (error) return toast(error.message, 'err'); toast(t('grp.created'), 'ok'); m.close(); go('/group/' + data.id); };
+      <label class="fld"><span>${esc(t('grp.desc'))}</span><textarea class="input" id="d" rows="2"></textarea></label>
+      <label class="fld"><span>${esc(t('grp.vis'))}</span><select class="input" id="vz"><option value="all">${esc(t('grp.vis_all'))}</option><option value="free">${esc(t('grp.vis_free'))}</option><option value="private">${esc(t('grp.vis_priv'))}</option></select></label><button class="btn lg block">${esc(t('grp.new'))}</button></form>`);
+    $('#f', m.el).onsubmit = async e => { e.preventDefault(); const { data, error } = await sb.from('groups').insert({ name: $('#n', m.el).value.trim(), description: $('#d', m.el).value.trim(), owner_id: uid, visibility: $('#vz', m.el).value }).select().single();
+      if (error) return toast(error.message, 'err'); toast(t('grp.created'), 'ok'); m.close(); go('/group/' + data.id + '?tab=members'); };
   }
 }, { auth: true });
 
@@ -82,18 +83,19 @@ route('/group/:id', async ({ el, params, alive, q }) => {
   const gid = params.id, uid = state.user.id;
   const { data: g } = await sb.from('groups').select('*').eq('id', gid).maybeSingle();
   if (!alive()) return; if (!g) return go('/groups', true);
+  document.body.classList.add('fs-read', 'fs-chat'); onLeave(() => document.body.classList.remove('fs-read', 'fs-chat'));
   const tabs = [['chat', 'grp.tab_chat'], ['tasks', 'grp.tab_tasks'], ...(state.isAdmin ? [['members', 'grp.tab_members'], ['set', 'grp.tab_set']] : [])];
   let tab = q.tab || 'chat', chat = null;
   const paint = async () => {
     chat?.destroy(); chat = null;
-    el.innerHTML = `<div class="page chatpage"><div class="row between"><div class="row"><a class="btn ghost sm" href="#/groups">${ic('back')}</a><div><h2 class="mb0">${esc(g.name)}</h2><small class="muted">${esc(g.description || '')}</small></div></div>
+    el.innerHTML = `<div class="page chatpage fsg"><div class="row between"><div class="row"><a class="btn ghost sm" href="#/groups">${ic('back')}</a><div><h2 class="mb0">${esc(g.name)}</h2><small class="muted">${esc(g.description || '')}</small></div></div>
       ${state.isAdmin ? '' : `<a class="btn ghost sm" href="#/inbox?topic=help&ctx=${encodeURIComponent(g.name)}">${ic('help', 16)} ${esc(t('grp.help'))}</a>`}</div>
       <div class="tabs">${tabs.map(([k, l]) => `<button class="${k === tab ? 'on' : ''}" data-tab="${k}">${esc(t(l))}</button>`).join('')}</div><div id="body"></div></div>`;
     $$('[data-tab]', el).forEach(b => b.onclick = () => { tab = b.dataset.tab; paint(); });
     const body = $('#body', el);
     if (tab === 'chat') {
       chat = mountChat(body, { table: 'messages', filterCol: 'group_id', filterVal: gid, scope: qq => qq.is('assignment_id', null), accept: m => !m.assignment_id,
-        insertBase: { group_id: gid }, folder: `${gid}/${uid}`, canWrite: state.isAdmin || g.students_can_chat,
+        insertBase: { group_id: gid }, folder: `${gid}/${uid}`, canWrite: state.isAdmin || g.students_can_chat, reply: true,
         canDelete: m => state.isAdmin || m.user_id === uid, onReport: reportMessage });
       onLeave(() => chat?.destroy());
     } else if (tab === 'tasks') await tasksTab(body); else if (tab === 'members') await membersTab(body); else if (tab === 'set') settingsTab(body);
@@ -105,6 +107,7 @@ route('/group/:id', async ({ el, params, alive, q }) => {
   async function tasksTab(body) {
     const [{ data: as }, { data: mine }] = await Promise.all([sb.from('assignments').select('*').eq('group_id', gid).order('created_at', { ascending: false }), sb.from('submissions').select('assignment_id').eq('group_id', gid).eq('user_id', uid)]);
     const done = new Set((mine || []).map(x => x.assignment_id));
+    const tests = state.isAdmin ? ((await sb.from('items').select('id,title').eq('kind', 'test').order('created_at', { ascending: false })).data || []) : [];
     body.innerHTML = `${state.isAdmin ? `<button class="btn mb" id="nt">${ic('plus')} ${esc(t('grp.new_task'))}</button>` : ''}
       ${(as || []).length ? `<div class="cards">${as.map(a => { const od = a.due_at && new Date(a.due_at) < new Date() && !a.closed;
         return `<a class="card pad item-row" href="#/group/${gid}/task/${a.id}"><span class="item-ic book">${ic('test')}</span><div class="grow"><b>${esc(a.title)}</b>
@@ -112,9 +115,9 @@ route('/group/:id', async ({ el, params, alive, q }) => {
         <div class="chips">${a.closed ? `<span class="chip">${esc(t('grp.closed'))}</span>` : ''}${od ? `<span class="chip warn">${esc(t('grp.overdue'))}</span>` : ''}${!state.isAdmin ? `<span class="chip ${done.has(a.id) ? 'ok' : ''}">${esc(t(done.has(a.id) ? 'grp.done' : 'grp.todo'))}</span>` : ''}</div></div>${ic('chev')}</a>`; }).join('')}</div>` : `<p class="muted">${esc(t('grp.no_tasks'))}</p>`}`;
     $('#nt', body)?.addEventListener('click', () => {
       const m = modal(`<h3>${esc(t('grp.new_task'))}</h3><form class="form" id="f"><label class="fld"><span>${esc(t('grp.task_title'))}</span><input class="input" id="ti" required></label>
-        <label class="fld"><span>${esc(t('grp.task_body'))}</span><textarea class="input" id="bo" rows="4"></textarea></label><label class="fld"><span>${esc(t('grp.due'))}</span><input class="input" id="du" type="datetime-local"></label><button class="btn lg block">${esc(t('grp.new_task'))}</button></form>`);
+        <label class="fld"><span>${esc(t('grp.task_body'))}</span><textarea class="input" id="bo" rows="4"></textarea></label><label class="fld"><span>${esc(t('grp.test_att'))}</span><select class="input" id="tt"><option value="">${esc(t('grp.no_test'))}</option>${tests.map(x => `<option value="${x.id}">${esc(tr(x.title))}</option>`).join('')}</select></label><label class="fld"><span>${esc(t('grp.due'))}</span><input class="input" id="du" type="datetime-local"></label><button class="btn lg block">${esc(t('grp.new_task'))}</button></form>`);
       $('#f', m.el).onsubmit = async e => { e.preventDefault(); const title = $('#ti', m.el).value.trim(); const du = $('#du', m.el).value;
-        const { error } = await sb.from('assignments').insert({ group_id: gid, title, body: $('#bo', m.el).value.trim(), due_at: du ? new Date(du).toISOString() : null, created_by: uid });
+        const { error } = await sb.from('assignments').insert({ group_id: gid, title, body: $('#bo', m.el).value.trim(), due_at: du ? new Date(du).toISOString() : null, test_item_id: $('#tt', m.el).value || null, created_by: uid });
         if (error) return toast(error.message, 'err');
         await sb.from('messages').insert({ group_id: gid, user_id: uid, kind: 'text', body: t('grp.new_task_msg', { t: title }) }); m.close(); paint(); };
     });
@@ -124,7 +127,16 @@ route('/group/:id', async ({ el, params, alive, q }) => {
     const grp = (st, title) => { const r = rows.filter(x => x.status === st); return r.length ? `<h4>${esc(t(title))} (${r.length})</h4><div class="cards">${r.map(m => `<div class="card pad item-row"><div class="grow"><b>${esc(m.full_name || m.email)}</b><small class="muted">${esc(m.email)}</small></div>
       ${st === 'pending' ? `<button class="btn sm" data-ap="${m.user_id}">${ic('check', 16)} ${esc(t('grp.approve'))}</button><button class="btn sm ghost" data-rm="${m.user_id}">${esc(t('grp.reject'))}</button>`
         : `<a class="btn sm ghost" href="#/inbox/${m.user_id}">${esc(t('grp.msg'))}</a><button class="btn sm ghost" data-bl="${m.user_id}:${st}">${esc(st === 'blocked' ? t('grp.approve') : t('grp.block'))}</button><button class="btn sm danger" data-rm="${m.user_id}">${ic('trash', 14)}</button>`}</div>`).join('')}</div>` : ''; };
-    body.innerHTML = rows.length ? grp('pending', 'grp.pending_list') + grp('approved', 'grp.members_list') + grp('blocked', 'grp.block') : `<p class="muted">${esc(t('grp.empty_members'))}</p>`;
+    const have = new Set(rows.map(x => x.user_id));
+    const addBox = `<div class="card pad mb"><h4>${esc(t('grp.add_m'))}</h4><input class="input" id="ams" placeholder="${esc(t('grp.add_ph'))}" autocomplete="off"><div id="amr" class="cards mt"></div></div>`;
+    body.innerHTML = addBox + (rows.length ? grp('pending', 'grp.pending_list') + grp('approved', 'grp.members_list') + grp('blocked', 'grp.block') : `<p class="muted">${esc(t('grp.empty_members'))}</p>`);
+    let amt; $('#ams', body).oninput = e => { clearTimeout(amt); amt = setTimeout(async () => {
+      const v = e.target.value.trim(), box = $('#amr', body); if (v.length < 2) { box.innerHTML = ''; return; }
+      const { data: us } = await sb.rpc('admin_users_summary', { p_search: v });
+      box.innerHTML = (us || []).slice(0, 12).map(u => `<div class="card pad item-row"><span class="avatar">${esc((u.full_name || '?')[0])}</span><div class="grow"><b>${esc(u.full_name || '—')}</b><br><small class="muted">${esc(u.email || '')}</small></div>
+        ${have.has(u.id) ? `<span class="chip">${esc(t('grp.in'))}</span>` : `<button class="btn sm" data-au="${u.id}">${ic('plus', 14)} ${esc(t('grp.add_m'))}</button>`}</div>`).join('');
+      $$('[data-au]', box).forEach(b => b.onclick = async () => { const { error } = await sb.from('group_members').upsert({ group_id: gid, user_id: b.dataset.au, status: 'approved' }, { onConflict: 'group_id,user_id' }); if (error) return toast(error.message, 'err'); toast(t('grp.added'), 'ok'); membersTab(body); });
+    }, 300); };
     const setSt = async (u, st) => { await sb.from('group_members').update({ status: st }).eq('group_id', gid).eq('user_id', u); membersTab(body); };
     $$('[data-ap]', body).forEach(b => b.onclick = () => setSt(b.dataset.ap, 'approved'));
     $$('[data-bl]', body).forEach(b => { const [u, st] = b.dataset.bl.split(':'); b.onclick = () => setSt(u, st === 'blocked' ? 'approved' : 'blocked'); });
@@ -133,11 +145,12 @@ route('/group/:id', async ({ el, params, alive, q }) => {
   function settingsTab(body) {
     body.innerHTML = `<div class="card pad form"><label class="fld"><span>${esc(t('grp.name'))}</span><input class="input" id="n" value="${esc(g.name)}"></label>
       <label class="fld"><span>${esc(t('grp.desc'))}</span><textarea class="input" id="d" rows="2">${esc(g.description || '')}</textarea></label>
+      <label class="fld"><span>${esc(t('grp.vis'))}</span><select class="input" id="vz">${[['all', 'grp.vis_all'], ['free', 'grp.vis_free'], ['private', 'grp.vis_priv']].map(([v, k]) => `<option value="${v}" ${(g.visibility || 'all') === v ? 'selected' : ''}>${esc(t(k))}</option>`).join('')}</select></label>
       <label class="chk"><input type="checkbox" id="c" ${g.students_can_chat ? 'checked' : ''}> ${esc(t('grp.can_chat'))}</label>
       <label class="fld"><span>${esc(t('grp.names'))}</span><select class="input" id="s">${[['first', 'grp.n_first'], ['full', 'grp.n_full'], ['anon', 'grp.n_anon']].map(([v, k]) => `<option value="${v}" ${g.show_names === v ? 'selected' : ''}>${esc(t(k))}</option>`).join('')}</select></label>
       <p class="muted small">🛡 ${esc(t('grp.privacy'))}</p>
       <button class="btn" id="sv">${esc(t('grp.save'))}</button><div class="row"><button class="btn ghost" id="ar">${esc(t('grp.archive'))}</button><button class="btn danger" id="dl">${ic('trash', 16)} ${esc(t('grp.delete'))}</button></div></div>`;
-    $('#sv', body).onclick = async () => { const p = { name: $('#n', body).value.trim() || g.name, description: $('#d', body).value.trim(), students_can_chat: $('#c', body).checked, show_names: $('#s', body).value };
+    $('#sv', body).onclick = async () => { const p = { name: $('#n', body).value.trim() || g.name, description: $('#d', body).value.trim(), students_can_chat: $('#c', body).checked, visibility: $('#vz', body).value, show_names: $('#s', body).value };
       const { error } = await sb.from('groups').update(p).eq('id', gid); if (error) return toast(error.message, 'err'); Object.assign(g, p); toast(t('grp.save') + ' ✔', 'ok'); };
     $('#ar', body).onclick = async () => { await sb.from('groups').update({ archived: true }).eq('id', gid); go('/groups'); };
     $('#dl', body).onclick = async () => { if (!(await confirmDlg(t('grp.delete') + '?'))) return; await sb.from('groups').delete().eq('id', gid); go('/groups'); };
@@ -150,6 +163,7 @@ route('/group/:id/task/:aid', async ({ el, params, alive }) => {
   const gid = params.id, aid = params.aid, uid = state.user.id;
   const [{ data: a }, { data: g }] = await Promise.all([sb.from('assignments').select('*').eq('id', aid).maybeSingle(), sb.from('groups').select('id,name').eq('id', gid).maybeSingle()]);
   if (!alive()) return; if (!a) return go('/group/' + gid, true);
+  document.body.classList.add('fs-read'); onLeave(() => document.body.classList.remove('fs-read'));
   const isClosed = a.closed || (a.due_at && new Date(a.due_at) < new Date() && false);
   const loadSubs = async () => (await sb.from('submissions').select('*').eq('assignment_id', aid).order('created_at', { ascending: false })).data || [];
   let subs = await loadSubs();
@@ -158,17 +172,36 @@ route('/group/:id/task/:aid', async ({ el, params, alive }) => {
     ${s.voice_path ? mediaHtml({ kind: 'voice', media_path: s.voice_path, media_secs: s.voice_secs }) : ''}
     ${state.isAdmin ? `<div class="row wrap mt"><input class="input sm" style="max-width:110px" type="number" min="0" max="100" data-g placeholder="${esc(t('grp.grade'))}" value="${s.grade ?? ''}"><input class="input grow" data-f placeholder="${esc(t('grp.feedback'))}" value="${esc(s.feedback || '')}"><button class="btn sm" data-sv="${s.id}">${esc(t('grp.save'))}</button></div>`
       : (s.grade !== null || s.feedback ? `<div class="chips mt">${s.grade !== null ? `<span class="chip ok">${s.grade}/100</span>` : ''}${s.feedback ? `<span class="chip">${esc(s.feedback)}</span>` : ''}</div>` : '')}</div>`;
-  el.innerHTML = `<div class="page chatpage"><div class="row"><a class="btn ghost sm" href="#/group/${gid}?tab=tasks">${ic('back')}</a><h2 class="mb0">${esc(a.title)}</h2></div>
+  el.innerHTML = `<div class="page chatpage fst"><div class="row"><a class="btn ghost sm" href="#/group/${gid}?tab=tasks">${ic('back')}</a><h2 class="mb0">${esc(a.title)}</h2></div>
     <div class="card pad mt"><p class="pre">${esc(a.body || '')}</p>${a.due_at ? `<p class="muted small">⏰ ${esc(fmtDate(a.due_at) + ' ' + fmtTime(a.due_at))}</p>` : ''}
       ${a.closed ? `<span class="chip">${esc(t('grp.closed_task'))}</span>` : ''}
       ${state.isAdmin ? `<div class="row end"><button class="btn sm ghost" id="cl">${esc(a.closed ? t('grp.reopen') : t('grp.close_task'))}</button><button class="btn sm danger" id="dl">${ic('trash', 14)}</button></div>` : ''}</div>
     ${!state.isAdmin && !a.closed ? `<div class="card pad mt form"><h4>${esc(t('grp.your_work'))}</h4><textarea class="input" id="tx" rows="3" placeholder="${esc(t('grp.text_ph'))}"></textarea>
       <div class="row wrap"><label class="btn ghost sm">${ic('clip', 16)} <span id="fn">…</span><input type="file" id="fl" hidden></label><button class="btn ghost sm" id="mc" type="button">${ic('mic', 16)} <span id="mt">${esc(t('grp.rec'))}</span></button><span class="grow"></span><button class="btn" id="sb">${esc(t('grp.submit'))}</button></div></div>` : ''}
+    ${a.test_item_id && !state.isAdmin ? `<a class="btn lg block mt" href="#/test/${a.test_item_id}">${ic('test')} ${esc(t('grp.take_test'))}</a>` : ''}${state.isAdmin ? `<div id="ov" class="mt">${spinner()}</div>` : ''}
     <h3 class="mt">${esc(state.isAdmin ? t('grp.subs') + ' (' + subs.length + ')' : t('grp.your_work'))}</h3><div id="subs">${subs.map(subHtml).join('') || '<p class="muted">—</p>'}</div>
     <h3 class="mt">${ic('users', 18)} ${esc(t('grp.discuss'))}</h3><div id="thread" class="threadbox"></div></div>`;
   fillMedia($('#subs', el));
+  if (state.isAdmin) (async () => {
+    const { data, error } = await sb.rpc('assignment_overview', { p_assignment: aid }); const ov = $('#ov', el); if (!ov) return;
+    if (error) { ov.innerHTML = ''; return; }
+    const rows = (data || []).sort((x, y) => (y.texts + y.voices + y.files) - (x.texts + x.voices + x.files) || String(x.full_name).localeCompare(String(y.full_name)));
+    const sent = r => r.texts + r.voices + r.files > 0 || r.test_n > 0, nSent = rows.filter(sent).length, sum = k => rows.reduce((q, r) => q + (r[k] || 0), 0);
+    const tb = rows.filter(r => r.test_best !== null).map(r => +r.test_best), tavg = tb.length ? Math.round(tb.reduce((q, v) => q + v, 0) / tb.length) : null;
+    ov.innerHTML = `<h3>${esc(t('grp.ov'))}</h3><div class="stats3 mb"><div class="stat card"><span>${esc(t('grp.ov_sent'))}</span><b>${nSent}/${rows.length}</b></div><div class="stat card"><span>🎤 ${esc(t('grp.ov_audio'))}</span><b>${sum('voices')}</b></div>
+      ${a.test_item_id ? `<div class="stat card"><span>${esc(t('grp.ov_test'))}</span><b>${tavg === null ? '—' : tavg + '%'}</b></div>` : `<div class="stat card"><span>${esc(t('grp.ov_text'))} / ${esc(t('grp.ov_file'))}</span><b>${sum('texts')} / ${sum('files')}</b></div>`}</div>
+      <div class="cards">${rows.map(r => `<button class="card pad item-row left" data-u="${r.uid}"><span class="avatar">${esc((r.full_name || '?')[0])}</span><div class="grow"><b>${esc(r.full_name)}</b>
+        <div class="chips">${sent(r) ? `${r.voices ? `<span class="chip">🎤 ${r.voices}</span>` : ''}${r.texts ? `<span class="chip">✍ ${r.texts}</span>` : ''}${r.files ? `<span class="chip">📎 ${r.files}</span>` : ''}${a.test_item_id && r.test_n ? `<span class="chip ok">🧪 ${Math.round(r.test_best)}%</span>` : ''}${r.grade !== null ? `<span class="chip ok">${r.grade}/100</span>` : ''}` : `<span class="chip warn">${esc(t('grp.ov_none'))}</span>`}</div></div>${ic('chev')}</button>`).join('')}</div>`;
+    $$('[data-u]', ov).forEach(b => b.onclick = async () => {
+      const r = rows.find(x => x.uid === b.dataset.u), mine = subs.filter(x => x.user_id === r.uid);
+      const m = modal(`<h3>${esc(r.full_name)}</h3><div id="ud">${spinner()}</div>`, { cls: 'wide' });
+      let tests = []; if (a.test_item_id) tests = (await sb.from('test_attempts').select('*').eq('user_id', r.uid).eq('item_id', a.test_item_id).order('created_at', { ascending: false })).data || [];
+      $('#ud', m.el).innerHTML = (a.test_item_id ? `<h4>🧪 ${esc(t('grp.ov_test'))}</h4>${tests.length ? `<div class="tbl">${tests.map(x => `<div class="trow"><small class="muted">${esc(fmtDate(x.created_at) + ' ' + fmtTime(x.created_at))}</small><span class="grow muted">${x.correct}/${x.total}</span><b>${Math.round(x.percent)}%</b></div>`).join('')}</div>` : `<p class="muted">${esc(t('grp.ov_none'))}</p>`}` : '') + (mine.length ? mine.map(subHtml).join('') : '<p class="muted">—</p>');
+      fillMedia($('#ud', m.el)); $$('[data-sv]', m.el).forEach(sv => sv.onclick = async () => { const c = sv.closest('[data-s]'), gr = $('[data-g]', c).value; const { error: e2 } = await sb.from('submissions').update({ grade: gr === '' ? null : +gr, feedback: $('[data-f]', c).value.trim() || null }).eq('id', sv.dataset.sv); toast(e2 ? e2.message : t('grp.save') + ' ✔', e2 ? 'err' : 'ok'); });
+    });
+  })();
   const chat = mountChat($('#thread', el), { table: 'messages', filterCol: 'group_id', filterVal: gid, aid, scope: qq => qq.eq('assignment_id', aid), accept: m => m.assignment_id === aid,
-    insertBase: { group_id: gid, assignment_id: aid }, folder: `${gid}/${uid}`, canWrite: true, canDelete: m => state.isAdmin || m.user_id === uid });
+    insertBase: { group_id: gid, assignment_id: aid }, folder: `${gid}/${uid}`, canWrite: true, reply: true, canDelete: m => state.isAdmin || m.user_id === uid });
   onLeave(() => chat.destroy());
   const bindSubs = () => $$('[data-sv]', el).forEach(b => b.onclick = async () => { const c = b.closest('[data-s]'), gr = $('[data-g]', c).value;
     const { error } = await sb.from('submissions').update({ grade: gr === '' ? null : +gr, feedback: $('[data-f]', c).value.trim() || null }).eq('id', b.dataset.sv); toast(error ? error.message : t('grp.save') + ' ✔', error ? 'err' : 'ok'); });
