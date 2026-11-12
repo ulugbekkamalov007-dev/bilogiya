@@ -1,6 +1,7 @@
 // Test tizimi: hujjatdan import (Word/PDF/TXT → avtomatik savollar), har safar aralashadigan variantlar,
 // bob bo'yicha tanlash, natija, foiz, motivatsiya va salyut effektlari.
 import { sb, state, t, addDict, friendlyErr, route, go, esc, ic, $, $$, tr, shuffle, rand, modal, toast, btnBusy, fmtDur, trackTime, onLeave, spinner, confirmDlg, i18nField, uzFix } from './core.js';
+import { paywall } from './billing.js';
 import { parseQuestions } from './testparse.js';
 import { celebrate } from './fx.js';
 
@@ -174,6 +175,7 @@ export function testImportModal({ folderId = null, itemId = null, onDone } = {})
 
 // ---------- test sahifasi
 route('/test/:id', async ({ el, params, alive }) => {
+  if (await paywall(el)) return;
   const [{ data: item }, { data: qs }] = await Promise.all([
     sb.from('items').select('id,title,kind,folder_id').eq('id', params.id).maybeSingle(),
     sb.from('questions').select('id,chapter,question,correct,wrong,explanation').eq('item_id', params.id).order('position').limit(5000),

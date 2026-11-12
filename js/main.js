@@ -14,6 +14,7 @@ import './admin.js';
 import './guide.js';
 import { offList } from './offline.js';
 import { maybeDevNote } from './contact.js';
+import { initials } from './core.js';
 import { initMiniBar } from './audiobar.js';
 import { lockEnabled, showLock, initAutoLock, offerQuickLogin, isReloadUnlocked } from './lock.js';
 import { registerSW, canInstall, installApp } from './pwa.js';
@@ -42,7 +43,7 @@ function paintShell(path = currentPath()) {
   const app = document.body.dataset.shell === 'app' && state.user;
   $('#top').hidden = !app; $('#tabs').hidden = !app;
   if (!app) return;
-  const av = state.profile?.avatar_url, ini = (state.profile?.full_name || '?').trim()[0]?.toUpperCase();
+  const av = state.profile?.avatar_url, ini = initials(state.profile?.full_name);
   $('#top').innerHTML = `<a class="brand" href="#/home">🧬 <b>${esc(CONFIG.APP_NAME)}</b></a><span class="grow"></span>
     ${canInstall() ? `<button class="icon-btn" id="tinst" title="${esc(t('land.install'))}">${ic('download')}</button>` : ''}
     <select class="langsel" id="tlang" aria-label="language">${['uz', 'ru', 'en'].map(l => `<option value="${l}" ${l === state.lang ? 'selected' : ''}>${l.toUpperCase()}</option>`).join('')}</select>
@@ -151,3 +152,6 @@ addEventListener('hashchange', offBar);
   else { document.body.dataset.shell = 'public'; render(); }
   $('#boot')?.remove();
 })();
+
+// iPhone: zoom faqat hujjat o'quvchisida mumkin
+['gesturestart', 'gesturechange'].forEach(ev => document.addEventListener(ev, e => { if (!document.body.classList.contains('fs-read')) e.preventDefault(); }, { passive: false }));

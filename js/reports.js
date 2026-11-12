@@ -195,7 +195,7 @@ route('/rating', async ({ el, alive }) => {
     ({ err, rows } = cache[per]);
   };
   const paint = () => {
-    const sorted = [...rows].sort((a, b) => b[cat] - a[cat]), max = Math.max(1, ...sorted.map(r => r[cat]));
+    const key = r => cat === 'test' ? r.test + (r.tests || 0) * 1e-3 : r[cat], sorted = [...rows].filter(r => cat === 'test' ? (r.test > 0 || r.tests > 0) : true).sort((a, b) => key(b) - key(a)), max = Math.max(1, ...sorted.map(r => r[cat]));
     const rank = k => { const l = [...rows].sort((a, b) => b[k] - a[k]), i = l.findIndex(r => r.user_id === state.user.id); return i < 0 || !l[i][k] ? null : i + 1; };
     $('#lb', el).innerHTML = `<h1>${esc(t('rep.lb'))}</h1>
       <div class="row wrap" style="gap:8px">${ddHtml('per', t('rep.period'), [['today', t('rep.today')], ['7', t('rep.p7')], ['30', t('rep.p30')], ['all', t('rep.all')]], per)}</div>

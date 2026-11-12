@@ -1,4 +1,5 @@
 // Admin paneli: foydalanuvchilar, so'rovlar/shikoyatlar, video qoidalari (kodsiz), ilova sozlamalari, platforma hisoboti, saqlash joyi
+import { billingTab } from './billing.js';
 import { sb, state, t, tr, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, confirmDlg, btnBusy, fmtMin, fmtDate, fmtSize, dayStr, addDays, loadSettings, spinner } from './core.js';
 import { composeAnnouncement } from './news.js';
 
@@ -32,14 +33,14 @@ addDict({
     'rep.video': 'Video', 'rep.book': 'Books/materials', 'rep.test': 'Tests', 'rep.app': 'In app' },
 });
 
-export const TABS = [['users', 'adm.users', 'users'], ['requests', 'adm.requests', 'bell'], ['video', 'adm.video', 'video'], ['app', 'adm.app', 'settings'], ['stats', 'adm.stats', 'chart'], ['news', 'adm.news_t', 'mega'], ['storage', 'adm.storage', 'download']];
+export const TABS = [['users', 'adm.users', 'users'], ['requests', 'adm.requests', 'bell'], ['video', 'adm.video', 'video'], ['app', 'adm.app', 'settings'], ['stats', 'adm.stats', 'chart'], ['news', 'adm.news_t', 'mega'], ['billing', 'bill.title', 'dollar'], ['storage', 'adm.storage', 'download']];
 const save = async (key, value) => { const { error } = await sb.from('app_settings').upsert({ key, value, updated_at: new Date().toISOString() }); if (error) return toast(error.message, 'err'); await loadSettings(); toast(t('adm.saved'), 'ok'); };
 
 route('/admin', async ({ el, q, alive }) => {
   const tab = q.tab; if (!tab || !TABS.some(x => x[0] === tab)) { location.replace('#/settings'); return; }
   const title = t(TABS.find(x => x[0] === tab)[1]);
   el.innerHTML = `<div class="page"><div class="row"><a class="icon-btn" href="#/settings" aria-label="back">${ic('back')}</a><h1 class="mb0">${esc(title)}</h1></div><div id="body" class="mt">${spinner()}</div></div>`;
-  await ({ users: usersTab, requests: requestsTab, video: videoTab, app: appTab, stats: statsTab, storage: storageTab, news: newsTab })[tab]($('#body', el));
+  await ({ users: usersTab, requests: requestsTab, video: videoTab, app: appTab, stats: statsTab, storage: storageTab, news: newsTab, billing: billingTab })[tab]($('#body', el));
 }, { auth: true, admin: true });
 
 function newsTab(body) {

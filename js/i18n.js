@@ -3,12 +3,12 @@ import { addDict } from './core.js';
 
 addDict({
   uz: { cancel: 'Bekor qilish', yes: 'Ha', no: 'Yo\'q', save: 'Saqlash', delete: 'O\'chirish', edit: 'Tahrirlash', close: 'Yopish',
-    'u.min': 'daq', 'u.h': 'soat', 'nav.home': 'Bosh sahifa', 'nav.profile': 'Profil', 'nav.library': 'Kutubxona', 'nav.groups': 'Guruhlar', 'nav.reports': 'Hisobot', 'nav.rating': 'Reyting', 'nav.inbox': 'Xabarlar', 'nav.settings': 'Sozlamalar',
+    'u.min': 'daq', 'u.h': 'soat', 'nav.home': 'Bosh sahifa', 'nav.profile': 'Profil', 'err.fake_name': 'Bunday ism mavjud emas. Haqiqiy ism va familiyangizni yozing (masalan: Ali Valiyev).', 'nav.library': 'Kutubxona', 'nav.groups': 'Guruhlar', 'nav.reports': 'Hisobot', 'nav.rating': 'Reyting', 'nav.inbox': 'Xabarlar', 'nav.settings': 'Sozlamalar',
     'back.again': 'Chiqish uchun yana bir marta bosing', 'net.on': 'Internet qayta ulandi', 'net.off': 'Internet yo\'q — oflayn rejim' },
   ru: { cancel: 'Отмена', yes: 'Да', no: 'Нет', save: 'Сохранить', delete: 'Удалить', edit: 'Изменить', close: 'Закрыть',
-    'u.min': 'мин', 'u.h': 'ч', 'nav.home': 'Главная', 'nav.profile': 'Профиль', 'nav.library': 'Библиотека', 'nav.groups': 'Группы', 'nav.reports': 'Отчёт', 'nav.rating': 'Рейтинг', 'nav.inbox': 'Сообщения', 'nav.settings': 'Настройки',
+    'u.min': 'мин', 'u.h': 'ч', 'nav.home': 'Главная', 'nav.profile': 'Профиль', 'err.fake_name': 'Такого имени не существует. Введите настоящие имя и фамилию (например: Али Валиев).', 'nav.library': 'Библиотека', 'nav.groups': 'Группы', 'nav.reports': 'Отчёт', 'nav.rating': 'Рейтинг', 'nav.inbox': 'Сообщения', 'nav.settings': 'Настройки',
     'back.again': 'Нажмите ещё раз для выхода', 'net.on': 'Интернет восстановлен', 'net.off': 'Нет интернета — офлайн-режим' },
   en: { cancel: 'Cancel', yes: 'Yes', no: 'No', save: 'Save', delete: 'Delete', edit: 'Edit', close: 'Close',
-    'u.min': 'min', 'u.h': 'h', 'nav.home': 'Home', 'nav.profile': 'Profile', 'nav.library': 'Library', 'nav.groups': 'Groups', 'nav.reports': 'Report', 'nav.rating': 'Ranking', 'nav.inbox': 'Messages', 'nav.settings': 'Settings',
+    'u.min': 'min', 'u.h': 'h', 'nav.home': 'Home', 'nav.profile': 'Profile', 'err.fake_name': 'This name does not look real. Enter your real first and last name (e.g. Ali Valiyev).', 'nav.library': 'Library', 'nav.groups': 'Groups', 'nav.reports': 'Report', 'nav.rating': 'Ranking', 'nav.inbox': 'Messages', 'nav.settings': 'Settings',
     'back.again': 'Press again to exit', 'net.on': 'Back online', 'net.off': 'No internet — offline mode' },
 });

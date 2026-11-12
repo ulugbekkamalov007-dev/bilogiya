@@ -1,4 +1,5 @@
 // Bosh sahifa (landing), kirish, ro'yxatdan o'tish, email tasdiqlash (OTP), parolni tiklash
+import { nameOk } from './core.js';
 import { sb, state, t, addDict, route, go, esc, $, $$, ic, toast, setLang, btnBusy, rand, modal, genPassword, passScore } from './core.js';
 import { dnaHelix, cellSvg } from './fx.js';
 import { canInstall, installApp } from './pwa.js';
@@ -298,6 +299,7 @@ route('/register', async ({ el }) => {
     e.preventDefault(); const err = $('#err', el); err.textContent = '';
     const name = $('#nm', el).value.trim(), email = $('#em', el).value.trim().toLowerCase(), p1 = $('#pw', el).value, p2 = $('#pw2', el).value;
     if (name.length < 3) return err.textContent = t('auth.err_name');
+    if (!nameOk(name)) return err.textContent = t('err.fake_name');
     if (p1.length < 8) return err.textContent = t('auth.err_pass_len');
     if (passScore(p1).issue) return err.textContent = t('pw.weak');
     if (p1 !== p2) return err.textContent = t('auth.err_pass_match');

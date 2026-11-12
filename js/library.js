@@ -1,9 +1,10 @@
 // Kutubxona: Drive kabi papkalar, materiallar (video/PDF/taqdimot/kitob/test/havola), pullik to'plamlar, admin boshqaruvi
-import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, confirmDlg, btnBusy, i18nField, upload, signedUrl, safeName, fmtSize, trackTime, spinner, memo, memoClear, friendlyErr } from './core.js';
+import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, confirmDlg, btnBusy, i18nField, upload, signedUrl, safeName, fmtSize, fmtDur, trackTime, spinner, memo, memoClear, friendlyErr } from './core.js';
 import { mountPlayer } from './player.js';
 import { offlineBox, offList } from './offline.js';
 import { testImportModal } from './tests.js';
 import { renderPdf } from './pdfjs.js';
+import { paywall } from './billing.js';
 import { openReader } from './reader.js';
 import { audioPage, audioList, folderAudios, AP } from './audiobar.js';
 import { openAddWizard } from './addwiz.js';
@@ -60,6 +61,7 @@ async function crumbs(fid) {
 
 // ------------------------------------------------------------------ KATALOG
 const browse = async ({ el, params, alive }) => {
+  if (await paywall(el)) return;
   const fid = params.fid || null;
   const fq = sb.from('folders').select('*').order('sort').order('created_at');
   const iq = sb.from('items').select('*').order('sort').order('created_at');
@@ -85,7 +87,7 @@ const browse = async ({ el, params, alive }) => {
   el.innerHTML = `<div class="page"><h1 class="mb0">${esc(path.length ? tr(path[path.length - 1].title) : t('lib.title'))}</h1>${crumbHtml}${!path.length && offList().length ? `<a class="btn sm soft mt" href="#/offline">${ic('download', 14)} ${esc(t('off.open'))} (${offList().length})</a>` : ''}${adminBar}
     ${lockedAnc ? `<div class="card pad center mt"><div class="bigic">🔒</div><h3>${esc(t('lib.locked_t'))}: ${esc(tr(lockedAnc.title))}</h3><p class="muted">${esc(t('lib.locked_d'))}</p>
        ${reqMap[lockedAnc.id] === 'pending' ? `<p class="ok">${esc(t('lib.pending'))}</p>` : `<button class="btn lg" id="rq">${esc(t('lib.request'))}</button>`}</div>` : `
-    ${folders.length ? `<div class="grid mt">${folders.map(fo => `<div class="card fcard ${fo.visible ? '' : 'dim'}" data-open="${fo.id}">
+    ${folders.length ? `<div class="flist mt">${folders.map(fo => `<div class="card fcard ${fo.visible ? '' : 'dim'}" data-open="${fo.id}">
       <div class="fic">${isLocked(fo) ? '🔒' : ic('folder', 30)}</div><b>${esc(tr(fo.title))}</b>
       <small class="muted">${fo.price > 0 ? `<span class="chip paid">${esc(t('lib.paid'))} · ${esc(fmtPrice(fo))}</span>` : ''}${fo.visible ? '' : `<span class="chip warn">${esc(t('lib.hidden'))}</span>`}</small>
       ${adm('folder', fo.id, fo.visible)}</div>`).join('')}</div>` : ''}
@@ -129,6 +131,7 @@ function openItem(it) {
 
 // ------------------------------------------------------------------ MATERIAL KO'RISH
 route('/item/:id', async ({ el, params, alive }) => {
+  if (await paywall(el)) return;
   const { data: it } = await sb.from('items').select('*').eq('id', params.id).maybeSingle();
   if (!alive()) return; if (!it) return go('/library', true);
   const back = `#/library/${it.folder_id || ''}`;
@@ -145,7 +148,13 @@ route('/item/:id', async ({ el, params, alive }) => {
   if (it.kind === 'video') {
     const box = document.createElement('div'); box.className = 'mb'; host.after(box); let ob;
     const pl = await mountPlayer(host, it, { onDone: () => ob?.repaint() }); onLeave(() => pl.destroy());
-    ob = offlineBox(box, it, () => pl.completed()); return;
+    ob = offlineBox(box, it, () => pl.completed());
+    const vl = document.createElement('div'); vl.className = 'mt'; box.after(vl);
+    let q2 = sb.from('items').select('id,title,description,youtube_id,meta,visible,created_at').eq('kind', 'video').order('created_at');
+    q2 = it.folder_id ? q2.eq('folder_id', it.folder_id) : q2.is('folder_id', null);
+    q2.then(({ data }) => { const list = (data || []).filter(x => x.visible || state.isAdmin); if (list.length < 2 || !vl.isConnected) return;
+      vl.innerHTML = `<h3>${esc(t('lib.k_video'))}</h3><div class="vlist">${list.map(v => `<a class="vrow ${v.id === it.id ? 'cur' : ''}" href="#/item/${v.id}"><span class="vth">${v.youtube_id ? `<img src="https://i.ytimg.com/vi/${esc(v.youtube_id)}/mqdefault.jpg" alt="" loading="lazy">` : ic('video', 30)}${v.meta?.duration ? `<i>${esc(fmtDur(v.meta.duration))}</i>` : ''}</span><span class="vin"><b>${esc(tr(v.title))}</b><small class="muted">${esc(tr(v.description) || '')}</small></span></a>`).join('')}</div>`; });
+    return;
   }
   // o'qiladigan materiallar (hujjat, kitob) — butun ekranda, o'qish vaqti hisoblanadi
   const tm = trackTime('book', it.id); onLeave(() => tm.stop());

@@ -1,5 +1,6 @@
 // Sozlamalar: profil, til va ko'rinish, xavfsizlik (parol, PIN, barmoq izi), bildirishnomalar, ilova haqida
 import { TABS as ADM_TABS } from './admin.js';
+import { nameOk, initials } from './core.js';
 import { sb, state, t, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, btnBusy, compressImage, upload, publicUrl, setLang, confirmDlg, passScore } from './core.js';
 import { contactCards, bindContact } from './contact.js';
 import { aboutHtml } from './guide.js';
@@ -57,7 +58,7 @@ const saveProfile = async patch => { const { error } = await sb.from('profiles')
 route('/settings', async ({ el }) => {
   const p = state.profile;
   el.innerHTML = `<div class="page narrow"><h1>${esc(t('nav.profile'))}</h1>
-    <div class="card pad row"><span class="avatar lg">${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="">` : esc((p.full_name || '?')[0])}</span><div class="grow"><b>${esc(p.full_name)}</b><br><small class="muted">${esc(state.user.email)} · ${esc(t(state.isAdmin ? 'set.admin' : 'set.user'))}</small></div></div>
+    <div class="card pad row"><span class="avatar lg">${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="">` : esc(initials(p.full_name))}</span><div class="grow"><b>${esc(p.full_name)}</b><br><small class="muted">${esc(state.user.email)} · ${esc(t(state.isAdmin ? 'set.admin' : 'set.user'))}</small></div></div>
     ${state.isAdmin ? `<h3 class="mt">${esc(t('adm.sections'))}</h3><div class="cards">${ADM_TABS.map(([k, l, i]) => `<a class="card pad item-row" href="#/admin?tab=${k}"><span class="item-ic">${ic(i)}</span><b class="grow">${esc(t(l))}</b>${ic('chev')}</a>`).join('')}</div>` : ''}
     <div class="cards mt">${SECTIONS.map(([k, i]) => `<a class="card pad item-row" href="#/settings/${k}"><span class="item-ic">${ic(i)}</span><b class="grow">${esc(t('settings.' + k))}</b>${ic('chev')}</a>`).join('')}
       <a class="card pad item-row" href="#/offline"><span class="item-ic">${ic('download')}</span><b class="grow">${esc(t('off.title'))}</b>${ic('chev')}</a>
@@ -70,7 +71,7 @@ route('/settings/:s', async ({ el, params }) => {
   const s = params.s, p = state.profile; if (!SECTIONS.find(x => x[0] === s)) return go('/settings', true);
   const head = `<div class="row"><a class="btn ghost sm" href="#/settings">${ic('back')}</a><h2 class="mb0">${esc(t('settings.' + s))}</h2></div>`;
   let body = '';
-  if (s === 'profile') body = `<div class="card pad form mt"><div class="row"><span class="avatar lg" id="av">${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="">` : esc((p.full_name || '?')[0])}</span>
+  if (s === 'profile') body = `<div class="card pad form mt"><div class="row"><span class="avatar lg" id="av">${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="">` : esc(initials(p.full_name))}</span>
       <label class="btn ghost sm">${esc(t('set.change_photo'))}<input type="file" id="ph" accept="image/*" hidden></label></div>
       <label class="fld"><span>${esc(t('set.name'))}</span><input class="input" id="nm" value="${esc(p.full_name)}"></label>
       <div class="fld"><span>${esc(t('set.gender'))}</span><div class="seg"><label><input type="radio" name="g" value="m" ${p.gender === 'm' ? 'checked' : ''}><span>${esc(t('auth.male'))}</span></label><label><input type="radio" name="g" value="f" ${p.gender === 'f' ? 'checked' : ''}><span>${esc(t('auth.female'))}</span></label></div></div>
@@ -106,7 +107,7 @@ route('/settings/:s', async ({ el, params }) => {
   $('#ph', el)?.addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return;
     try { const blob = await compressImage(f, { max: 320, quality: 0.8 }); const path = `${state.user.id}/avatar-${Date.now()}.webp`; await upload('avatars', path, blob);
       const url = publicUrl('avatars', path); if (await saveProfile({ avatar_url: url })) $('#av', el).innerHTML = `<img src="${esc(url)}" alt="">`; } catch (x) { toast(x.message, 'err'); } });
-  $('#sv', el)?.addEventListener('click', () => saveProfile({ full_name: $('#nm', el).value.trim() || p.full_name, gender: $('input[name=g]:checked', el)?.value || null }));
+  $('#sv', el)?.addEventListener('click', () => { const nn = $('#nm', el).value.trim() || p.full_name; if (!nameOk(nn)) return toast(t('err.fake_name'), 'err'); saveProfile({ full_name: nn, gender: $('input[name=g]:checked', el)?.value || null }); });
   $$('input[name=l]', el).forEach(r => r.onchange = () => setLang(r.value));
   $$('input[name=th]', el).forEach(r => r.onchange = () => { localStorage.setItem('bio.theme', r.value); applyTheme(); });
   $$('input[name=fs]', el).forEach(r => r.onchange = () => { localStorage.setItem('bio.fs', r.value); applyTheme(); });

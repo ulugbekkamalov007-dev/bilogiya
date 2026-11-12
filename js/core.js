@@ -17,6 +17,25 @@ if (!['uz', 'ru', 'en'].includes(state.lang)) state.lang = 'uz';
 // ---------- i18n ----------
 const DICT = { uz: {}, ru: {}, en: {} };
 // O'zbek lotin imlosi: oʻ, gʻ (U+02BB) va tutuq belgisi (U+02BC). Kodda oddiy ' yozilgan — shu yerda to'g'rilanadi.
+// Ism-familiya haqiqiyga o'xshaydimi (ma'nosiz matn: "asdf qwer", "aaa bbb" va h.k. ni rad etadi). Haqiqiy shaxsni tekshira olmaydi — faqat shakl.
+export function nameOk(raw) {
+  const words = String(raw || '').trim().replace(/\s+/g, ' ').split(' ');
+  if (words.length < 2 || words.length > 5) return false;
+  const V = 'aeiouyаеёиоуыэюяўі', KB = ['qwe', 'wer', 'ert', 'rty', 'tyu', 'yui', 'uio', 'iop', 'asd', 'sdf', 'dfg', 'fgh', 'ghj', 'hjk', 'jkl', 'zxc', 'xcv', 'cvb', 'vbn', 'bnm', 'qaz', 'wsx', 'edc', 'йцу', 'цук', 'уке', 'кен', 'фыв', 'ыва', 'вап', 'апр', 'пре', 'ячс', 'чсм', 'сми', 'abc', 'bcd', 'cde', 'xyz'];
+  const BAD = ['test', 'user', 'admin', 'name', 'ism', 'familiya', 'fam', 'null', 'none', 'nomalum', 'noma\'lum', 'unknown', 'тест', 'имя', 'фамилия'];
+  return words.every(w => {
+    if (!/^[\p{L}][\p{L}'ʻ’`\-]*$/u.test(w)) return false;
+    const c = w.replace(/['ʻ’`\-]/g, '').toLowerCase();
+    if (c.length < 2 || BAD.includes(c)) return false;
+    if (!new RegExp('[' + V + ']').test(c)) return false;
+    if (/(.)\1\1/.test(c) || /^(.{1,3})\1{2,}$/.test(c)) return false;
+    if (new RegExp('[^' + V + ']{6,}').test(c)) return false;
+    if (KB.some(k => c.includes(k))) return false;
+    return true;
+  });
+}
+export const initials = n => String(n || '?').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => Array.from(w)[0].toUpperCase()).join('') || '?';
+
 export function uzFix(s) {
   if (typeof s !== 'string') return Array.isArray(s) ? s.map(uzFix) : s;
   return s.replace(/([oOgG])['‘’`ʼ´]/g, '$1\u02BB').replace(/([A-Za-z])['‘’`´]([A-Za-z])/g, '$1\u02BC$2');
