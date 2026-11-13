@@ -228,7 +228,7 @@ function run(el, item, pool, chapters, allQs) {
   async function finish() {
     const dur = Math.round((Date.now() - t0) / 1000), pct = Math.round(correct / pool.length * 1000) / 10;
     timer.stop();
-    sb.from('test_attempts').insert({ user_id: state.user.id, item_id: item.id, total: pool.length, correct, percent: pct, duration_s: dur, chapters, wrong_ids: wrongIds }).then(() => {});
+    sb.from('test_attempts').insert({ user_id: state.user.id, item_id: item.id, total: pool.length, correct, percent: pct, duration_s: dur, chapters, wrong_ids: wrongIds }).select('id').single().then(async ({ data: at }) => { if (!at) return; const { data: x } = await sb.rpc('claim_test_xp', { p_attempt: at.id }); if (x?.xp) { toast('+' + x.xp + ' XP', 'ok'); import('./xp.js').then(m => m.refreshStats()); } });
     const r = 52, C = 2 * Math.PI * r;
     el.innerHTML = `<div class="page narrow"><div class="card pad center result">
       <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${r}" class="rbg"/><circle cx="60" cy="60" r="${r}" class="rfg" id="rfg" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg><b>${Math.round(pct)}%</b></div>

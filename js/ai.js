@@ -1,0 +1,35 @@
+// AI biologiya yordamchisi (Edge Function "ai-chat" orqali; API kaliti brauzerda yo'q)
+import { sb, state, route, go, esc, ic, $, $$, toast, btnBusy, spinner, confirmDlg } from './core.js';
+import { T, md, errBox, dbErr } from './ui.js';
+
+const ERR = { limit: () => T('Bugungi limit tugadi. Ertaga qayta urinib ko\'ring.', 'Лимит на сегодня исчерпан. Попробуйте завтра.', 'Daily limit reached. Try again tomorrow.'), off: () => T('AI yordamchi vaqtincha o\'chirilgan', 'ИИ-помощник временно отключён', 'The AI assistant is turned off'), not_configured: () => T('AI hali sozlanmagan (administrator Edge Function va kalitni o\'rnatishi kerak)', 'ИИ ещё не настроен (администратор должен развернуть функцию и ключ)', 'AI is not configured yet (the admin must deploy the function and key)'), staff_only: () => T('Bu rejim faqat o\'qituvchilar uchun', 'Режим только для преподавателей', 'Teachers only'), upstream: () => T('AI xizmati javob bermadi, keyinroq urinib ko\'ring', 'Сервис ИИ не ответил, повторите позже', 'The AI service did not respond, try again later') };
+
+route('/ai', async ({ el, q, alive }) => {
+  const staff = state.profile?.role !== 'user' || state.isAdmin; let mode = 'chat', img = null, busy = false, history = [];
+  const modes = [['chat', T('Savol-javob', 'Вопрос-ответ', 'Q&A')], ['quiz', T('Test yaratish', 'Создать тест', 'Make a quiz')], ['cards', T('Flesh-kartalar', 'Карточки', 'Flashcards')], ...(staff ? [['material', T('Dars materiali', 'Материал урока', 'Lesson material')]] : [])];
+  el.innerHTML = `<div class="page narrow"><div class="row between"><h1>${ic('bot', 26)} ${esc(T('AI yordamchi', 'ИИ-помощник', 'AI assistant'))}</h1><button class="btn sm ghost" id="cl">${esc(T('Tarixni tozalash', 'Очистить историю', 'Clear history'))}</button></div>
+    <p class="muted small">${esc(T('Faqat biologiya bo\'yicha savollarga javob beradi. Javoblar xato bo\'lishi mumkin — muhim ma\'lumotni darslik bilan solishtiring.', 'Отвечает только по биологии. Ответы могут быть неточными — сверяйтесь с учебником.', 'Answers biology questions only. Answers may be imperfect — verify with your textbook.'))}</p>
+    <div class="labtabs" id="md">${modes.map(([k, n]) => `<button data-m="${k}" class="${k === mode ? 'on' : ''}">${esc(n)}</button>`).join('')}</div>
+    <div class="chat2" id="ch">${spinner()}</div>
+    <form class="card pad form mt" id="f" style="position:sticky;bottom:calc(var(--safe-b) + 70px)"><div id="pv"></div><textarea class="input" id="m" rows="2" maxlength="4000" placeholder="${esc(T('Biologiya bo\'yicha savol yoki mavzu…', 'Вопрос или тема по биологии…', 'A biology question or topic…'))}" required></textarea>
+      <div class="row" style="gap:8px"><label class="btn ghost sm">${ic('image', 16)} ${esc(T('Rasm', 'Фото', 'Photo'))}<input type="file" id="im" accept="image/png,image/jpeg,image/webp" hidden></label><span class="grow"></span><small class="muted" id="qt"></small><button class="btn" id="sd">${ic('send', 16)} ${esc(T('Yuborish', 'Отправить', 'Send'))}</button></div></form></div>`;
+  const draw = () => { const ch = $('#ch', el); ch.innerHTML = history.length ? history.map((m, i) => `<div class="bub ${m.role === 'user' ? 'u' : 'a'}">${m.role === 'user' ? esc(m.content) : md(m.content)}${m.role === 'assistant' && m.cards ? `<div class="mt"><button class="btn sm" data-sv="${i}">${ic('layers', 14)} ${esc(T('To\'plam sifatida saqlash', 'Сохранить как колоду', 'Save as deck'))}</button></div>` : ''}</div>`).join('') : `<p class="muted center">${esc(T('Savol bering — masalan: «Mitoz va meyoz farqi nima?»', 'Задайте вопрос, например: «Чем митоз отличается от мейоза?»', 'Ask something, e.g. “What is the difference between mitosis and meiosis?”'))}</p>`;
+    $$('[data-sv]', ch).forEach(b => b.onclick = async () => { const cards = history[+b.dataset.sv].cards; const { data: d, error } = await sb.from('flash_decks').insert({ owner_id: state.user.id, title: 'AI · ' + (history[+b.dataset.sv - 1]?.content || '').slice(0, 60) }).select('id').single(); if (error) return toast(dbErr(error), 'err');
+      const { error: e2 } = await sb.from('flash_cards').insert(cards.map((c, k) => ({ deck_id: d.id, front: String(c.front).slice(0, 600), back: String(c.back).slice(0, 1200), position: k }))); if (e2) return toast(dbErr(e2), 'err'); toast('✔', 'ok'); go('/cards/deck/' + d.id); });
+    ch.lastElementChild?.scrollIntoView({ block: 'end' }); };
+  const { data: old } = await sb.from('ai_messages').select('role,content').order('id', { ascending: false }).limit(30); if (!alive()) return; history = (old || []).reverse(); draw();
+  $$('[data-m]', el).forEach(b => b.onclick = () => { mode = b.dataset.m; $$('[data-m]', el).forEach(x => x.classList.toggle('on', x === b)); });
+  $('#im', el).onchange = e => { const f = e.target.files[0]; if (!f) return; if (f.size > 4e6) { toast(T('Rasm 4 MB dan kichik bo\'lsin', 'Фото до 4 МБ', 'Image must be under 4 MB'), 'err'); return; } const fr = new FileReader(); fr.onload = () => { img = { type: f.type, data: String(fr.result).split(',')[1] }; $('#pv', el).innerHTML = `<small class="muted">📎 ${esc(f.name)}</small>`; }; fr.readAsDataURL(f); };
+  $('#cl', el).onclick = async () => { if (!(await confirmDlg(T('Tarix o\'chirilsinmi?', 'Удалить историю?', 'Delete history?')))) return; await sb.from('ai_messages').delete().eq('user_id', state.user.id); history = []; draw(); };
+  const send = async e => { e.preventDefault(); if (busy) return; const ta = $('#m', el), msg = ta.value.trim(); if (!msg) return; busy = true; btnBusy($('#sd', el), true);
+    history.push({ role: 'user', content: msg }); draw(); ta.value = ''; $('#ch', el).insertAdjacentHTML('beforeend', `<div class="bub a" id="typing">${spinner()}</div>`);
+    const { data, error } = await sb.functions.invoke('ai-chat', { body: { message: msg, mode, history: history.slice(0, -1).slice(-10).map(({ role, content }) => ({ role, content })), image: img } });
+    $('#typing', el)?.remove(); busy = false; btnBusy($('#sd', el), false); img = null; $('#pv', el).innerHTML = '';
+    let code = data?.error; if (error && !code) { try { code = (await error.context.json()).error; } catch { code = 'upstream'; } }
+    if (code || !data?.reply) { history.pop(); draw(); toast((ERR[code] || (() => T('Xatolik yuz berdi', 'Произошла ошибка', 'Something went wrong')))(), 'err'); ta.value = msg; return; }
+    let cards = null; if (mode === 'cards') { try { const j = JSON.parse(data.reply.replace(/^```json|```$/g, '').trim()); if (Array.isArray(j) && j.every(c => c.front && c.back)) cards = j; } catch { /* matn sifatida ko'rsatiladi */ } }
+    history.push({ role: 'assistant', content: cards ? cards.map((c, i) => `${i + 1}. **${c.front}** — ${c.back}`).join('\n') : data.reply, cards }); draw();
+    if (data.quota) $('#qt', el).textContent = `${data.quota.used}/${data.quota.limit}`; };
+  $('#f', el).onsubmit = send; $('#m', el).onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send(e); };
+  if (q.q) { $('#m', el).value = T('Quyidagi mavzuni tushuntirib bering: ', 'Объясните тему: ', 'Please explain this topic: ') + q.q; }
+}, { auth: true });

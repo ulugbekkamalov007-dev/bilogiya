@@ -1,4 +1,5 @@
 // Sozlamalar: profil, til va ko'rinish, xavfsizlik (parol, PIN, barmoq izi), bildirishnomalar, ilova haqida
+import { T } from './ui.js';
 import { TABS as ADM_TABS } from './admin.js';
 import { nameOk, initials } from './core.js';
 import { bgPicker } from './bg.js';
@@ -62,6 +63,7 @@ route('/settings', async ({ el }) => {
     <div class="card pad row"><span class="avatar lg">${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="">` : esc(initials(p.full_name))}</span><div class="grow"><b>${esc(p.full_name)}</b><br><small class="muted">${esc(state.user.email)} · ${esc(t(state.isAdmin ? 'set.admin' : 'set.user'))}</small></div></div>
     ${state.isAdmin ? `<h3 class="mt">${esc(t('adm.sections'))}</h3><div class="cards">${ADM_TABS.map(([k, l, i]) => `<a class="card pad item-row" href="#/admin?tab=${k}"><span class="item-ic">${ic(i)}</span><b class="grow">${esc(t(l))}</b>${ic('chev')}</a>`).join('')}</div>` : ''}
     <div class="cards mt">${SECTIONS.map(([k, i]) => `<a class="card pad item-row" href="#/settings/${k}"><span class="item-ic">${ic(i)}</span><b class="grow">${esc(t('settings.' + k))}</b>${ic('chev')}</a>`).join('')}
+      ${state.profile?.role === 'user' ? `<a class="card pad item-row" href="#/teacher-apply"><span class="item-ic">${ic('cap')}</span><b class="grow">${esc(T('O\'qituvchi bo\'lish', 'Стать преподавателем', 'Become a teacher'))}</b>${ic('chev')}</a>` : ''}
       ${state.isAdmin ? '' : `<a class="card pad item-row" href="#/offline"><span class="item-ic">${ic('download')}</span><b class="grow">${esc(t('off.title'))}</b>${ic('chev')}</a>`}
       <a class="card pad item-row" href="#/guide"><span class="item-ic">${ic('book')}</span><b class="grow">${esc(t('settings.guide'))}</b>${ic('chev')}</a>
       <button class="card pad item-row danger-row" id="lo"><span class="item-ic">${ic('logout')}</span><b class="grow left">${esc(t('settings.logout'))}</b></button></div></div>`;

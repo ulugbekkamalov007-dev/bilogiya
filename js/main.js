@@ -12,12 +12,22 @@ import './inbox.js';
 import './settings.js';
 import './admin.js';
 import './guide.js';
+import './courses.js';
+import './flash.js';
+import './teacher.js';
+import './forum.js';
+import './practice.js';
+import './lab.js';
+import './ai.js';
 import { offList } from './offline.js';
 import { maybeDevNote } from './contact.js';
 import { initials } from './core.js';
 import { applyBg } from './bg.js';
 import { initMiniBar } from './audiobar.js';
-import { lockEnabled, showLock, initAutoLock, offerQuickLogin, isReloadUnlocked } from './lock.js';
+import { doLogout, lockEnabled, showLock, initAutoLock, offerQuickLogin, isReloadUnlocked } from './lock.js';
+import { openSearch } from './search.js';
+import { refreshStats, xpChip } from './xp.js';
+import { T } from './ui.js';
 import { registerSW, canInstall, installApp } from './pwa.js';
 import { CONFIG } from './config.js';
 
@@ -28,16 +38,26 @@ export function applyTheme() {
   const th = localStorage.getItem('bio.theme') || 'auto';
   document.documentElement.dataset.theme = th === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : th;
   document.documentElement.style.fontSize = ({ s: '15px', m: '16px', l: '18px' })[localStorage.getItem('bio.fs') || 'm'];
-  document.querySelector('meta[name=theme-color]')?.setAttribute('content', document.documentElement.dataset.theme === 'dark' ? '#0b1a12' : '#16a34a');
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', document.documentElement.dataset.theme === 'dark' ? '#101A15' : '#087C50');
 }
+document.body.classList.toggle('nav-collapsed', !!localStorage.getItem('bio.navc'));
+document.addEventListener('click', e => { const d = document.getElementById('pdrop'); if (d && !d.hidden && !e.target.closest('.pmenu')) d.hidden = true; });
+addEventListener('keydown', e => { if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName) && state.user && !document.body.classList.contains('locked')) { e.preventDefault(); openSearch(); } });
 applyTheme(); matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyTheme);
 document.documentElement.lang = state.lang;
 
 // ---- qobiq (header + pastki navigatsiya)
+const staffNow = () => state.isAdmin || state.profile?.role === 'teacher';
+// [yo'l, ikonka, nom, kompyuterda ham/faqat, faol bo'lgan yo'llar]
 const NAV = () => [
-  ['/home', 'home', t('nav.home')], ['/library', 'book', t('nav.library')], ['/groups', 'users', t('nav.groups')],
-  ...(state.isAdmin || state.settings?.app?.leaderboard !== false ? [['/rating', 'trophy', t('nav.rating')]] : []),
-  ['/settings', 'user', t('nav.profile')],
+  ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/courses', 'cap', T('Kurslar', 'Курсы', 'Courses'), 0, /^\/(courses|course|lesson|cert)/],
+  ['/library', 'book', t('nav.library'), 1, /^\/(library|item|audios)/], ['/cards', 'layers', T('Kartalar', 'Карточки', 'Cards'), 0, /^\/cards/],
+  ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 0, /^\/(tests|test|practice)/], ['/lab', 'flask', T('Laboratoriya', 'Лаборатория', 'Lab'), 1, /^\/lab/],
+  ['/groups', 'users', t('nav.groups'), 1, /^\/group/], ['/forum', 'msg', T('Forum', 'Форум', 'Forum'), 1, /^\/forum/],
+  ...(state.isAdmin || state.settings?.app?.leaderboard !== false ? [['/rating', 'trophy', t('nav.rating'), 1, /^\/(rating|reports)/]] : []),
+  ['/ai', 'bot', T('AI yordamchi', 'ИИ-помощник', 'AI assistant'), 1, /^\/ai/], ['/achievements', 'award', T('Yutuqlar', 'Достижения', 'Achievements'), 1, /^\/achievements/],
+  ...(staffNow() ? [['/teach', 'edit', T('Kabinet', 'Кабинет', 'Studio'), 1, /^\/teach/]] : []),
+  ['/settings', 'user', t('nav.profile'), 0, /^\/(settings|admin|offline|guide|teacher-apply)/],
 ];
 let unread = 0;
 function paintShell(path = currentPath()) {
@@ -45,17 +65,31 @@ function paintShell(path = currentPath()) {
   $('#top').hidden = !app; $('#tabs').hidden = !app;
   if (!app) return;
   const av = state.profile?.avatar_url, ini = initials(state.profile?.full_name);
-  $('#top').innerHTML = `<a class="brand" href="#/home">🧬 <b>${esc(CONFIG.APP_NAME)}</b></a><span class="grow"></span>
+  const dark = document.documentElement.dataset.theme === 'dark';
+  $('#top').innerHTML = `<button class="icon-btn navtg" id="ntg" title="menu" aria-label="menu">${ic('panel')}</button><a class="brand" href="#/home">🧬 <b>${esc(CONFIG.APP_NAME)}</b></a>
+    <button class="gsearch" id="gs" type="button">${ic('search', 18)}<span>${esc(t('gs.ph'))}</span><kbd>/</kbd></button><span class="grow"></span>${xpChip()}
     ${canInstall() ? `<button class="icon-btn" id="tinst" title="${esc(t('land.install'))}">${ic('download')}</button>` : ''}
+    <button class="icon-btn" id="tth" title="${esc(t('set.theme'))}" aria-label="theme">${ic(dark ? 'sun' : 'moon')}</button>
     <select class="langsel" id="tlang" aria-label="language">${['uz', 'ru', 'en'].map(l => `<option value="${l}" ${l === state.lang ? 'selected' : ''}>${l.toUpperCase()}</option>`).join('')}</select>
-    <a class="icon-btn bell" href="#/inbox" title="${esc(t('nav.inbox'))}">${ic('bell')}${unread ? `<i class="badge">${unread > 9 ? '9+' : unread}</i>` : ''}</a>
-    <a class="avatar" href="#/settings">${av ? `<img src="${esc(av)}" alt="">` : esc(ini)}</a>`;
+    <a class="icon-btn bell" href="#/inbox" title="${esc(t('nav.inbox'))}" aria-label="${esc(t('nav.inbox'))}">${ic('bell')}${unread ? `<i class="badge">${unread > 9 ? '9+' : unread}</i>` : ''}</a>
+    <div class="pmenu"><button class="avatar" id="pav" aria-label="${esc(t('nav.profile'))}" aria-haspopup="menu">${av ? `<img src="${esc(av)}" alt="">` : esc(ini)}</button>
+      <div class="pdrop" id="pdrop" hidden role="menu"><div class="pdh"><b>${esc(state.profile?.full_name || '')}</b><small class="muted">${esc(state.user?.email || '')}</small></div>
+        <div class="pmore">${NAV().filter(n => n[3]).map(([p, i, l]) => `<a href="#${p}" role="menuitem">${ic(i, 16)} ${esc(l)}</a>`).join('')}</div>
+        <a href="#/settings" role="menuitem">${ic('user', 16)} ${esc(t('nav.profile'))}</a>${state.isAdmin ? `<a href="#/admin" role="menuitem">${ic('shield', 16)} ${esc(t('nav.admin'))}</a>` : ''}
+        <a href="#/guide" role="menuitem">${ic('help', 16)} ${esc(t('settings.guide'))}</a><button id="plo" role="menuitem">${ic('logout', 16)} ${esc(t('settings.logout'))}</button></div></div>`;
   $('#tlang').onchange = e => setLang(e.target.value);
   $('#tinst')?.addEventListener('click', installApp);
-  $('#tabs').innerHTML = NAV().map(([p, i, l]) => `<a href="#${p}" class="${path.startsWith(p) || (p === '/settings' && /^\/(admin|offline|guide)/.test(path)) ? 'on' : ''}">${ic(i, 22)}<span>${esc(l)}</span></a>`).join('');
+  $('#gs').onclick = () => openSearch();
+  $('#tth').onclick = () => { const cur = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; localStorage.setItem('bio.theme', cur); applyTheme(); paintShell(); };
+  $('#ntg').onclick = () => { const on = !document.body.classList.contains('nav-collapsed'); document.body.classList.toggle('nav-collapsed', on); localStorage.setItem('bio.navc', on ? '1' : ''); };
+  const pd = $('#pdrop'); $('#pav').onclick = e => { e.stopPropagation(); pd.hidden = !pd.hidden; };
+  pd.onclick = e => { if (e.target.closest('a')) pd.hidden = true; };
+  $('#plo').onclick = () => { pd.hidden = true; doLogout(true); };
+  $('#tabs').innerHTML = NAV().map(([p, i, l, dk, re]) => `<a href="#${p}" class="${dk ? 'dk' : ''} ${re.test(path) ? 'on' : ''}" ${re.test(path) ? 'aria-current="page"' : ''}>${ic(i, 22)}<span>${esc(l)}</span></a>`).join('');
 }
 setShellHook((path, opts) => { document.body.dataset.shell = opts.auth ? 'app' : 'public'; paintShell(path); });
 document.addEventListener('pwa-can-install', () => paintShell());
+document.addEventListener('bio-stats', () => paintShell());
 
 async function refreshUnread() {
   if (!state.user) return;
@@ -91,7 +125,7 @@ async function onSignedIn(user) {
   if (!navigator.onLine && offList().length && !currentPath().startsWith('/offline')) go('/offline', true);
   else if (['/', '/login', '/register', '/verify', '/forgot'].includes(currentPath())) go('/home', true); else render();
   if (!window._miniInit) { window._miniInit = 1; initMiniBar(); }
-  watchBlocked();
+  watchBlocked(); refreshStats();
   offerQuickLogin();
   setTimeout(() => { try { maybeDevNote(); } catch { /* */ } }, 2500);
 }

@@ -1,5 +1,7 @@
 // Admin paneli: foydalanuvchilar, so'rovlar/shikoyatlar, video qoidalari (kodsiz), ilova sozlamalari, platforma hisoboti, saqlash joyi
 import { billingTab } from './billing.js';
+import { TABS2, analyticsTab, auditTab, teachersTab, aiTab } from './admin2.js';
+import { T } from './ui.js';
 import { sb, state, t, tr, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, modal, confirmDlg, btnBusy, fmtMin, fmtDate, fmtSize, dayStr, addDays, loadSettings, spinner } from './core.js';
 import { composeAnnouncement } from './news.js';
 
@@ -33,14 +35,14 @@ addDict({
     'rep.video': 'Video', 'rep.book': 'Books/materials', 'rep.test': 'Tests', 'rep.app': 'In app' },
 });
 
-export const TABS = [['users', 'adm.users', 'users'], ['requests', 'adm.requests', 'bell'], ['video', 'adm.video', 'video'], ['app', 'adm.app', 'settings'], ['stats', 'adm.stats', 'chart'], ['news', 'adm.news_t', 'mega'], ['billing', 'bill.title', 'dollar'], ['storage', 'adm.storage', 'download']];
+export const TABS = [['users', 'adm.users', 'users'], ['requests', 'adm.requests', 'bell'], ['video', 'adm.video', 'video'], ['app', 'adm.app', 'settings'], ['stats', 'adm.stats', 'chart'], ['news', 'adm.news_t', 'mega'], ['billing', 'bill.title', 'dollar'], ['storage', 'adm.storage', 'download'], ...TABS2];
 const save = async (key, value) => { const { error } = await sb.from('app_settings').upsert({ key, value, updated_at: new Date().toISOString() }); if (error) return toast(error.message, 'err'); await loadSettings(); toast(t('adm.saved'), 'ok'); };
 
 route('/admin', async ({ el, q, alive }) => {
   const tab = q.tab; if (!tab || !TABS.some(x => x[0] === tab)) { location.replace('#/settings'); return; }
   const title = t(TABS.find(x => x[0] === tab)[1]);
   el.innerHTML = `<div class="page"><div class="row"><a class="icon-btn" href="#/settings" aria-label="back">${ic('back')}</a><h1 class="mb0">${esc(title)}</h1></div><div id="body" class="mt">${spinner()}</div></div>`;
-  await ({ users: usersTab, requests: requestsTab, video: videoTab, app: appTab, stats: statsTab, storage: storageTab, news: newsTab, billing: billingTab })[tab]($('#body', el));
+  await ({ users: usersTab, requests: requestsTab, video: videoTab, app: appTab, stats: statsTab, storage: storageTab, news: newsTab, billing: billingTab, analytics: analyticsTab, audit: auditTab, teachers: teachersTab, ai: aiTab })[tab]($('#body', el));
 }, { auth: true, admin: true });
 
 function newsTab(body) {
@@ -62,12 +64,13 @@ async function usersTab(body) {
       <button class="icon-btn" data-more="${i}" aria-label="menu">⋮</button></div>`).join('')}</div>`;
     const openMenu = u => { const m = modal(`<h3>${esc(u.full_name || '—')}</h3><small class="muted">${esc(u.email)}</small><div class="cards mt">
         <a class="btn block" href="#/reports/user/${u.id}">${ic('chart', 16)} ${esc(t('adm.report'))}</a><a class="btn ghost block" href="#/inbox/${u.id}">${ic('send', 16)} ${esc(t('inbox.title') === 'inbox.title' ? 'Xabar' : t('inbox.title'))}</a>
-        ${u.id !== state.user.id ? `<button class="btn ghost block" data-role="${u.id}:${u.role}">${esc(t(u.role === 'admin' ? 'adm.make_user' : 'adm.make_admin'))}</button>` : ''}
+        ${u.id !== state.user.id ? `<button class="btn ghost block" data-role="${u.id}:${u.role}">${esc(t(u.role === 'admin' ? 'adm.make_user' : 'adm.make_admin'))}</button>${u.role !== 'admin' ? `<button class="btn ghost block" data-setrole="${u.id}:${u.role === 'teacher' ? 'user' : 'teacher'}">${esc(u.role === 'teacher' ? T('Oddiy foydalanuvchi qilish', 'Сделать обычным', 'Make regular user') : T('O\'qituvchi qilish', 'Сделать преподавателем', 'Make teacher'))}</button>` : ''}` : ''}
         ${u.id !== state.user.id && u.role !== 'admin' ? `<button class="btn ghost block" data-blk="${u.id}:${u.blocked ? 0 : 1}">${esc(t(u.blocked ? 'adm.unblock' : 'adm.block'))}</button><button class="btn danger block" data-del="${u.id}">${ic('trash', 16)} ${esc(t('adm.delete'))}</button>` : ''}</div>`);
       m.el.addEventListener('click', e => { if (e.target.closest('a')) m.close(); });
       $$('[data-blk]', m.el).forEach(b => b.onclick = () => { m.close(); const [id, bl] = b.dataset.blk.split(':'); act('admin_set_block', { p_id: id, p_block: bl === '1' }, t(bl === '1' ? 'adm.block_q' : 'adm.unblock_q')); });
       $$('[data-del]', m.el).forEach(b => b.onclick = () => { m.close(); act('admin_delete_user', { p_id: b.dataset.del }, t('adm.del_q'), t('adm.delete')); });
-      $$('[data-role]', m.el).forEach(b => b.onclick = async () => { m.close(); const [id, r] = b.dataset.role.split(':'); if (!(await confirmDlg(b.textContent + '?'))) return; await sb.from('profiles').update({ role: r === 'admin' ? 'user' : 'admin' }).eq('id', id); load($('#s', body).value.trim()); }); };
+      $$('[data-role]', m.el).forEach(b => b.onclick = async () => { m.close(); const [id, r] = b.dataset.role.split(':'); if (!(await confirmDlg(b.textContent + '?'))) return; const { error: er } = await sb.rpc('admin_set_role', { p_user: id, p_role: r === 'admin' ? 'user' : 'admin' }); if (er) toast(friendlyErr(er.message), 'err'); load($('#s', body).value.trim()); });
+      $$('[data-setrole]', m.el).forEach(b => b.onclick = async () => { m.close(); const [id, r] = b.dataset.setrole.split(':'); if (!(await confirmDlg(b.textContent + '?'))) return; const { error: er } = await sb.rpc('admin_set_role', { p_user: id, p_role: r }); if (er) toast(friendlyErr(er.message), 'err'); load($('#s', body).value.trim()); }); };
     const act = async (fn, args, q, ok) => { if (!(await confirmDlg(q, ok))) return; const { error } = await sb.rpc(fn, args); if (error) return toast(friendlyErr(error.message), 'err'); toast(t('adm.done'), 'ok'); load($('#s', body).value.trim()); };
     $$('.urow2', body).forEach(r => r.onclick = e => { const u = (data || [])[+r.dataset.i]; if (!u) return; if (e.target.closest('[data-more]')) openMenu(u); else location.hash = '#/reports/user/' + u.id; });
   };
@@ -121,7 +124,7 @@ async function statsTab(body) {
   const to = dayStr(), from = dayStr(addDays(new Date(), -29));
   const [ov, dau, cnt] = await Promise.all([sb.rpc('admin_overview', { p_from: from, p_to: to }), sb.rpc('admin_daily_active', { p_from: from, p_to: to }), sb.from('profiles').select('*', { count: 'exact', head: true })]);
   const rows = ov.data || [], days = dau.data || [], max = Math.max(1, ...rows.map(r => +r.seconds)), dmax = Math.max(1, ...days.map(d => +d.users));
-  const COL = { video: '#2563eb', audio: '#8b5cf6', book: '#f59e0b', test: '#16a34a', app: '#94a3b8' };
+  const COL = { video: '#2563eb', audio: '#8b5cf6', book: '#f59e0b', test: '#087C50', app: '#94a3b8' };
   body.innerHTML = `<div class="stats3 mb"><div class="stat card"><span>${esc(t('adm.users_n'))}</span><b>${cnt.count ?? 0}</b></div><div class="stat card"><span>${esc(t('adm.active'))} (30)</span><b>${Math.max(0, ...rows.map(r => +r.users))}</b></div>
       <div class="stat card"><span>${esc(t('rep.app'))} (30)</span><b>${esc(fmtMin((rows.find(r => r.kind === 'app') || { seconds: 0 }).seconds))}</b></div></div>
     <div class="card pad mb"><h3>${esc(t('adm.time_by'))} · 30</h3>${['video', 'audio', 'book', 'test', 'app'].map(k => { const r = rows.find(x => x.kind === k) || { seconds: 0, users: 0 }; return `<div class="hbar"><span>${esc(t('rep.' + k))}</span><div><i style="width:${+r.seconds / max * 100}%;background:${COL[k]}"></i></div><b>${esc(fmtMin(r.seconds))} · ${r.users}👤</b></div>`; }).join('')}</div>

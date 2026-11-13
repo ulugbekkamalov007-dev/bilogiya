@@ -1,7 +1,7 @@
 // Yengil SVG grafiklar (telefon uchun moslashuvchan): donut va kunlik ustunlar
 import { esc } from './core.js';
 
-export const CCOL = { video: '#2563eb', audio: '#8b5cf6', book: '#f59e0b', test: '#16a34a', app: '#94a3b8', other: '#94a3b8' };
+export const CCOL = { video: '#2563eb', audio: '#8b5cf6', book: '#f59e0b', test: '#087C50', app: '#94a3b8', other: '#94a3b8' };
 
 // parts: [{label, value, color}]
 export function donut(parts, centerTop = '', centerBot = '') {

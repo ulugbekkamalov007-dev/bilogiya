@@ -34,7 +34,7 @@ function ddBind(root, onPick) {
   const close = () => $$('.langmenu', root).forEach(x => { x.hidden = true; });
   document.addEventListener('click', close, { once: true });
 }
-const COL = { video: '#2563eb', audio: '#8b5cf6', book: '#f59e0b', test: '#16a34a', other: '#94a3b8' };
+const COL = { video: '#2563eb', audio: '#8b5cf6', book: '#f59e0b', test: '#087C50', other: '#94a3b8' };
 const mondayOf = d => { const x = new Date(d); const k = (x.getDay() + 6) % 7; x.setDate(x.getDate() - k); return x; };
 
 function stackedChart(buckets) {
@@ -58,8 +58,8 @@ function lineChart(pts) {
   const xs = i => L + (pts.length === 1 ? iw / 2 : i / (pts.length - 1) * iw), ys = v => T + ih - v / 100 * ih;
   let s = `<svg viewBox="0 0 ${W} ${H}" class="chart">`;
   [0, 50, 100].forEach(v => s += `<line x1="${L}" x2="${W - R}" y1="${ys(v)}" y2="${ys(v)}" class="grid"/><text x="${L - 6}" y="${ys(v) + 4}" class="axis" text-anchor="end">${v}</text>`);
-  s += `<polyline fill="none" stroke="#16a34a" stroke-width="2.5" points="${pts.map((p, i) => xs(i) + ',' + ys(p.v)).join(' ')}"/>`;
-  pts.forEach((p, i) => s += `<circle cx="${xs(i)}" cy="${ys(p.v)}" r="4.5" fill="#16a34a"><title>${esc(p.label)}: ${p.v}%</title></circle>`);
+  s += `<polyline fill="none" stroke="#087C50" stroke-width="2.5" points="${pts.map((p, i) => xs(i) + ',' + ys(p.v)).join(' ')}"/>`;
+  pts.forEach((p, i) => s += `<circle cx="${xs(i)}" cy="${ys(p.v)}" r="4.5" fill="#087C50"><title>${esc(p.label)}: ${p.v}%</title></circle>`);
   return s + '</svg>';
 }
 
@@ -156,7 +156,7 @@ const ini = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join(
 const CATS = ['total', 'video', 'audio', 'book', 'test', 'browse'];
 const CIC = { total: 'trophy', video: 'video', audio: 'audio', book: 'book', test: 'test', browse: 'globe' };
 const catName = k => t(k === 'total' ? 'rep.total' : k === 'browse' ? 'rep.other' : 'rep.' + k);
-const catCol = k => k === 'browse' ? COL.other : k === 'total' ? '#16a34a' : COL[k];
+const catCol = k => k === 'browse' ? COL.other : k === 'total' ? '#087C50' : COL[k];
 
 // Reytingdagi foydalanuvchi sahifasi (to'liq natija): tepada profil, pastda kartalar va tafsilotlar
 const PERD = { today: 1, '7': 7, '30': 30, all: 3650 };
@@ -180,7 +180,7 @@ route('/rating/u/:uid', async ({ el, params, q, alive }) => {
   el.innerHTML = `<div class="page pprofile"><div class="phero"><a class="btn ghost sm phback" href="#/rating">${ic('back')}</a>
       <span class="avatar xl">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span>
       <h2>${esc(r.name || '—')}</h2><div class="pchips"><span class="pchip">🏆 ${rank ? '#' + rank : '—'}</span><span class="pchip">⏱ ${esc(fmtMin(r.total))}</span><span class="pchip">${esc(perName)}</span></div></div>
-    <div class="pgrid">${stat('trophy', rank ? '#' + rank : '—', t('rep.rank') === 'rep.rank' ? '#' : t('rep.rank'), 'linear-gradient(135deg,#f59e0b,#fbbf24)')}${stat('clock', esc(fmtMin(r.total)), t('rep.total'), 'linear-gradient(135deg,#16a34a,#4ade80)')}
+    <div class="pgrid">${stat('trophy', rank ? '#' + rank : '—', t('rep.rank') === 'rep.rank' ? '#' : t('rep.rank'), 'linear-gradient(135deg,#f59e0b,#fbbf24)')}${stat('clock', esc(fmtMin(r.total)), t('rep.total'), 'linear-gradient(135deg,#087C50,#34b27b)')}
       ${KS.filter(k => k !== 'browse').map(k => stat(KI[k], esc(fmtMin(r[k] || 0)), catName(k), 'linear-gradient(135deg,' + catCol(k) + ',' + catCol(k) + 'cc)')).join('')}
       ${stat('test', avg === null ? '—' : avg + '%', t('rep.tests_n', { n: tests.length }), 'linear-gradient(135deg,#0ea5e9,#38bdf8)')}</div>
     <h3 class="mt">${esc(t('rep.detail') === 'rep.detail' ? '' : t('rep.detail'))}</h3>

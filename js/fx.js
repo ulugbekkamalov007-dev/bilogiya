@@ -33,15 +33,15 @@ export function dnaHelix(host, { rows = 16, w = 220, h = 420 } = {}) {
 // Hujayra rasmi; `open` = membrana kanali ochiq (kod tasdiqlanganda)
 export function cellSvg(open = false) {
   return `<svg class="cell ${open ? 'open' : ''}" viewBox="0 0 240 240" aria-hidden="true">
-    <defs><radialGradient id="cg" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#d9f99d"/><stop offset="1" stop-color="#4ade80"/></radialGradient></defs>
-    <circle cx="120" cy="120" r="104" fill="url(#cg)" stroke="#15803d" stroke-width="6"/>
+    <defs><radialGradient id="cg" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#d9f99d"/><stop offset="1" stop-color="#34b27b"/></radialGradient></defs>
+    <circle cx="120" cy="120" r="104" fill="url(#cg)" stroke="#066642" stroke-width="6"/>
     <circle class="memb" cx="120" cy="120" r="112" fill="none" stroke="#86efac" stroke-width="3" stroke-dasharray="3 9"/>
     <circle cx="112" cy="112" r="34" fill="#a78bfa" stroke="#6d28d9" stroke-width="4"/><circle cx="104" cy="106" r="11" fill="#6d28d9"/>
     <ellipse cx="170" cy="150" rx="22" ry="11" fill="#fdba74" stroke="#c2410c" stroke-width="3" transform="rotate(-25 170 150)"/>
     <ellipse cx="72" cy="165" rx="18" ry="9" fill="#fdba74" stroke="#c2410c" stroke-width="3" transform="rotate(30 72 165)"/>
     <circle cx="160" cy="80" r="7" fill="#38bdf8"/><circle cx="82" cy="78" r="5" fill="#38bdf8"/><circle cx="150" cy="190" r="6" fill="#38bdf8"/>
-    <g class="gate"><rect x="216" y="104" width="22" height="32" rx="6" fill="#fff" stroke="#15803d" stroke-width="4"/>
-      <path class="shackle" d="M222 104v-8a5 5 0 0 1 10 0v8" fill="none" stroke="#15803d" stroke-width="4"/></g>
+    <g class="gate"><rect x="216" y="104" width="22" height="32" rx="6" fill="#fff" stroke="#066642" stroke-width="4"/>
+      <path class="shackle" d="M222 104v-8a5 5 0 0 1 10 0v8" fill="none" stroke="#066642" stroke-width="4"/></g>
   </svg>`;
 }
 
@@ -55,7 +55,7 @@ function mkCanvas() {
 
 export function confetti(ms = 3500, count = 160) {
   const { c, ctx, W, H } = mkCanvas();
-  const cols = ['#22c55e', '#16a34a', '#facc15', '#38bdf8', '#f472b6', '#a78bfa', '#fb923c'];
+  const cols = ['#0a9b66', '#087C50', '#facc15', '#38bdf8', '#f472b6', '#a78bfa', '#fb923c'];
   const ps = Array.from({ length: count }, () => ({
     x: Math.random() * W, y: -20 - Math.random() * H * 0.6, vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 4,
     s: 5 + Math.random() * 7, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, c: rand(cols),
