@@ -1,3 +1,5 @@
+// Supabase Auth "Send Email" hook -> Apps Script (Gmail) ga yo'naltiradi.
+// Sirlar: SEND_EMAIL_HOOK_SECRET (v1,whsec_... ), APPS_SCRIPT_URL, APPS_SCRIPT_SECRET
 import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 const SUBJECTS: Record<string, string> = {
@@ -15,8 +17,7 @@ Deno.serve(async (req) => {
   let data: any;
   try {
     data = new Webhook(secret).verify(payload, Object.fromEntries(req.headers));
-  } catch (e) {
-    console.error("imzo xato", String(e));
+  } catch {
     return new Response(JSON.stringify({ error: { http_code: 401, message: "bad signature" } }), { status: 401 });
   }
   const { user, email_data } = data;
@@ -25,7 +26,6 @@ Deno.serve(async (req) => {
   const html = `<div style="font-family:Arial;max-width:480px;margin:auto;padding:24px;background:#f3faf5;border-radius:16px">
 <h2 style="color:#157347">🧬 Platforma</h2><p>Kod / Код / Code:</p>
 <div style="font-size:34px;letter-spacing:8px;font-weight:700;color:#157347;background:#fff;border-radius:12px;padding:16px;text-align:center">${code}</div></div>`;
-
   const url = Deno.env.get("APPS_SCRIPT_URL"), appSecret = Deno.env.get("APPS_SCRIPT_SECRET");
   if (!url || !appSecret) {
     console.error("APPS_SCRIPT_URL yoki APPS_SCRIPT_SECRET sirlari yo'q");

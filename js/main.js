@@ -19,6 +19,7 @@ import './forum.js';
 import './practice.js';
 import './lab.js';
 import './ai.js';
+import './materials.js';
 import { offList } from './offline.js';
 import { maybeDevNote } from './contact.js';
 import { initials } from './core.js';
@@ -49,14 +50,24 @@ document.documentElement.lang = state.lang;
 // ---- qobiq (header + pastki navigatsiya)
 const staffNow = () => state.isAdmin || state.profile?.role === 'teacher';
 // [yo'l, ikonka, nom, kompyuterda ham/faqat, faol bo'lgan yo'llar]
-const NAV = () => [
+const isTeacher = () => !state.isAdmin && state.profile?.role === 'teacher';
+const TEACHER_NAV = () => [
+  ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/teach', 'cap', T('Kurslarim', 'Мои курсы', 'My courses'), 0, /^\/(teach(\/course.*)?$|courses|course|lesson|cert)/],
+  ['/teach/materials', 'plus', T('Materiallar', 'Материалы', 'Materials'), 0, /^\/(teach\/materials|library|item|audios)/, 'cfab'],
+  ['/groups', 'users', t('nav.groups'), 0, /^\/group/],
+  ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 1, /^\/(tests|test|practice)/], ['/library', 'book', t('nav.library'), 1, /^\/(library|item|audios)/],
+  ['/reports/all', 'chart', T('Statistika', 'Статистика', 'Statistics'), 1, /^\/reports/], ['/rating', 'trophy', t('nav.rating'), 1, /^\/rating/],
+  ['/inbox', 'msg', T('Chat', 'Чат', 'Chat'), 1, /^\/inbox/], ['/forum', 'msg', T('Forum', 'Форум', 'Forum'), 1, /^\/forum/],
+  ['/settings', 'user', t('nav.profile'), 0, /^\/(settings|admin|offline|guide|teacher-apply|inbox)/],
+];
+const NAV = () => isTeacher() ? TEACHER_NAV() : [
   ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/courses', 'cap', T('Kurslar', 'Курсы', 'Courses'), 0, /^\/(courses|course|lesson|cert)/],
   ['/library', 'book', t('nav.library'), 1, /^\/(library|item|audios)/], ['/cards', 'layers', T('Kartalar', 'Карточки', 'Cards'), 0, /^\/cards/],
   ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 0, /^\/(tests|test|practice)/], ['/lab', 'flask', T('Laboratoriya', 'Лаборатория', 'Lab'), 1, /^\/lab/],
   ['/groups', 'users', t('nav.groups'), 1, /^\/group/], ['/forum', 'msg', T('Forum', 'Форум', 'Forum'), 1, /^\/forum/],
   ...(state.isAdmin || state.settings?.app?.leaderboard !== false ? [['/rating', 'trophy', t('nav.rating'), 1, /^\/(rating|reports)/]] : []),
   ['/ai', 'bot', T('AI yordamchi', 'ИИ-помощник', 'AI assistant'), 1, /^\/ai/], ['/achievements', 'award', T('Yutuqlar', 'Достижения', 'Achievements'), 1, /^\/achievements/],
-  ...(staffNow() ? [['/teach', 'edit', T('Kabinet', 'Кабинет', 'Studio'), 1, /^\/teach/]] : []),
+  ...(staffNow() ? [['/teach', 'edit', T('Kabinet', 'Кабинет', 'Studio'), 1, /^\/teach(?!\/materials)/], ['/teach/materials', 'folder', T('Materiallar', 'Материалы', 'Materials'), 1, /^\/teach\/materials/]] : []),
   ['/settings', 'user', t('nav.profile'), 0, /^\/(settings|admin|offline|guide|teacher-apply)/],
 ];
 let unread = 0;
@@ -85,7 +96,7 @@ function paintShell(path = currentPath()) {
   const pd = $('#pdrop'); $('#pav').onclick = e => { e.stopPropagation(); pd.hidden = !pd.hidden; };
   pd.onclick = e => { if (e.target.closest('a')) pd.hidden = true; };
   $('#plo').onclick = () => { pd.hidden = true; doLogout(true); };
-  $('#tabs').innerHTML = NAV().map(([p, i, l, dk, re]) => `<a href="#${p}" class="${dk ? 'dk' : ''} ${re.test(path) ? 'on' : ''}" ${re.test(path) ? 'aria-current="page"' : ''}>${ic(i, 22)}<span>${esc(l)}</span></a>`).join('');
+  $('#tabs').innerHTML = NAV().map(([p, i, l, dk, re, xc]) => `<a href="#${p}" class="${dk ? 'dk' : ''} ${xc || ''} ${re.test(path) ? 'on' : ''}" ${re.test(path) ? 'aria-current="page"' : ''}>${ic(i, xc === 'cfab' ? 28 : 22)}<span>${esc(l)}</span></a>`).join('');
 }
 setShellHook((path, opts) => { document.body.dataset.shell = opts.auth ? 'app' : 'public'; paintShell(path); });
 document.addEventListener('pwa-can-install', () => paintShell());

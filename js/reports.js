@@ -1,6 +1,7 @@
 // Hisobotlar: foydalanish vaqti (kunlik/haftalik), video/kitob/test bo'yicha, test natijalari — SVG grafiklar.
 // Admin ism bo'yicha foydalanuvchi hisobotini ham ko'ra oladi (/reports/user/:id).
 import { sb, state, t, tr, addDict, route, go, esc, ic, $, $$, modal, fmtMin, fmtDate, dayStr, addDays, fmtDur, spinner } from './core.js';
+import { T } from './ui.js';
 
 addDict({
   uz: { 'rep.rank': 'O\'rin', 'rep.detail': 'Batafsil', 'rep.unavail': 'Ma\'lumotlar mavjud emas', 'rep.full': 'To\'liq hisobot', 'rep.tests_n': '{n} ta test', 'rep.browse_note': 'Ilovada sayr qilish — video, audio, kitob va testdan tashqari ilova ichida o\'tkazilgan vaqt', 'rep.period': 'Davr', 'rep.sortby': 'Tartiblash', 'rep.kind_hint': 'Kategoriyani bosing — qaysi materialga qancha vaqt ketgani ko\'rinadi', 'rep.mine': 'Mening hisobotim', 'rep.me_rank': 'Sizning o\'rningiz',
@@ -194,8 +195,8 @@ route('/rating/u/:uid', async ({ el, params, q, alive }) => {
 
 route('/rating', async ({ el, alive }) => {
   if (!state.isAdmin && state.settings?.app?.leaderboard === false) { el.innerHTML = `<div class="page"><p class="muted center pad">${esc(t('rep.lb_off'))}</p></div>`; return; }
-  let per = localStorage.getItem('bio.lbP') || 'today'; const cat = 'total';
-  const cache = {}; let rows = [], err = false, range = ['', ''];
+  let per = localStorage.getItem('bio.lbP') || 'today', cat = localStorage.getItem('bio.lbC') || 'total', roleF = '', grpF = '';
+  const cache = {}; let rowsAll = [], err = false, range = ['', ''], meta = {};
   const load = async () => {
     range = perRange(per);
     await Promise.all(Object.keys(PERD).filter(k => !cache[k]).map(async k => {
@@ -203,22 +204,31 @@ route('/rating', async ({ el, alive }) => {
       if (error) { console.warn('leaderboard:', error.message); cache[k] = { err: true, rows: [] }; }
       else cache[k] = { err: false, rows: (data || []).map(r => ({ ...r, video: +r.video, audio: +r.audio, book: +r.book, test: +r.test, browse: +r.browse, total: +r.total })) };
     }));
-    ({ err, rows } = cache[per]);
+    if (!Object.keys(meta).length) { const { data: m } = await sb.rpc('leaderboard_meta'); (m || []).forEach(x => { meta[x.user_id] = x; }); }
+    ({ err, rows: rowsAll } = cache[per]);
   };
   const paint = () => {
+    const groupsAll = [...new Set(Object.values(meta).flatMap(m => m.groups || []))].sort();
+    const rows = rowsAll.filter(r => (!roleF || (meta[r.user_id]?.role === roleF)) && (!grpF || (meta[r.user_id]?.groups || []).includes(grpF)));
+    const mline = r => { const m = meta[r.user_id]; if (!m) return ''; const bits = [(m.groups || []).join(', '), m.streak ? '🔥 ' + m.streak : ''].filter(Boolean); return bits.length ? `<small class="muted">${esc(bits.join(' · '))}</small>` : ''; };
     const key = r => cat === 'test' ? r.test + (r.tests || 0) * 1e-3 : r[cat], sorted = [...rows].filter(r => cat === 'test' ? (r.test > 0 || r.tests > 0) : true).sort((a, b) => key(b) - key(a)), max = Math.max(1, ...sorted.map(r => r[cat]));
     const rank = k => { const l = [...rows].sort((a, b) => b[k] - a[k]), i = l.findIndex(r => r.user_id === state.user.id); return i < 0 || !l[i][k] ? null : i + 1; };
     $('#lb', el).innerHTML = `<h1>${esc(t('rep.lb'))}</h1>
       ${(() => { const top = [...rows].filter(r => r.total > 0).sort((a, b) => b.total - a.total).slice(0, 12); return top.length ? `<div class="ticker"><div class="tkin">${[0, 1].map(() => top.map((r, i) => `<span class="tki"><b>${i + 1}.</b> ${esc(r.name || '—')} <em>${esc(fmtMin(r.total))}</em></span>`).join('')).join('')}</div></div>` : ''; })()}
+      <div class="catchips" role="tablist">${['total', 'book', 'video', 'test', 'audio'].map(k => `<button type="button" role="tab" class="cchip ${k === cat ? 'on' : ''}" data-cat="${k}">${esc(k === 'total' ? T('Umumiy', 'Общий', 'Overall') : catName(k))}</button>`).join('')}</div>
+      <div class="row wrap mb" style="gap:8px"><select class="input sm" id="rf" aria-label="role"><option value="">${esc(T('Barcha rollar', 'Все роли', 'All roles'))}</option><option value="user" ${roleF === 'user' ? 'selected' : ''}>${esc(T('Talabalar', 'Студенты', 'Students'))}</option><option value="teacher" ${roleF === 'teacher' ? 'selected' : ''}>${esc(T('O\'qituvchilar', 'Преподаватели', 'Teachers'))}</option></select>
+        ${groupsAll.length ? `<select class="input sm" id="gf" aria-label="group"><option value="">${esc(T('Barcha guruhlar', 'Все группы', 'All groups'))}</option>${groupsAll.map(g => `<option ${g === grpF ? 'selected' : ''}>${esc(g)}</option>`).join('')}</select>` : ''}</div>
       <div class="ptabs">${[['today', t('rep.today')], ['7', t('rep.p7')], ['30', t('rep.p30')], ['all', t('rep.all')]].map(([k, n]) => { const l = [...(cache[k]?.rows || [])].sort((a, b) => b.total - a.total)[0]; return `<button type="button" class="ptab ${k === per ? 'on' : ''}" data-per="${k}"><span>${esc(n)}</span><b>${l && l.total > 0 ? '👑 ' + esc((l.name || '').split(' ')[0]) : '—'}</b></button>`; }).join('')}</div>
       ${err || !sorted.length ? '' : (() => { const mi = sorted.findIndex(r => r.user_id === state.user.id), top = sorted.slice(0, 3).filter(r => r[cat] > 0), av = r => `<span class="avatar ${'lg'}">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span>`;
         const pod = top.length >= 2 ? `<div class="podium">${[1, 0, 2].filter(i => top[i]).map(i => `<button type="button" class="pod p${i + 1}" data-u="${top[i].user_id}">${i === 0 ? '<span class="crown">👑</span>' : ''}${av(top[i])}<b class="pn">${esc((top[i].name || '—').split(' ')[0])}</b><span class="pv">${esc(fmtMin(top[i][cat]))}</span><span class="pb">${i + 1}</span></button>`).join('')}</div>` : '';
         return `${pod}${mi >= 0 ? `<div class="card pad merank"><span class="lbrank">${mi + 1}</span><div class="grow"><b>${esc(t('rep.me_rank'))}</b><br><small class="muted">${esc(catName(cat))}: ${esc(fmtMin(sorted[mi][cat]))} / ${rows.length}</small></div></div>` : ''}`; })()}
       <div id="lbody">${err ? `<p class="muted center pad">${esc(t('rep.unavail'))}</p>` : sorted.length ? `<div class="lb">${sorted.map((r, i) => `<button type="button" class="lbrow card ${r.user_id === state.user.id ? 'me' : ''}" data-u="${r.user_id}"><span class="lbrank r${i < 3 ? i + 1 : ''}">${i + 1}</span>
         <span class="avatar sm">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span>
-        <span class="grow left"><b>${esc(r.name || '—')}</b>${cat === 'test' ? `<small class="muted">${esc(t('rep.tests_n', { n: r.tests || 0 }))}${r.avg_percent != null ? ' · ' + Math.round(r.avg_percent) + '%' : ''}</small>` : ''}
+        <span class="grow left"><b>${esc(r.name || '—')}</b>${mline(r)}${cat === 'test' ? `<small class="muted">${esc(t('rep.tests_n', { n: r.tests || 0 }))}${r.avg_percent != null ? ' · ' + Math.round(r.avg_percent) + '%' : ''}</small>` : ''}
 </span>
         <b class="lbtime">${esc(fmtMin(r[cat]))}</b></button>`).join('')}</div>` : `<p class="muted center pad">${esc(t('rep.no_data'))}</p>`}</div>`;
+    $$('[data-cat]', el).forEach(b => b.onclick = () => { cat = b.dataset.cat; localStorage.setItem('bio.lbC', cat); paint(); });
+    $('#rf', el).onchange = e => { roleF = e.target.value; paint(); }; if ($('#gf', el)) $('#gf', el).onchange = e => { grpF = e.target.value; paint(); };
     $$('[data-per]', el).forEach(b => b.onclick = async () => { per = b.dataset.per; localStorage.setItem('bio.lbP', per); await load(); if (alive()) paint(); });
     $$('[data-u]', el).forEach(b => b.onclick = () => go('/rating/u/' + b.dataset.u + '?p=' + per));
   };

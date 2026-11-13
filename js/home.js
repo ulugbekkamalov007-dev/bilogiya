@@ -2,6 +2,9 @@
 import { sb, state, t, tr, addDict, route, esc, ic, $, $$, fmtMin, dayStr, addDays, rand, publicUrl, fmtDate, spinner } from './core.js';
 import { openAnnouncement, annCard } from './news.js';
 import { donut, bars, CCOL } from './charts.js';
+import { learnSummary, learnBlock, KINDS } from './learn.js';
+import { T, skeleton, empty } from './ui.js';
+import { fmtSize } from './core.js';
 
 addDict({
   uz: { 'home.hello': 'Salom, {name}! 👋', 'home.sub': 'Bugun nimani o\'rganamiz?', 'home.today': 'Bugun', 'home.week': 'Bu hafta', 'home.avg': 'O\'rtacha test',
@@ -27,6 +30,15 @@ route('/home', async ({ el, alive }) => {
     sb.from('video_progress').select('item_id,last_pos,duration,completed,items(id,title,kind)').eq('user_id', uid).eq('completed', false).order('updated_at', { ascending: false }).limit(3),
   ]);
   if (!alive()) return;
+  const isTeacher = !state.isAdmin && state.profile?.role === 'teacher', isStudent = !state.isAdmin && !isTeacher;
+  if (isTeacher) return teacherHome(el, alive, anns.data || []);
+  let ls = null, hc = {}, grp = '';
+  if (isStudent) {
+    const [a, h, g] = await Promise.all([learnSummary(), sb.rpc('item_history', { p_kinds: ['video', 'audio', 'book', 'pdf', 'presentation'] }), sb.from('group_members').select('groups(name)').eq('user_id', uid).eq('status', 'approved')]);
+    if (!alive()) return; ls = a; (h.data || []).forEach(r => { const k = r.kind === 'pdf' ? 'book' : r.kind; hc[k] = (hc[k] || 0) + 1; });
+    grp = (g.data || []).map(x => x.groups?.name).filter(Boolean).join(', ');
+    const tn = ls.tests?.n || 0; hc.test = tn;
+  }
   const u = usage.data || [];
   const secToday = u.filter(r => r.day === today && r.kind !== 'app').reduce((a, r) => a + +r.seconds, 0) || u.filter(r => r.day === today).reduce((a, r) => a + +r.seconds, 0);
   const secWeek = u.reduce((a, r) => a + +r.seconds, 0);
@@ -47,6 +59,12 @@ route('/home', async ({ el, alive }) => {
       sb.rpc('admin_daily_active', { p_from: from14, p_to: today }),
       sb.rpc('admin_overview', { p_from: from30, p_to: today }),
     ]);
+    const hc2 = (tbl, f = x => x) => f(sb.from(tbl).select('*', { count: 'exact', head: true })).then(r => r.count || 0);
+    const [nStu, nTea, nCour, nLes, nMat, nTest, nGrp, grow] = await Promise.all([hc2('profiles', q => q.eq('role', 'user')), hc2('profiles', q => q.eq('role', 'teacher')), hc2('courses'), hc2('lessons'),
+      hc2('items', q => q.is('deleted_at', null).neq('kind', 'test')), hc2('items', q => q.is('deleted_at', null).eq('kind', 'test')), hc2('groups', q => q.eq('archived', false)),
+      sb.from('profiles').select('created_at').gte('created_at', dayStr(addDays(new Date(), -83))).limit(5000)]);
+    const gw = Array(12).fill(0); (grow.data || []).forEach(x => { const d = Math.floor((Date.now() - new Date(x.created_at)) / 864e5), w = 11 - Math.floor(d / 7); if (w >= 0 && w < 12) gw[w]++; });
+    const growBars = gw.map((v, i) => ({ label: String(i + 1), value: v, title: T('Hafta', 'Неделя', 'Week') + ' ' + (i + 1) + ': ' + v }));
     
     const d = (da.data || [])[0] || { users: 0, seconds: 0 };
     const dm = {}; (d14.data || []).forEach(x => { dm[x.day] = +x.users; });
@@ -54,7 +72,13 @@ route('/home', async ({ el, alive }) => {
     const ovr = ov.data || [], kinds = ['video', 'audio', 'book', 'test'], sec = k => +((ovr.find(x => x.kind === k) || {}).seconds || 0);
     const parts = kinds.map(k => ({ label: t('rep.' + k), value: sec(k), color: CCOL[k] })), totS = parts.reduce((a, p) => a + p.value, 0);
     adminBox = `<div class="card pad mb"><div class="row between"><h3>${esc(t('home.rep'))}</h3></div>
-      <div class="stats3"><a class="stat" href="#/admin?tab=users"><span>${esc(t('home.all_users'))}</span><b>${nu}</b></a><a class="stat" href="#/rating"><span>${esc(t('home.admin_today'))}</span><b>${d.users}</b></a><a class="stat" href="#/rating"><span>${esc(t('home.admin_min'))}</span><b>${esc(fmtMin(d.seconds))}</b></a></div>
+      <div class="admgrid">${[['users', nu, T('Jami foydalanuvchilar', 'Всего пользователей', 'Total users'), '#/admin?tab=users'], ['user', nStu, T('Talabalar', 'Студенты', 'Students'), '#/admin?tab=users'], ['cap', nTea, T('O\'qituvchilar', 'Преподаватели', 'Teachers'), '#/admin?tab=teachers'],
+        ['cap', nCour, T('Kurslar', 'Курсы', 'Courses'), '#/courses'], ['list', nLes, T('Darslar', 'Уроки', 'Lessons'), '#/courses'], ['folder', nMat, T('Materiallar', 'Материалы', 'Materials'), '#/library'], ['test', nTest, T('Testlar', 'Тесты', 'Tests'), '#/tests'],
+        ['users', nGrp, T('Guruhlar', 'Группы', 'Groups'), '#/groups'], ['clock', fmtMin(totS), T('O\'qish vaqti (30 kun)', 'Время обучения (30 дн.)', 'Learning time (30d)'), '#/rating'], ['zap', d.users, T('Bugun faol', 'Активны сегодня', 'Active today'), '#/rating']]
+        .map(([i2, n, l, h]) => `<a class="stat card admc" href="${h}"><span class="item-ic">${ic(i2, 18)}</span><b>${esc(String(n))}</b><span>${esc(l)}</span></a>`).join('')}</div>
+      <h4 class="mt">${esc(T('Foydalanuvchilar o\'sishi (12 hafta)', 'Рост пользователей (12 нед.)', 'User growth (12 weeks)'))}</h4>${bars(growBars)}
+      <h4 class="mt">${esc(T('Foydalanuvchilar taqsimoti', 'Распределение пользователей', 'User distribution'))}</h4><div class="row donutrow">${donut([{ label: T('Talabalar', 'Студенты', 'Students'), value: nStu, color: '#087C50' }, { label: T('O\'qituvchilar', 'Преподаватели', 'Teachers'), value: nTea, color: '#3286CF' }, { label: 'Admin', value: Math.max(0, nu - nStu - nTea), color: '#E7A52D' }], String(nu), '')}<div class="legend col"><span><i style="background:#087C50"></i>${esc(T('Talabalar', 'Студенты', 'Students'))} · ${nStu}</span><span><i style="background:#3286CF"></i>${esc(T('O\'qituvchilar', 'Преподаватели', 'Teachers'))} · ${nTea}</span></div></div>
+
       <h4 class="mt">${esc(t('home.dau14'))}</h4>${bars(dd)}
       <h4 class="mt">${esc(t('home.by30'))}</h4><div class="row donutrow">${donut(parts, fmtMin(totS), '30')}<div class="legend col">${parts.map(p => `<span><i style="background:${p.color}"></i>${esc(p.label)} · ${esc(fmtMin(p.value))}</span>`).join('')}</div></div></div>
       <div class="card pad mb"><div class="row between"><h3>${esc(t('home.pending'))}</h3><a href="#/admin">${ic('chev')}</a></div>
@@ -63,17 +87,18 @@ route('/home', async ({ el, alive }) => {
   }
 
   el.innerHTML = `<div class="page">
-    <h1 class="mb0">${esc(t('home.hello', { name: (state.profile.full_name || '').split(' ')[0] }))}</h1><p class="muted mb">${esc(t('home.sub'))}</p>
+    <h1 class="mb0">${esc(t('home.hello', { name: (state.profile.full_name || '').split(' ')[0] }))}</h1><p class="muted mb">${esc(grp ? T('Guruh', 'Группа', 'Group') + ': ' + grp : t('home.sub'))}</p>
     ${ads.length ? `<div class="carousel mb" id="car">${ads.map((a, i) => `<a class="slide ${i ? '' : 'on'}" data-ad="${a.id}">
         ${a.image_path ? `<img src="${esc(publicUrl('media', a.image_path))}" alt="" loading="lazy">` : '<div class="slide-bg"></div>'}
         <div class="slide-t"><span class="tag">AD</span><b>${esc(tr(a.title))}</b><small>${esc(tr(a.body).slice(0, 90))}</small></div></a>`).join('')}
         <div class="dots2">${ads.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div></div>` : ''}
     ${adminBox}
-    <div class="stats3 mb">
+    ${isStudent ? learnBlock(ls, hc) : `    <div class="stats3 mb">
       <a class="stat card" href="#/reports"><span>${esc(t('home.today'))}</span><b>${esc(fmtMin(secToday))}</b></a>
       <a class="stat card" href="#/reports"><span>${esc(t('home.week'))}</span><b>${esc(fmtMin(secWeek))}</b></a>
       <a class="stat card" href="#/reports"><span>${esc(t('home.avg'))}</span><b>${avg === null ? '—' : avg + '%'}</b></a>
-    </div>
+    </div>`}
+
     ${cont.length ? `<h3>${esc(t('home.cont'))}</h3><div class="cards mb">${cont.map(p => `<a class="card pad item-row" href="#/item/${p.item_id}">
       <span class="item-ic video">${ic('video')}</span><div class="grow"><b>${esc(tr(p.items.title))}</b>
       <div class="bar"><i style="width:${Math.min(100, Math.round(p.last_pos / p.duration * 100))}%"></i></div></div>${ic('play')}</a>`).join('')}</div>` : ''}
@@ -93,3 +118,24 @@ route('/home', async ({ el, alive }) => {
     }, 5000);
   }
 }, { auth: true });
+
+
+// ---- O'qituvchi bosh sahifasi: kabinet statistikasi, tezkor amallar, so'nggi materiallar
+async function teacherHome(el, alive, anns) {
+  const uid = state.user.id;
+  const [ov, rec, pend] = await Promise.all([sb.rpc('teacher_overview'), sb.from('items').select('id,kind,title,size_bytes,created_at').eq('created_by', uid).is('deleted_at', null).order('created_at', { ascending: false }).limit(5),
+    sb.from('group_members').select('user_id,created_at,profiles(full_name),groups!inner(name,owner_id)').eq('status', 'pending').eq('groups.owner_id', uid).limit(5)]);
+  if (!alive()) return; const o = ov.data || {};
+  const KIC = k => k === 'pdf' ? 'book' : k;
+  const card = (n, label, ic2, href) => `<a class="card pad tstat" href="${href}"><span class="item-ic">${ic(ic2, 20)}</span><b>${n ?? 0}</b><small class="muted">${esc(label)}</small></a>`;
+  el.innerHTML = `<div class="page"><div class="thero card pad"><div><small class="muted">${esc(T('Assalomu alaykum,', 'Здравствуйте,', 'Hello,'))}</small><h1 class="mb0">${esc((state.profile.full_name || '').split(' ')[0] || T('O\'qituvchi', 'Преподаватель', 'Teacher'))}!</h1><small class="muted">${esc(T('Biologiya o\'qituvchisi', 'Преподаватель биологии', 'Biology teacher'))}</small></div><span class="thero-ic">${ic('flask', 44)}</span></div>
+    <h3 class="mt">${esc(T('Bugungi qisqacha', 'Кратко', 'At a glance'))}</h3>
+    <div class="tstats">${card(o.courses, T('Kurslarim', 'Мои курсы', 'My courses'), 'cap', '#/teach')}${card(o.materials, T('Material', 'Материалы', 'Materials'), 'folder', '#/teach/materials')}${card(o.groups, T('Guruh', 'Группы', 'Groups'), 'users', '#/groups')}${card(o.students, T('Talaba', 'Студенты', 'Students'), 'user', '#/groups')}${o.pending ? card(o.pending, T('Yangi so\'rov', 'Новые заявки', 'New requests'), 'bell', '#/groups') : ''}</div>
+    <div class="tcols mt"><div class="card pad"><div class="row between"><h3 class="mb0">${esc(T('So\'nggi materiallar', 'Последние материалы', 'Recent materials'))}</h3><a href="#/teach/materials">${esc(T('Barchasi', 'Все', 'All'))}</a></div>
+      ${(rec.data || []).length ? `<div class="stack mt">${rec.data.map(x => `<a class="row mrec" style="gap:10px" href="#/item/${x.id}"><span class="item-ic ${KIC(x.kind)}">${ic(KINDS[KIC(x.kind)]?.ic || 'link', 18)}</span><span class="grow"><b class="clamp2">${esc(tr(x.title))}</b><br><small class="muted">${esc(KINDS[KIC(x.kind)]?.one() || x.kind)}${x.size_bytes ? ' · ' + esc(fmtSize(x.size_bytes)) : ''} · ${esc(fmtDate(x.created_at))}</small></span></a>`).join('')}</div>` : `<p class="muted mt">${esc(T('Hali material yuklamagansiz.', 'Вы ещё не загружали материалы.', 'You have not uploaded anything yet.'))}</p>`}</div>
+      <div class="card pad"><h3>${esc(T('Tezkor amallar', 'Быстрые действия', 'Quick actions'))}</h3><div class="stack"><a class="btn block" href="#/teach/materials">${ic('plus', 16)} ${esc(T('Material yuklash', 'Загрузить материал', 'Upload material'))}</a>
+        <a class="btn ghost block" href="#/teach">${ic('cap', 16)} ${esc(T('Yangi kurs', 'Новый курс', 'New course'))}</a><a class="btn ghost block" href="#/tests">${ic('test', 16)} ${esc(T('Yangi test', 'Новый тест', 'New test'))}</a><a class="btn ghost block" href="#/groups">${ic('users', 16)} ${esc(T('Yangi guruh', 'Новая группа', 'New group'))}</a></div></div></div>
+    ${(pend.data || []).length ? `<div class="card pad mt"><div class="row between"><h3 class="mb0">${esc(T('Guruhga qo\'shilish so\'rovlari', 'Заявки в группы', 'Group join requests'))}</h3><a href="#/groups">${esc(T('Ko\'rish', 'Открыть', 'Open'))}</a></div><div class="stack mt">${pend.data.map(p => `<div class="row" style="gap:10px"><span class="item-ic">${ic('user', 16)}</span><span class="grow"><b>${esc(p.profiles?.full_name || '')}</b><br><small class="muted">${esc(p.groups?.name || '')}</small></span></div>`).join('')}</div></div>` : ''}
+    <div class="row between mt"><h3>${esc(t('home.news'))}</h3><a href="#/news">${esc(t('home.all_news'))}</a></div><div class="cards">${anns.filter(a => a.kind === 'news').slice(0, 3).map(annCard).join('') || `<p class="muted">${esc(t('home.no_news'))}</p>`}</div></div>`;
+  $$('[data-ann]', el).forEach(c => c.onclick = () => openAnnouncement(anns.find(a => a.id === c.dataset.ann)));
+}

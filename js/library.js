@@ -134,6 +134,7 @@ route('/item/:id', async ({ el, params, alive }) => {
   if (await paywall(el)) return;
   const { data: it } = await sb.from('items').select('*').eq('id', params.id).maybeSingle();
   if (!alive()) return; if (!it) return go('/library', true);
+  sb.rpc('item_open', { p_item: it.id }).then(() => { }, () => { });
   const back = `#/library/${it.folder_id || ''}`;
   el.innerHTML = `<div class="page"><a class="btn ghost sm" href="${back}">${ic('back')}</a><h2 class="mt">${esc(tr(it.title))}</h2><div id="host" class="mb"></div>${tr(it.description) ? `<p class="pre muted">${esc(tr(it.description))}</p>` : ''}</div>`;
   const host = $('#host', el);
@@ -165,10 +166,10 @@ route('/item/:id', async ({ el, params, alive }) => {
 }, { auth: true });
 
 // ------------------------------------------------------------------ ADMIN: QO'SHISH / TAHRIRLASH
-const MIME = { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', wav: 'audio/wav', ogg: 'audio/ogg', oga: 'audio/ogg', opus: 'audio/ogg', flac: 'audio/flac', weba: 'audio/webm', webm: 'video/webm', mp4: 'video/mp4', mov: 'video/quicktime', '3gp': 'video/3gpp', amr: 'audio/amr', mka: 'audio/x-matroska' };
-const mimeOf = f => f.type || MIME[(f.name.split('.').pop() || '').toLowerCase()] || 'application/octet-stream';
+export const MIME = { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', wav: 'audio/wav', ogg: 'audio/ogg', oga: 'audio/ogg', opus: 'audio/ogg', flac: 'audio/flac', weba: 'audio/webm', webm: 'video/webm', mp4: 'video/mp4', mov: 'video/quicktime', '3gp': 'video/3gpp', amr: 'audio/amr', mka: 'audio/x-matroska' };
+export const mimeOf = f => f.type || MIME[(f.name.split('.').pop() || '').toLowerCase()] || 'application/octet-stream';
 // Yuklashdan oldin faylni tekshirish: brauzer ocha oladimi, o'lchami va davomiyligi qancha
-const probeMedia = (file, tag) => new Promise(res => {
+export const probeMedia = (file, tag) => new Promise(res => {
   const u = URL.createObjectURL(file), m = document.createElement(tag); m.preload = 'metadata'; let done = false;
   const fin = r => { if (done) return; done = true; URL.revokeObjectURL(u); res(r); };
   m.onloadedmetadata = () => fin({ ok: true, w: m.videoWidth || 0, h: m.videoHeight || 0, d: Math.round(m.duration || 0) });
