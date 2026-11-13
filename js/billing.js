@@ -86,7 +86,7 @@ export async function billingTab(body) {
   let to; $('#gs', body).oninput = e => { clearTimeout(to); to = setTimeout(async () => {
     const v = e.target.value.trim(), box = $('#gr', body); if (v.length < 2) { box.innerHTML = ''; return; }
     const { data } = await sb.rpc('admin_users_summary', { p_search: v });
-    box.innerHTML = (data || []).filter(u => u.role !== 'admin').slice(0, 10).map(u => `<div class="card pad item-row"><div class="grow"><b>${esc(u.full_name || '—')}</b><br><small class="muted">${esc(u.email || '')}</small></div><input class="input sm" style="width:64px" type="number" min="1" max="36" value="1" data-gm="${u.id}"><button class="btn sm" data-gv="${u.id}">${esc(t('bill.give'))}</button></div>`).join('');
+    box.innerHTML = (data || []).filter(u => u.role !== 'admin').slice(0, 10).map(u => `<div class="card pad grantrow"><div class="gname"><b>${esc(u.full_name || '—')}</b><small class="muted">${esc(u.email || '')}</small></div><div class="gact"><input class="input sm" type="number" min="1" max="36" value="1" data-gm="${u.id}"><span class="muted small">${esc(t('bill.months'))}</span><button class="btn sm" data-gv="${u.id}">${esc(t('bill.give'))}</button></div></div>`).join('');
     $$('[data-gv]', box).forEach(b => b.onclick = () => grant(b.dataset.gv, +$(`[data-gm="${b.dataset.gv}"]`, box).value || 1));
   }, 300); };
 }

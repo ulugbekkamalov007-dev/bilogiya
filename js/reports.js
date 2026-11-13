@@ -3,18 +3,18 @@
 import { sb, state, t, tr, addDict, route, go, esc, ic, $, $$, modal, fmtMin, fmtDate, dayStr, addDays, fmtDur, spinner } from './core.js';
 
 addDict({
-  uz: { 'rep.unavail': 'Ma\'lumotlar mavjud emas', 'rep.full': 'To\'liq hisobot', 'rep.tests_n': '{n} ta test', 'rep.browse_note': 'Ilovada sayr qilish — video, audio, kitob va testdan tashqari ilova ichida o\'tkazilgan vaqt', 'rep.period': 'Davr', 'rep.sortby': 'Tartiblash', 'rep.kind_hint': 'Kategoriyani bosing — qaysi materialga qancha vaqt ketgani ko\'rinadi', 'rep.mine': 'Mening hisobotim', 'rep.me_rank': 'Sizning o\'rningiz',
+  uz: { 'rep.rank': 'O\'rin', 'rep.detail': 'Batafsil', 'rep.unavail': 'Ma\'lumotlar mavjud emas', 'rep.full': 'To\'liq hisobot', 'rep.tests_n': '{n} ta test', 'rep.browse_note': 'Ilovada sayr qilish — video, audio, kitob va testdan tashqari ilova ichida o\'tkazilgan vaqt', 'rep.period': 'Davr', 'rep.sortby': 'Tartiblash', 'rep.kind_hint': 'Kategoriyani bosing — qaysi materialga qancha vaqt ketgani ko\'rinadi', 'rep.mine': 'Mening hisobotim', 'rep.me_rank': 'Sizning o\'rningiz',
     'rep.lb': 'Reyting', 'rep.all': 'Hammasi', 'rep.lb_off': 'Reyting o\'chirilgan', 'rep.title': 'Hisobot', 'rep.of': '{name} — hisobot', 'rep.today': 'Bugun', 'rep.week': 'Oxirgi 7 kun', 'rep.total': 'Jami', 'rep.p7': '7 kun', 'rep.p30': '30 kun', 'rep.p12w': '12 hafta',
     'rep.time_chart': 'O\'qish vaqti (daqiqa)', 'rep.by_kind': 'Bo\'limlar bo\'yicha', 'rep.video': 'Video', 'rep.book': 'Kitob/material', 'rep.test': 'Test', 'rep.other': 'Ilovada sayr qilish', 'rep.audio': 'Audio', 'rep.app': 'Ilovada',
     'rep.items': 'Materiallar bo\'yicha vaqt', 'rep.tests': 'Test natijalari', 'rep.attempts': 'Urinishlar', 'rep.avg': 'O\'rtacha', 'rep.best': 'Eng yaxshi', 'rep.correct': 'to\'g\'ri',
     'rep.no_data': 'Ma\'lumot hali yo\'q', 'rep.day_detail': 'Kunlik to\'liq hisobot', 'rep.day': 'Kun', 'rep.min': 'daq', 'rep.close': 'Yopish', 'rep.hint': 'Kartani yoki ustunni bosing — kunlik tafsilot ochiladi',
     'rep.week_of': 'hafta', 'rep.deleted': '(o\'chirilgan material)' },
-  ru: { 'rep.me_rank': 'Ваше место', 'rep.unavail': 'Данные недоступны', 'rep.full': 'Полный отчёт', 'rep.tests_n': 'Тестов: {n}', 'rep.browse_note': 'Прогулка по приложению — время в приложении вне видео, аудио, книг и тестов', 'rep.period': 'Период', 'rep.sortby': 'Сортировка', 'rep.kind_hint': 'Нажмите на категорию — увидите, на какие материалы ушло время', 'rep.mine': 'Мой отчёт', 'rep.lb': 'Рейтинг', 'rep.all': 'Всё время', 'rep.lb_off': 'Рейтинг отключён', 'rep.title': 'Отчёт', 'rep.of': '{name} — отчёт', 'rep.today': 'Сегодня', 'rep.week': 'Последние 7 дней', 'rep.total': 'Всего', 'rep.p7': '7 дней', 'rep.p30': '30 дней', 'rep.p12w': '12 недель',
+  ru: { 'rep.rank': 'Место', 'rep.detail': 'Подробно', 'rep.me_rank': 'Ваше место', 'rep.unavail': 'Данные недоступны', 'rep.full': 'Полный отчёт', 'rep.tests_n': 'Тестов: {n}', 'rep.browse_note': 'Прогулка по приложению — время в приложении вне видео, аудио, книг и тестов', 'rep.period': 'Период', 'rep.sortby': 'Сортировка', 'rep.kind_hint': 'Нажмите на категорию — увидите, на какие материалы ушло время', 'rep.mine': 'Мой отчёт', 'rep.lb': 'Рейтинг', 'rep.all': 'Всё время', 'rep.lb_off': 'Рейтинг отключён', 'rep.title': 'Отчёт', 'rep.of': '{name} — отчёт', 'rep.today': 'Сегодня', 'rep.week': 'Последние 7 дней', 'rep.total': 'Всего', 'rep.p7': '7 дней', 'rep.p30': '30 дней', 'rep.p12w': '12 недель',
     'rep.time_chart': 'Время обучения (минуты)', 'rep.by_kind': 'По разделам', 'rep.video': 'Видео', 'rep.book': 'Книги/материалы', 'rep.test': 'Тесты', 'rep.other': 'Прогулка по приложению', 'rep.audio': 'Аудио', 'rep.app': 'В приложении',
     'rep.items': 'Время по материалам', 'rep.tests': 'Результаты тестов', 'rep.attempts': 'Попытки', 'rep.avg': 'Среднее', 'rep.best': 'Лучший', 'rep.correct': 'верно',
     'rep.no_data': 'Данных пока нет', 'rep.day_detail': 'Подробный отчёт по дням', 'rep.day': 'День', 'rep.min': 'мин', 'rep.close': 'Закрыть', 'rep.hint': 'Нажмите на карточку или столбец — откроется детализация по дням',
     'rep.week_of': 'неделя', 'rep.deleted': '(удалённый материал)' },
-  en: { 'rep.me_rank': 'Your rank', 'rep.unavail': 'No data available', 'rep.full': 'Full report', 'rep.tests_n': '{n} tests', 'rep.browse_note': 'Browsing the app — time in the app outside video, audio, books and tests', 'rep.period': 'Period', 'rep.sortby': 'Sort by', 'rep.kind_hint': 'Tap a category to see which items took the time', 'rep.mine': 'My report', 'rep.lb': 'Leaderboard', 'rep.all': 'All time', 'rep.lb_off': 'Leaderboard is off', 'rep.title': 'Report', 'rep.of': '{name} — report', 'rep.today': 'Today', 'rep.week': 'Last 7 days', 'rep.total': 'Total', 'rep.p7': '7 days', 'rep.p30': '30 days', 'rep.p12w': '12 weeks',
+  en: { 'rep.rank': 'Rank', 'rep.detail': 'Details', 'rep.me_rank': 'Your rank', 'rep.unavail': 'No data available', 'rep.full': 'Full report', 'rep.tests_n': '{n} tests', 'rep.browse_note': 'Browsing the app — time in the app outside video, audio, books and tests', 'rep.period': 'Period', 'rep.sortby': 'Sort by', 'rep.kind_hint': 'Tap a category to see which items took the time', 'rep.mine': 'My report', 'rep.lb': 'Leaderboard', 'rep.all': 'All time', 'rep.lb_off': 'Leaderboard is off', 'rep.title': 'Report', 'rep.of': '{name} — report', 'rep.today': 'Today', 'rep.week': 'Last 7 days', 'rep.total': 'Total', 'rep.p7': '7 days', 'rep.p30': '30 days', 'rep.p12w': '12 weeks',
     'rep.time_chart': 'Study time (minutes)', 'rep.by_kind': 'By section', 'rep.video': 'Video', 'rep.book': 'Books/materials', 'rep.test': 'Tests', 'rep.other': 'Browsing the app', 'rep.audio': 'Audio', 'rep.app': 'In app',
     'rep.items': 'Time per material', 'rep.tests': 'Test results', 'rep.attempts': 'Attempts', 'rep.avg': 'Average', 'rep.best': 'Best', 'rep.correct': 'correct',
     'rep.no_data': 'No data yet', 'rep.day_detail': 'Full daily report', 'rep.day': 'Day', 'rep.min': 'min', 'rep.close': 'Close', 'rep.hint': 'Tap a card or a bar to open the daily breakdown',
@@ -158,44 +158,59 @@ const CIC = { total: 'trophy', video: 'video', audio: 'audio', book: 'book', tes
 const catName = k => t(k === 'total' ? 'rep.total' : k === 'browse' ? 'rep.other' : 'rep.' + k);
 const catCol = k => k === 'browse' ? COL.other : k === 'total' ? '#16a34a' : COL[k];
 
-// Reytingdagi foydalanuvchi bosilganda: shu kategoriyaga aloqador batafsil oyna
-async function userDetail(r, cat, from, to) {
-  const KS = ['video', 'audio', 'book', 'test', 'browse'], tot = r.total || 0;
-  const m = modal(`<div class="udh"><span class="avatar lg">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span><div class="grow"><b class="udn">${esc(r.name || '—')}</b><div class="udt">${esc(fmtMin(tot))}</div><small class="muted">${esc(t('rep.total'))}</small></div></div>
-    <div id="ud" class="mt">${spinner()}</div>${state.isAdmin ? `<a class="btn block mt" href="#/reports/user/${r.user_id}" id="full">${esc(t('rep.full'))}</a>` : ''}`, { cls: 'wide' });
-  $('#full', m.el)?.addEventListener('click', () => m.close());
-  const box = $('#ud', m.el);
+// Reytingdagi foydalanuvchi sahifasi (to'liq natija): tepada profil, pastda kartalar va tafsilotlar
+const PERD = { today: 1, '7': 7, '30': 30, all: 3650 };
+const perRange = per => { const today = new Date(); return [dayStr(addDays(today, -((PERD[per] || 1) - 1))), dayStr(today)]; };
+route('/rating/u/:uid', async ({ el, params, q, alive }) => {
+  const per = PERD[q.p] ? q.p : 'today', [from, to] = perRange(per), uid = params.uid;
+  const [lb, a, b2] = await Promise.all([sb.rpc('leaderboard', { p_from: from, p_to: to }), sb.rpc('rating_user_items', { p_user: uid, p_from: from, p_to: to }), sb.rpc('rating_user_tests', { p_user: uid, p_from: from, p_to: to })]);
+  if (!alive()) return;
+  const all = (lb.data || []).map(r => ({ ...r, video: +r.video, audio: +r.audio, book: +r.book, test: +r.test, browse: +r.browse, total: +r.total }));
+  const r = all.find(x => x.user_id === uid) || { user_id: uid, name: '—', video: 0, audio: 0, book: 0, test: 0, browse: 0, total: 0 };
+  const rank = [...all].sort((x, y) => y.total - x.total).findIndex(x => x.user_id === uid) + 1;
   let items = [], tests = [], ok = true;
-  const [a, b2] = await Promise.all([sb.rpc('rating_user_items', { p_user: r.user_id, p_from: from, p_to: to }), sb.rpc('rating_user_tests', { p_user: r.user_id, p_from: from, p_to: to })]);
-  if (a.error) { const f = await sb.rpc('report_usage_items', { p_user: r.user_id, p_from: from, p_to: to }); if (f.error) ok = false; else items = f.data || []; } else items = a.data || [];
-  if (b2.error) { const f = await sb.rpc('report_tests', { p_user: r.user_id, p_from: from, p_to: to }); if (!f.error) tests = (f.data || []).map(x => ({ ...x, created_at: x.day })); } else tests = b2.data || [];
+  if (a.error) { const f = await sb.rpc('report_usage_items', { p_user: uid, p_from: from, p_to: to }); if (f.error) ok = false; else items = f.data || []; } else items = a.data || [];
+  if (b2.error) { const f = await sb.rpc('report_tests', { p_user: uid, p_from: from, p_to: to }); if (!f.error) tests = (f.data || []).map(x => ({ ...x, created_at: x.day })); } else tests = b2.data || [];
+  const KS = ['video', 'audio', 'book', 'test', 'browse'], KI = { video: 'video', audio: 'audio', book: 'book', test: 'test', browse: 'globe' };
+  const avg = tests.length ? Math.round(tests.reduce((q2, x) => q2 + (+x.percent || 0), 0) / tests.length) : null;
+  const perName = { today: t('rep.today'), '7': t('rep.p7'), '30': t('rep.p30'), all: t('rep.all') }[per];
+  const stat = (ico, val, lab, col) => `<div class="pstat"><span class="pico" style="background:${col}">${ic(ico, 22)}</span><b>${val}</b><small>${esc(lab)}</small></div>`;
   const rows = KS.map(k => ({ k, sec: r[k] || 0, list: k === 'test' ? tests : items.filter(i => i.kind === k) })).filter(x => x.sec > 0 || x.list.length);
   const max = Math.max(1, ...rows.map(x => x.sec));
-  box.innerHTML = rows.length ? rows.map(x => `<details class="udrow" style="--cc:${catCol(x.k)}"><summary><span class="udl">${esc(catName(x.k))}</span><span class="udv">${esc(fmtMin(x.sec))}</span><span class="udb"><i style="width:${Math.max(3, x.sec / max * 100)}%"></i></span></summary>
+  el.innerHTML = `<div class="page pprofile"><div class="phero"><a class="btn ghost sm phback" href="#/rating">${ic('back')}</a>
+      <span class="avatar xl">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span>
+      <h2>${esc(r.name || '—')}</h2><div class="pchips"><span class="pchip">🏆 ${rank ? '#' + rank : '—'}</span><span class="pchip">⏱ ${esc(fmtMin(r.total))}</span><span class="pchip">${esc(perName)}</span></div></div>
+    <div class="pgrid">${stat('trophy', rank ? '#' + rank : '—', t('rep.rank') === 'rep.rank' ? '#' : t('rep.rank'), 'linear-gradient(135deg,#f59e0b,#fbbf24)')}${stat('clock', esc(fmtMin(r.total)), t('rep.total'), 'linear-gradient(135deg,#16a34a,#4ade80)')}
+      ${KS.filter(k => k !== 'browse').map(k => stat(KI[k], esc(fmtMin(r[k] || 0)), catName(k), 'linear-gradient(135deg,' + catCol(k) + ',' + catCol(k) + 'cc)')).join('')}
+      ${stat('test', avg === null ? '—' : avg + '%', t('rep.tests_n', { n: tests.length }), 'linear-gradient(135deg,#0ea5e9,#38bdf8)')}</div>
+    <h3 class="mt">${esc(t('rep.detail') === 'rep.detail' ? '' : t('rep.detail'))}</h3>
+    <div class="card pad">${rows.length ? rows.map(x => `<details class="udrow" style="--cc:${catCol(x.k)}"><summary><span class="udl">${esc(catName(x.k))}</span><span class="udv">${esc(fmtMin(x.sec))}</span><span class="udb"><i style="width:${Math.max(3, x.sec / max * 100)}%"></i></span></summary>
       <div class="udi">${x.k === 'browse' ? `<p class="muted small">${esc(t('rep.browse_note'))}</p>` : x.list.length ? x.list.map(i => x.k === 'test'
         ? `<div class="trow"><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}<br><small class="muted">${esc(fmtDate(i.created_at))}</small></span><span class="muted">${i.correct}/${i.total}</span><b>${Math.round(i.percent)}%</b></div>`
         : `<div class="trow"><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}</span><b>${esc(fmtMin(i.seconds))}</b></div>`).join('') : `<p class="muted small">${esc(ok ? t('rep.no_data') : t('rep.unavail'))}</p>`}</div></details>`).join('')
-    : `<p class="muted center">${esc(ok ? t('rep.no_data') : t('rep.unavail'))}</p>`;
-}
+      : `<p class="muted center">${esc(ok ? t('rep.no_data') : t('rep.unavail'))}</p>`}</div>
+    ${state.isAdmin ? `<a class="btn block mt" href="#/reports/user/${uid}">${esc(t('rep.full'))}</a>` : ''}</div>`;
+}, { auth: true });
 
 route('/rating', async ({ el, alive }) => {
   if (!state.isAdmin && state.settings?.app?.leaderboard === false) { el.innerHTML = `<div class="page"><p class="muted center pad">${esc(t('rep.lb_off'))}</p></div>`; return; }
   let per = localStorage.getItem('bio.lbP') || 'today'; const cat = 'total';
   const cache = {}; let rows = [], err = false, range = ['', ''];
   const load = async () => {
-    const days = { today: 1, '7': 7, '30': 30, all: 3650 }[per], today = new Date(); range = [dayStr(addDays(today, -(days - 1))), dayStr(today)];
-    if (!cache[per]) {
-      const { data, error } = await sb.rpc('leaderboard', { p_from: range[0], p_to: range[1] });
-      if (error) { console.warn('leaderboard:', error.message); cache[per] = { err: true, rows: [] }; }
-      else cache[per] = { err: false, rows: (data || []).map(r => ({ ...r, video: +r.video, audio: +r.audio, book: +r.book, test: +r.test, browse: +r.browse, total: +r.total })) };
-    }
+    range = perRange(per);
+    await Promise.all(Object.keys(PERD).filter(k => !cache[k]).map(async k => {
+      const rg = perRange(k), { data, error } = await sb.rpc('leaderboard', { p_from: rg[0], p_to: rg[1] });
+      if (error) { console.warn('leaderboard:', error.message); cache[k] = { err: true, rows: [] }; }
+      else cache[k] = { err: false, rows: (data || []).map(r => ({ ...r, video: +r.video, audio: +r.audio, book: +r.book, test: +r.test, browse: +r.browse, total: +r.total })) };
+    }));
     ({ err, rows } = cache[per]);
   };
   const paint = () => {
     const key = r => cat === 'test' ? r.test + (r.tests || 0) * 1e-3 : r[cat], sorted = [...rows].filter(r => cat === 'test' ? (r.test > 0 || r.tests > 0) : true).sort((a, b) => key(b) - key(a)), max = Math.max(1, ...sorted.map(r => r[cat]));
     const rank = k => { const l = [...rows].sort((a, b) => b[k] - a[k]), i = l.findIndex(r => r.user_id === state.user.id); return i < 0 || !l[i][k] ? null : i + 1; };
     $('#lb', el).innerHTML = `<h1>${esc(t('rep.lb'))}</h1>
-      <div class="row wrap" style="gap:8px">${ddHtml('per', t('rep.period'), [['today', t('rep.today')], ['7', t('rep.p7')], ['30', t('rep.p30')], ['all', t('rep.all')]], per)}</div>
+      ${(() => { const top = [...rows].filter(r => r.total > 0).sort((a, b) => b.total - a.total).slice(0, 12); return top.length ? `<div class="ticker"><div class="tkin">${[0, 1].map(() => top.map((r, i) => `<span class="tki"><b>${i + 1}.</b> ${esc(r.name || '—')} <em>${esc(fmtMin(r.total))}</em></span>`).join('')).join('')}</div></div>` : ''; })()}
+      <div class="ptabs">${[['today', t('rep.today')], ['7', t('rep.p7')], ['30', t('rep.p30')], ['all', t('rep.all')]].map(([k, n]) => { const l = [...(cache[k]?.rows || [])].sort((a, b) => b.total - a.total)[0]; return `<button type="button" class="ptab ${k === per ? 'on' : ''}" data-per="${k}"><span>${esc(n)}</span><b>${l && l.total > 0 ? '👑 ' + esc((l.name || '').split(' ')[0]) : '—'}</b></button>`; }).join('')}</div>
       ${err || !sorted.length ? '' : (() => { const mi = sorted.findIndex(r => r.user_id === state.user.id), top = sorted.slice(0, 3).filter(r => r[cat] > 0), av = r => `<span class="avatar ${'lg'}">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span>`;
         const pod = top.length >= 2 ? `<div class="podium">${[1, 0, 2].filter(i => top[i]).map(i => `<button type="button" class="pod p${i + 1}" data-u="${top[i].user_id}">${i === 0 ? '<span class="crown">👑</span>' : ''}${av(top[i])}<b class="pn">${esc((top[i].name || '—').split(' ')[0])}</b><span class="pv">${esc(fmtMin(top[i][cat]))}</span><span class="pb">${i + 1}</span></button>`).join('')}</div>` : '';
         return `${pod}${mi >= 0 ? `<div class="card pad merank"><span class="lbrank">${mi + 1}</span><div class="grow"><b>${esc(t('rep.me_rank'))}</b><br><small class="muted">${esc(catName(cat))}: ${esc(fmtMin(sorted[mi][cat]))} / ${rows.length}</small></div></div>` : ''}`; })()}
@@ -204,8 +219,8 @@ route('/rating', async ({ el, alive }) => {
         <span class="grow left"><b>${esc(r.name || '—')}</b>${cat === 'test' ? `<small class="muted">${esc(t('rep.tests_n', { n: r.tests || 0 }))}${r.avg_percent != null ? ' · ' + Math.round(r.avg_percent) + '%' : ''}</small>` : ''}
 </span>
         <b class="lbtime">${esc(fmtMin(r[cat]))}</b></button>`).join('')}</div>` : `<p class="muted center pad">${esc(t('rep.no_data'))}</p>`}</div>`;
-    ddBind(el, async (k, v) => { per = v; localStorage.setItem('bio.lbP', per); $('#lbody', el).innerHTML = spinner(); await load(); if (alive()) paint(); });
-    $$('[data-u]', el).forEach(b => b.onclick = () => { const r = rows.find(x => x.user_id === b.dataset.u); if (r) userDetail(r, cat, range[0], range[1]); });
+    $$('[data-per]', el).forEach(b => b.onclick = async () => { per = b.dataset.per; localStorage.setItem('bio.lbP', per); await load(); if (alive()) paint(); });
+    $$('[data-u]', el).forEach(b => b.onclick = () => go('/rating/u/' + b.dataset.u + '?p=' + per));
   };
   el.innerHTML = `<div class="page"><div id="lb">${spinner()}</div></div>`;
   await load(); if (!alive()) return; paint();

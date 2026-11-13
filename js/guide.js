@@ -182,10 +182,10 @@ export function aboutHtml() {
 }
 
 route('/guide', async ({ el }) => {
-  const list = (G[state.lang] || G.uz).filter(x => !x[3] || state.isAdmin);
+  const list = (G[state.lang] || G.uz).filter(x => (!x[3] || state.isAdmin) && !(state.isAdmin && x[0] === 'download'));
   el.innerHTML = `<div class="page narrow"><div class="row"><a class="btn ghost sm" href="#/settings">${ic('back')}</a><h1 class="mb0">${esc(t('gd.title'))}</h1></div>
     <p class="muted">${esc(t('gd.sub'))}</p><input class="input" id="q" type="search" placeholder="${esc(t('gd.search'))}">
-    <div id="gl" class="cards mt">${list.map(([i, ti, h, adm], k) => `<details class="card guide-sec" data-k="${k}"><summary><span class="item-ic">${ic(i)}</span><b class="grow">${esc(fix(ti))}</b>${adm ? `<span class="chip warn">${esc(t('gd.admin_only'))}</span>` : ''}${ic('chev')}</summary><div class="guide-body">${fix(h)}</div></details>`).join('')}</div>
+    <div id="gl" class="cards mt">${list.map(([i, ti, h, adm], k) => `<details class="card guide-sec" data-k="${k}"><summary><span class="item-ic">${ic(i)}</span><b class="grow">${esc(fix(ti))}</b>${ic('chev')}</summary><div class="guide-body">${fix(h)}</div></details>`).join('')}</div>
     <p class="center muted mt" id="none" hidden>${esc(t('gd.none'))}</p>
     <div class="card pad mt"><h3>${esc(t('gd.help'))}</h3>${contactCards()}</div></div>`;
   bindContact(el);

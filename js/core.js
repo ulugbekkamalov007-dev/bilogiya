@@ -73,6 +73,7 @@ export const rand = a => a[Math.floor(Math.random() * a.length)];
 export function shuffle(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 const IC = {
+  clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
   home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
   users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
@@ -258,22 +259,33 @@ let lastAct = Date.now();
 ['pointerdown', 'keydown', 'touchstart', 'scroll', 'wheel'].forEach(e => addEventListener(e, () => { lastAct = Date.now(); }, { passive: true, capture: true }));
 const IDLE_MS = 240000;
 export function trackTime(kind, itemId, isActive = () => true) {
-  let acc = 0, last = Date.now(), stopped = false;
+  let acc = 0, last = Date.now(), stopped = false, wasOn = false, flushing = false;
   const media = kind === 'video' || kind === 'audio';
+  // server bir chaqiriqda ko'pi bilan 60 soniya qabul qiladi — katta qiymatni bo'laklab yuboramiz
   const flush = async () => {
-    const s = Math.floor(acc); if (s <= 0) return; acc -= s;
-    if (!navigator.onLine) return;
-    try { await sb.rpc('add_usage', { p_kind: kind, p_item: itemId || null, p_secs: s }); } catch { /* oflayn */ }
+    if (flushing) return; flushing = true;
+    try {
+      while (Math.floor(acc) > 0 && navigator.onLine) {
+        const s = Math.min(Math.floor(acc), 60); acc -= s;
+        try { const { error } = await sb.rpc('add_usage', { p_kind: kind, p_item: itemId || null, p_secs: s }); if (error) { acc += s; break; } } catch { acc += s; break; }
+      }
+    } finally { flushing = false; }
   };
   const tick = () => {
     if (stopped) return; const now = Date.now();
     const seen = kind === 'audio' || !document.hidden;
     const idleOk = media || now - lastAct < IDLE_MS;
-    if (navigator.onLine && seen && idleOk && isActive()) acc += Math.min(now - last, 6000) / 1000;
-    last = now; if (acc >= 20) flush();
+    const on = navigator.onLine && seen && idleOk && isActive();
+    // fonda/ekran qulflangan paytda brauzer taymerni sekinlashtiradi: ijro doim davom etgan bo'lsa haqiqiy o'tgan vaqt hisoblanadi
+    const cap = media && wasOn ? 75000 : 6000;
+    if (on) acc += Math.min(now - last, cap) / 1000;
+    wasOn = on; last = now; if (acc >= 15) flush();
   };
   const iv = setInterval(tick, 4000);
-  return { stop() { if (stopped) return; tick(); stopped = true; clearInterval(iv); flush(); }, flush };
+  const onVis = () => { if (document.visibilityState === 'visible') tick(); else if (media) flush(); };
+  document.addEventListener('visibilitychange', onVis);
+  addEventListener('pagehide', flush);
+  return { stop() { if (stopped) return; tick(); stopped = true; clearInterval(iv); document.removeEventListener('visibilitychange', onVis); removeEventListener('pagehide', flush); flush(); }, flush };
 }
 
 // ---------- Router (hash) ----------

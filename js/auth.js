@@ -6,7 +6,7 @@ import { canInstall, installApp } from './pwa.js';
 import { CONFIG } from './config.js';
 
 addDict({
-  uz: {
+  uz: { 'rec.timeout': "Server javob bermadi. Internetni tekshirib, bir daqiqadan so'ng qayta urinib ko'ring.",
     'land.hero_a': 'Hayot ilmini', 'land.hero_b': 'birga o\'rganamiz',
     'land.sub': 'Video darslar, avtomatik aralashtiriladigan testlar, guruhlar va shaxsiy hisobotlar — biologiyani o\'rganish uchun yagona ilova.',
     'land.login': 'Kirish', 'land.register': 'Ro\'yxatdan o\'tish', 'land.install': 'Ilovani o\'rnatish',
@@ -46,7 +46,7 @@ addDict({
     'pwa.ios_2': '<b>«Bosh ekranga qo\'shish»</b> ni tanlang.', 'pwa.ios_3': '<b>«Qo\'shish»</b> ni bosing — ilova ikonkasi paydo bo\'ladi.',
     'pwa.ios_note': 'Faqat Safari orqali ishlaydi (iOS 16.4+ da bildirishnomalar ham).',
   },
-  ru: {
+  ru: { 'rec.timeout': 'Сервер не ответил. Проверьте интернет и повторите через минуту.',
     'land.hero_a': 'Изучаем науку', 'land.hero_b': 'о жизни вместе',
     'land.sub': 'Видеоуроки, тесты с автоперемешиванием, группы и личные отчёты — единое приложение для изучения биологии.',
     'land.login': 'Войти', 'land.register': 'Регистрация', 'land.install': 'Установить приложение',
@@ -86,7 +86,7 @@ addDict({
     'pwa.ios_2': 'Выберите <b>«На экран Домой»</b>.', 'pwa.ios_3': 'Нажмите <b>«Добавить»</b> — появится значок приложения.',
     'pwa.ios_note': 'Работает только через Safari (уведомления — на iOS 16.4+).',
   },
-  en: {
+  en: { 'rec.timeout': 'The server did not respond. Check your connection and try again in a minute.',
     'land.hero_a': 'Let\'s explore', 'land.hero_b': 'the science of life',
     'land.sub': 'Video lessons, auto-shuffled tests, groups and personal reports — one app to learn biology.',
     'land.login': 'Log in', 'land.register': 'Sign up', 'land.install': 'Install the app',
@@ -362,8 +362,10 @@ route('/forgot', async ({ el }) => {
   $('#f', el).onsubmit = async e => {
     e.preventDefault(); const b = $('#go', el); btnBusy(b, true);
     const email = $('#em', el).value.trim().toLowerCase();
-    const { error } = await sb.auth.resetPasswordForEmail(email); btnBusy(b, false);
-    if (error) return $('#err', el).textContent = authErr(error);
+    $('#err', el).textContent = '';
+    const r = await Promise.race([sb.auth.resetPasswordForEmail(email).catch(x => ({ error: x })), new Promise(res => setTimeout(() => res({ error: { message: 'timeout' } }), 25000))]);
+    btnBusy(b, false); const error = r?.error;
+    if (error) { console.warn('resetPasswordForEmail:', error); return $('#err', el).textContent = error.message === 'timeout' ? t('rec.timeout') : authErr(error); }
     go('/verify?type=recovery&email=' + encodeURIComponent(email));
   };
 });

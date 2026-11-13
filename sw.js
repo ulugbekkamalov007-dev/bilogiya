@@ -1,5 +1,5 @@
 // Service worker: ilova qobig'i oflayn ochiladi; Supabase/API so'rovlari HECH QACHON keshlanmaydi.
-const VER = 'bio-v7';
+const VER = 'bio-v8';
 const SHELL = ['./', 'index.html', 'css/app.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png',
   'js/main.js', 'js/core.js', 'js/config.js', 'js/i18n.js', 'js/auth.js', 'js/lock.js', 'js/fx.js', 'js/pwa.js', 'js/home.js', 'js/library.js', 'js/player.js', 'js/pdfjs.js',
   'js/tests.js', 'js/testparse.js', 'js/reports.js', 'js/groups.js', 'js/chat.js', 'js/media.js', 'js/news.js', 'js/inbox.js', 'js/settings.js', 'js/admin.js', 'js/guide.js', 'js/contact.js', 'js/offline.js', 'js/audiobar.js', 'js/addwiz.js', 'js/reader.js', 'js/charts.js', 'js/billing.js', 'js/bg.js'];

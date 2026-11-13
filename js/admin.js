@@ -1,6 +1,6 @@
 // Admin paneli: foydalanuvchilar, so'rovlar/shikoyatlar, video qoidalari (kodsiz), ilova sozlamalari, platforma hisoboti, saqlash joyi
 import { billingTab } from './billing.js';
-import { sb, state, t, tr, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, confirmDlg, btnBusy, fmtMin, fmtDate, fmtSize, dayStr, addDays, loadSettings, spinner } from './core.js';
+import { sb, state, t, tr, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, modal, confirmDlg, btnBusy, fmtMin, fmtDate, fmtSize, dayStr, addDays, loadSettings, spinner } from './core.js';
 import { composeAnnouncement } from './news.js';
 
 addDict({
@@ -55,16 +55,21 @@ async function usersTab(body) {
   body.innerHTML = `<input class="input" id="s" placeholder="${esc(t('adm.search'))}"><div id="ul" class="mt">${spinner()}</div>`;
   const load = async (v = '') => {
     const { data, error } = await sb.rpc('admin_users_summary', { p_search: v }); if (error) return $('#ul', body).innerHTML = `<p class="muted center pad">${esc(friendlyErr(error.message))}</p>`;
-    $('#ul', body).innerHTML = `<div class="cards">${(data || []).map(u => `<div class="card pad urow"><div class="grow"><a href="#/reports/user/${u.id}"><b>${esc(u.full_name || '—')}</b></a> ${u.role === 'admin' ? '<span class="tag">ADMIN</span>' : ''}${u.blocked ? `<span class="tag bad">${esc(t('adm.blocked'))}</span>` : ''}<br><small class="muted">${esc(u.email)}</small>
-      <div class="chips"><span class="chip">${esc(t('adm.7d'))}: ${esc(fmtMin(u.secs_7d))}</span><span class="chip">${esc(t('adm.total'))}: ${esc(fmtMin(u.secs_total))}</span><span class="chip">${esc(t('adm.tests'))}: ${u.tests_total}${u.avg_percent !== null ? ' · ' + u.avg_percent + '%' : ''}</span>${u.last_seen ? `<span class="chip">${esc(t('adm.last'))}: ${esc(fmtDate(u.last_seen))}</span>` : ''}</div></div>
-      <div class="col"><a class="btn sm" href="#/reports/user/${u.id}">${ic('chart', 14)} ${esc(t('adm.report'))}</a><a class="btn sm ghost" href="#/inbox/${u.id}">${ic('send', 14)}</a>
-      ${u.id !== state.user.id ? `<button class="btn sm ghost" data-role="${u.id}:${u.role}">${esc(t(u.role === 'admin' ? 'adm.make_user' : 'adm.make_admin'))}</button>` : ''}
-      ${u.id !== state.user.id && u.role !== 'admin' ? `<button class="btn sm ghost" data-blk="${u.id}:${u.blocked ? 0 : 1}">${esc(t(u.blocked ? 'adm.unblock' : 'adm.block'))}</button><button class="btn sm danger" data-del="${u.id}">${ic('trash', 14)} ${esc(t('adm.delete'))}</button>` : ''}</div></div>`).join('')}</div>`;
+    const ini = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    $('#ul', body).innerHTML = `<div class="ulist">${(data || []).map((u, i) => `<div class="urow2" data-i="${i}"><span class="avatar">${u.avatar_url ? `<img src="${esc(u.avatar_url)}" alt="">` : esc(ini(u.full_name))}</span>
+      <div class="grow um"><b>${esc(u.full_name || '—')}</b>${u.role === 'admin' ? ' <span class="tag">ADMIN</span>' : ''}${u.blocked ? ` <span class="tag bad">${esc(t('adm.blocked'))}</span>` : ''}<small class="muted">${esc(u.email)}</small>
+        <small class="muted">${esc(t('adm.7d'))}: ${esc(fmtMin(u.secs_7d))} · ${esc(t('adm.total'))}: ${esc(fmtMin(u.secs_total))} · ${esc(t('adm.tests'))}: ${u.tests_total}</small></div>
+      <button class="icon-btn" data-more="${i}" aria-label="menu">⋮</button></div>`).join('')}</div>`;
+    const openMenu = u => { const m = modal(`<h3>${esc(u.full_name || '—')}</h3><small class="muted">${esc(u.email)}</small><div class="cards mt">
+        <a class="btn block" href="#/reports/user/${u.id}">${ic('chart', 16)} ${esc(t('adm.report'))}</a><a class="btn ghost block" href="#/inbox/${u.id}">${ic('send', 16)} ${esc(t('inbox.title') === 'inbox.title' ? 'Xabar' : t('inbox.title'))}</a>
+        ${u.id !== state.user.id ? `<button class="btn ghost block" data-role="${u.id}:${u.role}">${esc(t(u.role === 'admin' ? 'adm.make_user' : 'adm.make_admin'))}</button>` : ''}
+        ${u.id !== state.user.id && u.role !== 'admin' ? `<button class="btn ghost block" data-blk="${u.id}:${u.blocked ? 0 : 1}">${esc(t(u.blocked ? 'adm.unblock' : 'adm.block'))}</button><button class="btn danger block" data-del="${u.id}">${ic('trash', 16)} ${esc(t('adm.delete'))}</button>` : ''}</div>`);
+      m.el.addEventListener('click', e => { if (e.target.closest('a')) m.close(); });
+      $$('[data-blk]', m.el).forEach(b => b.onclick = () => { m.close(); const [id, bl] = b.dataset.blk.split(':'); act('admin_set_block', { p_id: id, p_block: bl === '1' }, t(bl === '1' ? 'adm.block_q' : 'adm.unblock_q')); });
+      $$('[data-del]', m.el).forEach(b => b.onclick = () => { m.close(); act('admin_delete_user', { p_id: b.dataset.del }, t('adm.del_q'), t('adm.delete')); });
+      $$('[data-role]', m.el).forEach(b => b.onclick = async () => { m.close(); const [id, r] = b.dataset.role.split(':'); if (!(await confirmDlg(b.textContent + '?'))) return; await sb.from('profiles').update({ role: r === 'admin' ? 'user' : 'admin' }).eq('id', id); load($('#s', body).value.trim()); }); };
     const act = async (fn, args, q, ok) => { if (!(await confirmDlg(q, ok))) return; const { error } = await sb.rpc(fn, args); if (error) return toast(friendlyErr(error.message), 'err'); toast(t('adm.done'), 'ok'); load($('#s', body).value.trim()); };
-    $$('.urow', body).forEach((r, i) => r.onclick = e => { if (e.target.closest('a,button')) return; const u = (data || [])[i]; if (u) location.hash = '#/reports/user/' + u.id; });
-    $$('[data-blk]', body).forEach(b => b.onclick = () => { const [id, bl] = b.dataset.blk.split(':'); act('admin_set_block', { p_id: id, p_block: bl === '1' }, t(bl === '1' ? 'adm.block_q' : 'adm.unblock_q')); });
-    $$('[data-del]', body).forEach(b => b.onclick = () => act('admin_delete_user', { p_id: b.dataset.del }, t('adm.del_q'), t('adm.delete')));
-    $$('[data-role]', body).forEach(b => b.onclick = async () => { const [id, r] = b.dataset.role.split(':'); if (!(await confirmDlg(b.textContent + '?'))) return; await sb.from('profiles').update({ role: r === 'admin' ? 'user' : 'admin' }).eq('id', id); load($('#s', body).value.trim()); });
+    $$('.urow2', body).forEach(r => r.onclick = e => { const u = (data || [])[+r.dataset.i]; if (!u) return; if (e.target.closest('[data-more]')) openMenu(u); else location.hash = '#/reports/user/' + u.id; });
   };
   let to; $('#s', body).oninput = e => { clearTimeout(to); to = setTimeout(() => load(e.target.value.trim()), 300); }; load();
 }
