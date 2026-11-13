@@ -1,6 +1,7 @@
 // Sozlamalar: profil, til va ko'rinish, xavfsizlik (parol, PIN, barmoq izi), bildirishnomalar, ilova haqida
 import { TABS as ADM_TABS } from './admin.js';
 import { nameOk, initials } from './core.js';
+import { bgPicker } from './bg.js';
 import { sb, state, t, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, btnBusy, compressImage, upload, publicUrl, setLang, confirmDlg, passScore } from './core.js';
 import { contactCards, bindContact } from './contact.js';
 import { aboutHtml } from './guide.js';
@@ -79,6 +80,7 @@ route('/settings/:s', async ({ el, params }) => {
   if (s === 'look') body = `<div class="card pad form mt"><div class="fld"><span>${esc(t('set.lang'))}</span><div class="seg">${['uz', 'ru', 'en'].map(l => `<label><input type="radio" name="l" value="${l}" ${state.lang === l ? 'checked' : ''}><span>${({ uz: 'O\'zbekcha', ru: 'Русский', en: 'English' })[l]}</span></label>`).join('')}</div></div>
       <div class="fld"><span>${esc(t('set.theme'))}</span><div class="seg">${[['auto', 'set.th_auto'], ['light', 'set.th_light'], ['dark', 'set.th_dark']].map(([v, k]) => `<label><input type="radio" name="th" value="${v}" ${(localStorage.getItem('bio.theme') || 'auto') === v ? 'checked' : ''}><span>${esc(t(k))}</span></label>`).join('')}</div></div>
       <div class="fld"><span>${esc(t('set.font'))}</span><div class="seg">${[['s', 'set.f_s'], ['m', 'set.f_m'], ['l', 'set.f_l']].map(([v, k]) => `<label><input type="radio" name="fs" value="${v}" ${(localStorage.getItem('bio.fs') || 'm') === v ? 'checked' : ''}><span>${esc(t(k))}</span></label>`).join('')}</div></div></div>`;
+  if (s === 'look') body += '<div id="bgp" class="card pad mt"></div>';
   if (s === 'security') {
     const on = lockEnabled(), info = lockInfo(), bsup = await biometricSupported();
     body = `<div class="card pad form mt"><h4>${esc(t('set.pass'))}</h4><p class="muted small">${esc(t('set.pw_note'))}</p>
@@ -107,6 +109,7 @@ route('/settings/:s', async ({ el, params }) => {
   $('#ph', el)?.addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return;
     try { const blob = await compressImage(f, { max: 320, quality: 0.8 }); const path = `${state.user.id}/avatar-${Date.now()}.webp`; await upload('avatars', path, blob);
       const url = publicUrl('avatars', path); if (await saveProfile({ avatar_url: url })) $('#av', el).innerHTML = `<img src="${esc(url)}" alt="">`; } catch (x) { toast(x.message, 'err'); } });
+  if (s === 'look') bgPicker($('#bgp', el));
   $('#sv', el)?.addEventListener('click', () => { const nn = $('#nm', el).value.trim() || p.full_name; if (!nameOk(nn)) return toast(t('err.fake_name'), 'err'); saveProfile({ full_name: nn, gender: $('input[name=g]:checked', el)?.value || null }); });
   $$('input[name=l]', el).forEach(r => r.onchange = () => setLang(r.value));
   $$('input[name=th]', el).forEach(r => r.onchange = () => { localStorage.setItem('bio.theme', r.value); applyTheme(); });

@@ -1,10 +1,12 @@
 // Guruhlar: so'rov bilan qo'shilish, chat, vazifalar (alohida bo'lim), a'zolarni boshqarish, xavfsizlik sozlamalari
-import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, confirmDlg, btnBusy, fmtDate, fmtTime, fmtDur, spinner } from './core.js';
+import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, friendlyErr, signedUrl, confirmDlg, btnBusy, fmtDate, fmtTime, fmtDur, spinner } from './core.js';
 import { mountChat } from './chat.js';
+import { testImportModal } from './tests.js';
+import { openReader } from './reader.js';
 import { startRecording, uploadAttachment, uploadVoice, mediaHtml, fillMedia, MAX_FILE } from './media.js';
 
 addDict({
-  uz: { 'grp.title': 'Guruhlar', 'grp.vis': 'Guruhni kimlar topa oladi?', 'grp.vis_all': 'Hamma (qidiruvda chiqadi)', 'grp.vis_free': 'Hech bir guruhda yo\'qlar (mavjud a\'zolarga ko\'rinmaydi)', 'grp.vis_priv': 'Hech kim — faqat men qo\'shaman', 'grp.add_m': 'A\'zo qo\'shish', 'grp.add_ph': 'Ism yoki email yozing…', 'grp.added': 'Qo\'shildi', 'grp.in': 'Guruhda', 'grp.test_att': 'Test biriktirish (ixtiyoriy)', 'grp.no_test': 'Testsiz', 'grp.take_test': 'Testni boshlash', 'grp.ov': 'Natijalar', 'grp.ov_sent': 'Topshirdi', 'grp.ov_audio': 'Audio', 'grp.ov_text': 'Matn', 'grp.ov_file': 'Fayl', 'grp.ov_test': 'Test o\'rtacha', 'grp.ov_none': 'Topshirmagan', 'grp.attempts': 'urinish', 'grp.best': 'Eng yaxshi', 'grp.my': 'Mening guruhlarim', 'grp.none': 'Hali guruhga qo\'shilmagansiz', 'grp.find': 'Guruh qidirish', 'grp.find_ph': 'Guruh nomini yozing…',
+  uz: { 'grp.f_audio': 'Audio javoblar soni', 'grp.f_book': 'Kitob', 'grp.bk_none': 'Kitobsiz', 'grp.bk_up': '📱 Telefondan yuklash', 'grp.bk_app': 'Ilovadagi kitob', 'grp.new_test': 'Shu dars uchun yangi test yaratish', 'grp.read_book': 'Kitobni o\'qish', 'grp.audios': 'Audio javoblar', 'grp.slot_empty': 'Audio qo\'shing', 'grp.rec_now': 'Ovoz yozish', 'grp.pick_file': 'Telefondan fayl', 'grp.rec_stop': 'To\'xtatish va saqlash', 'grp.test_made': 'Test yaratildi', 'grp.pick_book': 'Kitob faylini tanlang (PDF, Word, PowerPoint)', 'grp.title': 'Guruhlar', 'grp.vis': 'Guruhni kimlar topa oladi?', 'grp.vis_all': 'Hamma (qidiruvda chiqadi)', 'grp.vis_free': 'Hech bir guruhda yo\'qlar (mavjud a\'zolarga ko\'rinmaydi)', 'grp.vis_priv': 'Hech kim — faqat men qo\'shaman', 'grp.add_m': 'A\'zo qo\'shish', 'grp.add_ph': 'Ism yoki email yozing…', 'grp.added': 'Qo\'shildi', 'grp.in': 'Guruhda', 'grp.test_att': 'Test biriktirish (ixtiyoriy)', 'grp.no_test': 'Testsiz', 'grp.take_test': 'Testni boshlash', 'grp.ov': 'Natijalar', 'grp.ov_sent': 'Topshirdi', 'grp.ov_audio': 'Audio', 'grp.ov_text': 'Matn', 'grp.ov_file': 'Fayl', 'grp.ov_test': 'Test o\'rtacha', 'grp.ov_none': 'Topshirmagan', 'grp.attempts': 'urinish', 'grp.best': 'Eng yaxshi', 'grp.my': 'Mening guruhlarim', 'grp.none': 'Hali guruhga qo\'shilmagansiz', 'grp.find': 'Guruh qidirish', 'grp.find_ph': 'Guruh nomini yozing…',
     'grp.join': 'So\'rov yuborish', 'grp.sent': 'So\'rov yuborildi', 'grp.pending': 'Tasdiq kutilmoqda', 'grp.new': 'Yangi guruh', 'grp.name': 'Guruh nomi', 'grp.desc': 'Tavsif',
     'grp.created': 'Guruh yaratildi', 'grp.tab_chat': 'Chat', 'grp.tab_tasks': 'Vazifalar', 'grp.tab_members': 'A\'zolar', 'grp.tab_set': 'Sozlamalar', 'grp.help': 'Yordam / murojaat',
     'grp.leave': 'Guruhdan chiqish', 'grp.new_task': 'Yangi vazifa', 'grp.task_title': 'Vazifa nomi', 'grp.task_body': 'Topshiriq matni', 'grp.due': 'Muddat', 'grp.no_tasks': 'Vazifalar yo\'q',
@@ -15,7 +17,7 @@ addDict({
     'grp.privacy': 'Talabalar bir-birining ro\'yxati, profili va shaxsiy xabarlarini ko\'rmaydi. Shikoyat tugmasi har bir xabarda bor.', 'grp.archive': 'Arxivlash', 'grp.delete': 'Guruhni o\'chirish',
     'grp.rep_title': 'Xabar ustidan shikoyat', 'grp.rep_ph': 'Sababini yozing (ixtiyoriy)', 'grp.rep_sent': 'Shikoyat adminga yuborildi', 'grp.pending_n': '{n} ta so\'rov', 'grp.empty_members': 'A\'zolar yo\'q',
     'grp.too_big': 'Fayl 10 MB dan katta', 'grp.open': 'Ochish', 'grp.closed_task': 'Vazifa yopilgan', 'grp.close_task': 'Yopish', 'grp.reopen': 'Qayta ochish', 'grp.new_task_msg': '📌 Yangi vazifa: {t}' },
-  ru: { 'grp.title': 'Группы', 'grp.vis': 'Кто может найти группу?', 'grp.vis_all': 'Все (видна в поиске)', 'grp.vis_free': 'Те, кто ни в одной группе (текущим участникам не видна)', 'grp.vis_priv': 'Никто — добавляю только я', 'grp.add_m': 'Добавить участника', 'grp.add_ph': 'Имя или email…', 'grp.added': 'Добавлен', 'grp.in': 'В группе', 'grp.test_att': 'Прикрепить тест (необязательно)', 'grp.no_test': 'Без теста', 'grp.take_test': 'Начать тест', 'grp.ov': 'Результаты', 'grp.ov_sent': 'Сдали', 'grp.ov_audio': 'Аудио', 'grp.ov_text': 'Текст', 'grp.ov_file': 'Файл', 'grp.ov_test': 'Тест, средний', 'grp.ov_none': 'Не сдал(а)', 'grp.attempts': 'попыток', 'grp.best': 'Лучший', 'grp.my': 'Мои группы', 'grp.none': 'Вы ещё не вступили ни в одну группу', 'grp.find': 'Поиск группы', 'grp.find_ph': 'Введите название группы…',
+  ru: { 'grp.f_audio': 'Число аудио-ответов', 'grp.f_book': 'Книга', 'grp.bk_none': 'Без книги', 'grp.bk_up': '📱 Загрузить с телефона', 'grp.bk_app': 'Книга из приложения', 'grp.new_test': 'Создать новый тест для этого урока', 'grp.read_book': 'Читать книгу', 'grp.audios': 'Аудио-ответы', 'grp.slot_empty': 'Добавьте аудио', 'grp.rec_now': 'Записать голос', 'grp.pick_file': 'Файл с телефона', 'grp.rec_stop': 'Остановить и сохранить', 'grp.test_made': 'Тест создан', 'grp.pick_book': 'Выберите файл книги (PDF, Word, PowerPoint)', 'grp.title': 'Группы', 'grp.vis': 'Кто может найти группу?', 'grp.vis_all': 'Все (видна в поиске)', 'grp.vis_free': 'Те, кто ни в одной группе (текущим участникам не видна)', 'grp.vis_priv': 'Никто — добавляю только я', 'grp.add_m': 'Добавить участника', 'grp.add_ph': 'Имя или email…', 'grp.added': 'Добавлен', 'grp.in': 'В группе', 'grp.test_att': 'Прикрепить тест (необязательно)', 'grp.no_test': 'Без теста', 'grp.take_test': 'Начать тест', 'grp.ov': 'Результаты', 'grp.ov_sent': 'Сдали', 'grp.ov_audio': 'Аудио', 'grp.ov_text': 'Текст', 'grp.ov_file': 'Файл', 'grp.ov_test': 'Тест, средний', 'grp.ov_none': 'Не сдал(а)', 'grp.attempts': 'попыток', 'grp.best': 'Лучший', 'grp.my': 'Мои группы', 'grp.none': 'Вы ещё не вступили ни в одну группу', 'grp.find': 'Поиск группы', 'grp.find_ph': 'Введите название группы…',
     'grp.join': 'Подать заявку', 'grp.sent': 'Заявка отправлена', 'grp.pending': 'Ожидает подтверждения', 'grp.new': 'Новая группа', 'grp.name': 'Название группы', 'grp.desc': 'Описание',
     'grp.created': 'Группа создана', 'grp.tab_chat': 'Чат', 'grp.tab_tasks': 'Задания', 'grp.tab_members': 'Участники', 'grp.tab_set': 'Настройки', 'grp.help': 'Помощь / обращение',
     'grp.leave': 'Выйти из группы', 'grp.new_task': 'Новое задание', 'grp.task_title': 'Название задания', 'grp.task_body': 'Текст задания', 'grp.due': 'Срок', 'grp.no_tasks': 'Заданий нет',
@@ -26,7 +28,7 @@ addDict({
     'grp.privacy': 'Ученики не видят список, профили и личные сообщения друг друга. У каждого сообщения есть кнопка жалобы.', 'grp.archive': 'В архив', 'grp.delete': 'Удалить группу',
     'grp.rep_title': 'Жалоба на сообщение', 'grp.rep_ph': 'Укажите причину (необязательно)', 'grp.rep_sent': 'Жалоба отправлена админу', 'grp.pending_n': 'Заявок: {n}', 'grp.empty_members': 'Участников нет',
     'grp.too_big': 'Файл больше 10 МБ', 'grp.open': 'Открыть', 'grp.closed_task': 'Задание закрыто', 'grp.close_task': 'Закрыть', 'grp.reopen': 'Открыть снова', 'grp.new_task_msg': '📌 Новое задание: {t}' },
-  en: { 'grp.title': 'Groups', 'grp.vis': 'Who can find this group?', 'grp.vis_all': 'Everyone (shown in search)', 'grp.vis_free': 'People in no group yet (hidden from current members)', 'grp.vis_priv': 'Nobody — I add people myself', 'grp.add_m': 'Add member', 'grp.add_ph': 'Name or email…', 'grp.added': 'Added', 'grp.in': 'In group', 'grp.test_att': 'Attach a test (optional)', 'grp.no_test': 'No test', 'grp.take_test': 'Start test', 'grp.ov': 'Results', 'grp.ov_sent': 'Submitted', 'grp.ov_audio': 'Audio', 'grp.ov_text': 'Text', 'grp.ov_file': 'File', 'grp.ov_test': 'Test average', 'grp.ov_none': 'Not submitted', 'grp.attempts': 'attempts', 'grp.best': 'Best', 'grp.my': 'My groups', 'grp.none': 'You haven\'t joined any group yet', 'grp.find': 'Find a group', 'grp.find_ph': 'Type the group name…',
+  en: { 'grp.f_audio': 'Number of audio answers', 'grp.f_book': 'Book', 'grp.bk_none': 'No book', 'grp.bk_up': '📱 Upload from phone', 'grp.bk_app': 'Book from the app', 'grp.new_test': 'Create a new test for this lesson', 'grp.read_book': 'Read the book', 'grp.audios': 'Audio answers', 'grp.slot_empty': 'Add audio', 'grp.rec_now': 'Record voice', 'grp.pick_file': 'File from phone', 'grp.rec_stop': 'Stop and save', 'grp.test_made': 'Test created', 'grp.pick_book': 'Choose a book file (PDF, Word, PowerPoint)', 'grp.title': 'Groups', 'grp.vis': 'Who can find this group?', 'grp.vis_all': 'Everyone (shown in search)', 'grp.vis_free': 'People in no group yet (hidden from current members)', 'grp.vis_priv': 'Nobody — I add people myself', 'grp.add_m': 'Add member', 'grp.add_ph': 'Name or email…', 'grp.added': 'Added', 'grp.in': 'In group', 'grp.test_att': 'Attach a test (optional)', 'grp.no_test': 'No test', 'grp.take_test': 'Start test', 'grp.ov': 'Results', 'grp.ov_sent': 'Submitted', 'grp.ov_audio': 'Audio', 'grp.ov_text': 'Text', 'grp.ov_file': 'File', 'grp.ov_test': 'Test average', 'grp.ov_none': 'Not submitted', 'grp.attempts': 'attempts', 'grp.best': 'Best', 'grp.my': 'My groups', 'grp.none': 'You haven\'t joined any group yet', 'grp.find': 'Find a group', 'grp.find_ph': 'Type the group name…',
     'grp.join': 'Request to join', 'grp.sent': 'Request sent', 'grp.pending': 'Awaiting approval', 'grp.new': 'New group', 'grp.name': 'Group name', 'grp.desc': 'Description',
     'grp.created': 'Group created', 'grp.tab_chat': 'Chat', 'grp.tab_tasks': 'Assignments', 'grp.tab_members': 'Members', 'grp.tab_set': 'Settings', 'grp.help': 'Help / contact',
     'grp.leave': 'Leave group', 'grp.new_task': 'New assignment', 'grp.task_title': 'Assignment title', 'grp.task_body': 'Instructions', 'grp.due': 'Due', 'grp.no_tasks': 'No assignments',
@@ -107,6 +109,7 @@ route('/group/:id', async ({ el, params, alive, q }) => {
   async function tasksTab(body) {
     const [{ data: as }, { data: mine }] = await Promise.all([sb.from('assignments').select('*').eq('group_id', gid).order('created_at', { ascending: false }), sb.from('submissions').select('assignment_id').eq('group_id', gid).eq('user_id', uid)]);
     const done = new Set((mine || []).map(x => x.assignment_id));
+    const books = state.isAdmin ? ((await sb.from('items').select('id,title,kind').in('kind', ['book', 'pdf', 'presentation']).order('created_at', { ascending: false })).data || []) : [];
     const tests = state.isAdmin ? ((await sb.from('items').select('id,title').eq('kind', 'test').order('created_at', { ascending: false })).data || []) : [];
     body.innerHTML = `${state.isAdmin ? `<button class="btn mb" id="nt">${ic('plus')} ${esc(t('grp.new_task'))}</button>` : ''}
       ${(as || []).length ? `<div class="cards">${as.map(a => { const od = a.due_at && new Date(a.due_at) < new Date() && !a.closed;
@@ -115,9 +118,17 @@ route('/group/:id', async ({ el, params, alive, q }) => {
         <div class="chips">${a.closed ? `<span class="chip">${esc(t('grp.closed'))}</span>` : ''}${od ? `<span class="chip warn">${esc(t('grp.overdue'))}</span>` : ''}${!state.isAdmin ? `<span class="chip ${done.has(a.id) ? 'ok' : ''}">${esc(t(done.has(a.id) ? 'grp.done' : 'grp.todo'))}</span>` : ''}</div></div>${ic('chev')}</a>`; }).join('')}</div>` : `<p class="muted">${esc(t('grp.no_tasks'))}</p>`}`;
     $('#nt', body)?.addEventListener('click', () => {
       const m = modal(`<h3>${esc(t('grp.new_task'))}</h3><form class="form" id="f"><label class="fld"><span>${esc(t('grp.task_title'))}</span><input class="input" id="ti" required></label>
-        <label class="fld"><span>${esc(t('grp.task_body'))}</span><textarea class="input" id="bo" rows="4"></textarea></label><label class="fld"><span>${esc(t('grp.test_att'))}</span><select class="input" id="tt"><option value="">${esc(t('grp.no_test'))}</option>${tests.map(x => `<option value="${x.id}">${esc(tr(x.title))}</option>`).join('')}</select></label><label class="fld"><span>${esc(t('grp.due'))}</span><input class="input" id="du" type="datetime-local"></label><button class="btn lg block">${esc(t('grp.new_task'))}</button></form>`);
+        <label class="fld"><span>${esc(t('grp.task_body'))}</span><textarea class="input" id="bo" rows="4"></textarea></label><label class="fld"><span>${esc(t('grp.f_audio'))}</span><input class="input" id="as" type="number" min="0" max="20" value="5" style="max-width:110px"></label>
+        <label class="fld"><span>${esc(t('grp.f_book'))}</span><select class="input" id="bk"><option value="">${esc(t('grp.bk_none'))}</option><option value="_up">${esc(t('grp.bk_up'))}</option>${books.map(x => `<option value="${x.id}">${esc(tr(x.title))}</option>`).join('')}</select></label><input type="file" id="bkf" accept=".pdf,.doc,.docx,.ppt,.pptx" hidden>
+        <label class="fld"><span>${esc(t('grp.test_att'))}</span><select class="input" id="tt"><option value="">${esc(t('grp.no_test'))}</option>${tests.map(x => `<option value="${x.id}">${esc(tr(x.title))}</option>`).join('')}</select></label><button type="button" class="btn soft sm" id="mt">${ic('plus', 14)} ${esc(t('grp.new_test'))}</button><label class="fld"><span>${esc(t('grp.due'))}</span><input class="input" id="du" type="datetime-local"></label><button class="btn lg block">${esc(t('grp.new_task'))}</button></form>`);
+      $('#bk', m.el).onchange = e => { if (e.target.value === '_up') $('#bkf', m.el).click(); };
+      $('#bkf', m.el).onchange = e => { const f = e.target.files[0]; const o = $('#bk option[value=_up]', m.el); o.textContent = f ? '📎 ' + f.name.slice(0, 28) : t('grp.bk_up'); if (!f) $('#bk', m.el).value = ''; };
+      $('#mt', m.el).onclick = () => testImportModal({ folderId: null, hidden: true, onDone: id => { const o = document.createElement('option'); o.value = id; o.textContent = '✔ ' + t('grp.test_made'); $('#tt', m.el).appendChild(o); $('#tt', m.el).value = id; toast(t('grp.test_made'), 'ok'); } });
       $('#f', m.el).onsubmit = async e => { e.preventDefault(); const title = $('#ti', m.el).value.trim(); const du = $('#du', m.el).value;
-        const { error } = await sb.from('assignments').insert({ group_id: gid, title, body: $('#bo', m.el).value.trim(), due_at: du ? new Date(du).toISOString() : null, test_item_id: $('#tt', m.el).value || null, created_by: uid });
+        const row = { group_id: gid, title, body: $('#bo', m.el).value.trim(), due_at: du ? new Date(du).toISOString() : null, test_item_id: $('#tt', m.el).value || null, audio_slots: Math.max(0, Math.min(20, +$('#as', m.el).value || 0)), created_by: uid };
+        const bv = $('#bk', m.el).value;
+        try { if (bv === '_up') { const f = $('#bkf', m.el).files[0]; if (!f) return toast(t('grp.pick_book'), 'err'); const up = await uploadAttachment(`${gid}/${uid}`, f); row.book_path = up.path; row.book_name = f.name; } else if (bv) row.book_item_id = bv; } catch (x) { return toast(friendlyErr(x.message || String(x)), 'err'); }
+        const { error } = await sb.from('assignments').insert(row);
         if (error) return toast(error.message, 'err');
         await sb.from('messages').insert({ group_id: gid, user_id: uid, kind: 'text', body: t('grp.new_task_msg', { t: title }) }); m.close(); paint(); };
     });
@@ -176,6 +187,8 @@ route('/group/:id/task/:aid', async ({ el, params, alive }) => {
     <div class="card pad mt"><p class="pre">${esc(a.body || '')}</p>${a.due_at ? `<p class="muted small">⏰ ${esc(fmtDate(a.due_at) + ' ' + fmtTime(a.due_at))}</p>` : ''}
       ${a.closed ? `<span class="chip">${esc(t('grp.closed_task'))}</span>` : ''}
       ${state.isAdmin ? `<div class="row end"><button class="btn sm ghost" id="cl">${esc(a.closed ? t('grp.reopen') : t('grp.close_task'))}</button><button class="btn sm danger" id="dl">${ic('trash', 14)}</button></div>` : ''}</div>
+    ${a.book_item_id || a.book_path ? `<a class="btn lg block mt" href="${a.book_item_id ? '#/item/' + a.book_item_id : '#/taskdoc/' + aid}">${ic('book')} ${esc(t('grp.read_book'))}${a.book_name ? ' — ' + esc(a.book_name.slice(0, 30)) : ''}</a>` : ''}
+    ${!state.isAdmin && a.audio_slots > 0 ? `<div class="card pad mt"><h4>🎤 ${esc(t('grp.audios'))}</h4><div id="slots"></div></div>` : ''}
     ${!state.isAdmin && !a.closed ? `<div class="card pad mt form"><h4>${esc(t('grp.your_work'))}</h4><textarea class="input" id="tx" rows="3" placeholder="${esc(t('grp.text_ph'))}"></textarea>
       <div class="row wrap"><label class="btn ghost sm">${ic('clip', 16)} <span id="fn">…</span><input type="file" id="fl" hidden></label><button class="btn ghost sm" id="mc" type="button">${ic('mic', 16)} <span id="mt">${esc(t('grp.rec'))}</span></button><span class="grow"></span><button class="btn" id="sb">${esc(t('grp.submit'))}</button></div></div>` : ''}
     ${a.test_item_id && !state.isAdmin ? `<a class="btn lg block mt" href="#/test/${a.test_item_id}">${ic('test')} ${esc(t('grp.take_test'))}</a>` : ''}${state.isAdmin ? `<div id="ov" class="mt">${spinner()}</div>` : ''}
@@ -196,7 +209,8 @@ route('/group/:id/task/:aid', async ({ el, params, alive }) => {
       const r = rows.find(x => x.uid === b.dataset.u), mine = subs.filter(x => x.user_id === r.uid);
       const m = modal(`<h3>${esc(r.full_name)}</h3><div id="ud">${spinner()}</div>`, { cls: 'wide' });
       let tests = []; if (a.test_item_id) tests = (await sb.from('test_attempts').select('*').eq('user_id', r.uid).eq('item_id', a.test_item_id).order('created_at', { ascending: false })).data || [];
-      $('#ud', m.el).innerHTML = (a.test_item_id ? `<h4>🧪 ${esc(t('grp.ov_test'))}</h4>${tests.length ? `<div class="tbl">${tests.map(x => `<div class="trow"><small class="muted">${esc(fmtDate(x.created_at) + ' ' + fmtTime(x.created_at))}</small><span class="grow muted">${x.correct}/${x.total}</span><b>${Math.round(x.percent)}%</b></div>`).join('')}</div>` : `<p class="muted">${esc(t('grp.ov_none'))}</p>`}` : '') + (mine.length ? mine.map(subHtml).join('') : '<p class="muted">—</p>');
+      const auds = (await sb.from('assignment_audios').select('*').eq('assignment_id', aid).eq('user_id', r.uid).order('slot')).data || [];
+      $('#ud', m.el).innerHTML = (auds.length ? `<h4>🎤 ${esc(t('grp.audios'))}</h4>${auds.map(x => `<div class="row" style="gap:8px;align-items:center;margin:6px 0"><span class="avatar">${x.slot}</span><div class="grow">${mediaHtml({ kind: 'voice', media_path: x.path, media_secs: x.secs })}</div></div>`).join('')}` : '') + (a.test_item_id ? `<h4>🧪 ${esc(t('grp.ov_test'))}</h4>${tests.length ? `<div class="tbl">${tests.map(x => `<div class="trow"><small class="muted">${esc(fmtDate(x.created_at) + ' ' + fmtTime(x.created_at))}</small><span class="grow muted">${x.correct}/${x.total}</span><b>${Math.round(x.percent)}%</b></div>`).join('')}</div>` : `<p class="muted">${esc(t('grp.ov_none'))}</p>`}` : '') + (mine.length ? mine.map(subHtml).join('') : '<p class="muted">—</p>');
       fillMedia($('#ud', m.el)); $$('[data-sv]', m.el).forEach(sv => sv.onclick = async () => { const c = sv.closest('[data-s]'), gr = $('[data-g]', c).value; const { error: e2 } = await sb.from('submissions').update({ grade: gr === '' ? null : +gr, feedback: $('[data-f]', c).value.trim() || null }).eq('id', sv.dataset.sv); toast(e2 ? e2.message : t('grp.save') + ' ✔', e2 ? 'err' : 'ok'); });
     });
   })();
@@ -208,6 +222,35 @@ route('/group/:id/task/:aid', async ({ el, params, alive }) => {
   bindSubs();
   $('#cl', el)?.addEventListener('click', async () => { await sb.from('assignments').update({ closed: !a.closed }).eq('id', aid); location.reload(); });
   $('#dl', el)?.addEventListener('click', async () => { if (!(await confirmDlg(t('delete') + '?'))) return; await sb.from('assignments').delete().eq('id', aid); go('/group/' + gid + '?tab=tasks'); });
+  // audio joylar
+  const slotsEl = $('#slots', el); if (slotsEl) {
+    let mine = {};
+    const drawSlots = async () => {
+      const { data } = await sb.from('assignment_audios').select('*').eq('assignment_id', aid).eq('user_id', uid); mine = {}; (data || []).forEach(x => mine[x.slot] = x);
+      slotsEl.innerHTML = Array.from({ length: a.audio_slots }, (_, i) => { const n = i + 1, x = mine[n];
+        return `<div class="row slotrow" style="gap:8px;align-items:center;margin:8px 0"><span class="avatar" style="flex:none">${n}</span><div class="grow">${x ? mediaHtml({ kind: 'voice', media_path: x.path, media_secs: x.secs }) : `<span class="muted">${esc(t('grp.slot_empty'))}</span>`}</div>${a.closed ? '' : `<button class="btn sm" data-sl="${n}">${ic('plus', 16)}</button>`}</div>`; }).join('');
+      fillMedia(slotsEl);
+      $$('[data-sl]', slotsEl).forEach(b => b.onclick = () => slotSheet(+b.dataset.sl));
+    };
+    const saveSlot = async (n, path, secs, fname) => {
+      const { error } = await sb.from('assignment_audios').upsert({ assignment_id: aid, group_id: gid, user_id: uid, slot: n, path, secs: secs || null, file_name: fname || null }, { onConflict: 'assignment_id,user_id,slot' });
+      if (error) throw error; toast(t('grp.submitted'), 'ok'); await drawSlots();
+    };
+    const slotSheet = n => {
+      const m = modal(`<h3>#${n}</h3><div class="form"><button class="btn lg block" id="sr">🎤 ${esc(t('grp.rec_now'))}</button><label class="btn ghost lg block">${ic('clip', 16)} ${esc(t('grp.pick_file'))}<input type="file" id="sf" accept="audio/*,.m4a,.mp3,.wav,.ogg,.aac,.opus,.amr" hidden></label></div>`);
+      let rec = null; const sr = $('#sr', m.el);
+      sr.onclick = async () => {
+        try {
+          if (rec) { const v = await rec.stop(); rec = null; btnBusy(sr, true); const path = await uploadVoice(`${gid}/${uid}`, v); await saveSlot(n, path, v.secs); m.close?.(); return; }
+          rec = await startRecording(state.settings.app?.max_voice_seconds || 300, s => { sr.textContent = '⏺ ' + fmtDur(s) + ' — ' + t('grp.rec_stop'); });
+        } catch (x) { toast(friendlyErr(x.message || String(x)), 'err'); btnBusy(sr, false); rec = null; }
+      };
+      $('#sf', m.el).onchange = async e => { const f = e.target.files[0]; if (!f) return;
+        if (f.size > MAX_FILE) return toast(t('grp.too_big'), 'err');
+        try { const up = await uploadAttachment(`${gid}/${uid}`, f); await saveSlot(n, up.path, null, f.name); m.close?.(); } catch (x) { toast(friendlyErr(x.message || String(x)), 'err'); } };
+    };
+    drawSlots();
+  }
   // topshirish
   const sbm = $('#sb', el); if (sbm) {
     let file = null, voice = null, rec = null;
@@ -228,4 +271,12 @@ route('/group/:id/task/:aid', async ({ el, params, alive }) => {
       } catch (x) { toast(x.message || String(x), 'err'); btnBusy(sbm, false); }
     };
   }
+}, { auth: true });
+
+route('/taskdoc/:aid', async ({ el, params, alive }) => {
+  const { data: a } = await sb.from('assignments').select('book_path,book_name,title,group_id').eq('id', params.aid).maybeSingle();
+  if (!alive()) return; if (!a?.book_path) return go('/groups', true);
+  el.innerHTML = spinner();
+  try { const url = await signedUrl('chat', a.book_path, 3600); if (!alive()) return; const nm = a.book_name || a.title, ext = (nm.split('.').pop() || '').toLowerCase(); await openReader(el, { title: nm }, url, ext, '#/group/' + a.group_id + '/task/' + params.aid); }
+  catch (x) { el.innerHTML = `<div class="page"><p class="muted">${esc(friendlyErr(x.message || String(x)))}</p></div>`; }
 }, { auth: true });

@@ -15,6 +15,7 @@ import './guide.js';
 import { offList } from './offline.js';
 import { maybeDevNote } from './contact.js';
 import { initials } from './core.js';
+import { applyBg } from './bg.js';
 import { initMiniBar } from './audiobar.js';
 import { lockEnabled, showLock, initAutoLock, offerQuickLogin, isReloadUnlocked } from './lock.js';
 import { registerSW, canInstall, installApp } from './pwa.js';
@@ -155,3 +156,5 @@ addEventListener('hashchange', offBar);
 
 // iPhone: zoom faqat hujjat o'quvchisida mumkin
 ['gesturestart', 'gesturechange'].forEach(ev => document.addEventListener(ev, e => { if (!document.body.classList.contains('fs-read')) e.preventDefault(); }, { passive: false }));
+
+applyBg();

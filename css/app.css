@@ -332,7 +332,26 @@ button.card.item-row { width: 100%; font: inherit; color: inherit; cursor: point
 .pptxhost { display: grid; gap: 10px; justify-items: center; padding: 8px 0; width: 100%; } .pptxhost > div { box-shadow: var(--shadow); }
 
 /* ---- forma kengligi: uzun fayl nomi ekrandan chiqarib yubormasin; zoom faqat o'quvchida */
-html, body { max-width: 100%; overflow-x: hidden; }
+body { overflow-x: clip; } #view { max-width: 100vw; overflow-x: clip; }
 .fs-b, .fs-b * { min-width: 0; } .fs-b { overflow-x: hidden; }
 .fs-b .item-row b, .modal .item-row b { overflow-wrap: anywhere; word-break: break-word; }
 .fs-b .input, .fs-b textarea { width: 100%; max-width: 100%; }
+
+.item-row b, .card b, .fcard b { overflow-wrap: anywhere; } .item-row .grow, .item-row > div { min-width: 0; }
+.rpbar[hidden] { display: none !important; } [hidden] { display: none !important; }
+/* ---- reyting: oddiy ro'yxat + batafsil oyna (Mutolaa/Lichess uslubi) */
+.lbtime { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--brand-d); }
+.udh { display: flex; align-items: center; gap: 14px; } .udh .avatar.lg { width: 64px; height: 64px; font-size: 1.4rem; } .udn { font-size: 1.15rem; } .udt { font-size: 1.8rem; font-weight: 800; color: var(--brand-d); line-height: 1.1; }
+.udrow { border: 1px solid var(--line); border-radius: 14px; margin-bottom: 8px; background: var(--card); } .udrow summary { list-style: none; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 14px; cursor: pointer; } .udrow summary::-webkit-details-marker { display: none; }
+.udl { font-weight: 600; } .udv { font-weight: 700; color: var(--cc); font-variant-numeric: tabular-nums; } .udb { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; } .udb i { display: block; height: 100%; background: var(--cc); border-radius: 3px; }
+.udi { padding: 0 14px 10px; } .udi .trow { display: flex; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); }
+
+/* ---- orqa fon */
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--bgimg) 0 0 / var(--bgsize, auto); opacity: 0; transition: opacity .4s; }
+body[data-bg]::before { opacity: 1; }
+body[data-bga=bgslide]::before { animation: bgslide 60s linear infinite; } body[data-bga=bgglow]::before { animation: bgglow 14s ease-in-out infinite alternate; }
+@keyframes bgslide { to { background-position: 240px 240px; } } @keyframes bgglow { from { filter: hue-rotate(0deg); transform: scale(1); } to { filter: hue-rotate(35deg); transform: scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { body::before { animation: none !important; } }
+.bgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.bgsw { border: 2px solid var(--line); background: var(--card); border-radius: 14px; padding: 6px; display: grid; gap: 4px; justify-items: center; cursor: pointer; color: var(--text); font: inherit; } .bgsw.on { border-color: var(--brand); }
+.bgp { display: block; width: 100%; height: 64px; border-radius: 9px; background-color: var(--bg); background-repeat: repeat; border: 1px solid var(--line); }

@@ -131,8 +131,10 @@ export function fmtDur(s) {
   return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0');
 }
 export function fmtMin(sec) {
-  const m = Math.round((sec || 0) / 60), h = Math.floor(m / 60);
-  if (!h) return m + ' ' + t('u.min');
+  sec = Math.max(0, Math.round(sec || 0));
+  if (sec < 60) return sec + ' ' + t('u.sec');
+  const m = Math.floor(sec / 60), h = Math.floor(m / 60), r = sec % 60;
+  if (!h) return m + ' ' + t('u.min') + (m < 10 && r ? ' ' + r + ' ' + t('u.sec') : '');
   return h + ' ' + t('u.h') + (m % 60 ? ' ' + (m % 60) + ' ' + t('u.min') : '');
 }
 export const dayStr = (d = new Date()) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);

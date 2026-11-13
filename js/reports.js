@@ -160,30 +160,27 @@ const catCol = k => k === 'browse' ? COL.other : k === 'total' ? '#16a34a' : COL
 
 // Reytingdagi foydalanuvchi bosilganda: shu kategoriyaga aloqador batafsil oyna
 async function userDetail(r, cat, from, to) {
-  const m = modal(`<div class="row" style="gap:10px"><span class="avatar sm">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span><div class="grow"><b>${esc(r.name || '—')}</b><br><small class="muted">${esc(catName(cat))} · ${esc(fmtMin(r[cat]))}</small></div></div>
-    <div class="chips mt">${['video', 'audio', 'book', 'test', 'browse'].map(k => `<span class="chip" style="border-color:${catCol(k)}">${esc(catName(k))}: ${esc(fmtMin(r[k]))}</span>`).join('')}</div>
-    <div id="ud" class="mt">${spinner()}</div><a class="btn block mt" href="#/reports/user/${r.user_id}" id="full">${ic('chart', 16)} ${esc(t('rep.full'))}</a>`, { cls: 'wide' });
-  $('#full', m.el).onclick = () => m.close();
+  const KS = ['video', 'audio', 'book', 'test', 'browse'], tot = r.total || 0;
+  const m = modal(`<div class="udh"><span class="avatar lg">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span><div class="grow"><b class="udn">${esc(r.name || '—')}</b><div class="udt">${esc(fmtMin(tot))}</div><small class="muted">${esc(t('rep.total'))}</small></div></div>
+    <div id="ud" class="mt">${spinner()}</div>${state.isAdmin ? `<a class="btn block mt" href="#/reports/user/${r.user_id}" id="full">${esc(t('rep.full'))}</a>` : ''}`, { cls: 'wide' });
+  $('#full', m.el)?.addEventListener('click', () => m.close());
   const box = $('#ud', m.el);
-  try {
-    if (cat === 'test') {
-      const { data, error } = await sb.rpc('report_tests', { p_user: r.user_id, p_from: from, p_to: to }); if (error) throw error;
-      const ts = [...(data || [])].reverse().slice(0, 40);
-      box.innerHTML = ts.length ? `<div class="tbl">${ts.map(x => `<div class="trow"><small class="muted">${esc(fmtDate(x.day))}</small><span class="grow">${esc(tr(x.title) || t('rep.deleted'))}</span><span class="muted">${x.correct}/${x.total}</span><b class="${x.percent >= 70 ? 'ok' : x.percent >= 50 ? '' : 'bad'}">${Math.round(x.percent)}%</b></div>`).join('')}</div>` : `<p class="muted center">${esc(t('rep.no_data'))}</p>`;
-    } else if (cat === 'browse') {
-      box.innerHTML = `<p class="muted center">${esc(t('rep.browse_note'))}</p>`;
-    } else {
-      const { data, error } = await sb.rpc('report_usage_items', { p_user: r.user_id, p_from: from, p_to: to }); if (error) throw error;
-      const its = (data || []).filter(i => cat === 'total' || i.kind === cat);
-      box.innerHTML = its.length ? `<div class="tbl">${its.map(i => `<div class="trow"><span class="item-ic ${i.kind}">${ic(i.kind === 'video' ? 'video' : i.kind === 'audio' ? 'audio' : i.kind === 'test' ? 'test' : 'book', 16)}</span><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}</span><b>${esc(fmtMin(i.seconds))}</b></div>`).join('')}</div>` : `<p class="muted center">${esc(t('rep.no_data'))}</p>`;
-    }
-  } catch (e) { console.warn('detail:', e.message); box.innerHTML = `<p class="muted center">${esc(t('rep.unavail'))}</p>`; }
+  let items = [], tests = [], ok = true;
+  const [a, b2] = await Promise.all([sb.rpc('rating_user_items', { p_user: r.user_id, p_from: from, p_to: to }), sb.rpc('rating_user_tests', { p_user: r.user_id, p_from: from, p_to: to })]);
+  if (a.error) { const f = await sb.rpc('report_usage_items', { p_user: r.user_id, p_from: from, p_to: to }); if (f.error) ok = false; else items = f.data || []; } else items = a.data || [];
+  if (b2.error) { const f = await sb.rpc('report_tests', { p_user: r.user_id, p_from: from, p_to: to }); if (!f.error) tests = (f.data || []).map(x => ({ ...x, created_at: x.day })); } else tests = b2.data || [];
+  const rows = KS.map(k => ({ k, sec: r[k] || 0, list: k === 'test' ? tests : items.filter(i => i.kind === k) })).filter(x => x.sec > 0 || x.list.length);
+  const max = Math.max(1, ...rows.map(x => x.sec));
+  box.innerHTML = rows.length ? rows.map(x => `<details class="udrow" style="--cc:${catCol(x.k)}"><summary><span class="udl">${esc(catName(x.k))}</span><span class="udv">${esc(fmtMin(x.sec))}</span><span class="udb"><i style="width:${Math.max(3, x.sec / max * 100)}%"></i></span></summary>
+      <div class="udi">${x.k === 'browse' ? `<p class="muted small">${esc(t('rep.browse_note'))}</p>` : x.list.length ? x.list.map(i => x.k === 'test'
+        ? `<div class="trow"><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}<br><small class="muted">${esc(fmtDate(i.created_at))}</small></span><span class="muted">${i.correct}/${i.total}</span><b>${Math.round(i.percent)}%</b></div>`
+        : `<div class="trow"><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}</span><b>${esc(fmtMin(i.seconds))}</b></div>`).join('') : `<p class="muted small">${esc(ok ? t('rep.no_data') : t('rep.unavail'))}</p>`}</div></details>`).join('')
+    : `<p class="muted center">${esc(ok ? t('rep.no_data') : t('rep.unavail'))}</p>`;
 }
 
 route('/rating', async ({ el, alive }) => {
   if (!state.isAdmin && state.settings?.app?.leaderboard === false) { el.innerHTML = `<div class="page"><p class="muted center pad">${esc(t('rep.lb_off'))}</p></div>`; return; }
-  let per = localStorage.getItem('bio.lbP') || 'today', cat = localStorage.getItem('bio.lbS') || 'total';
-  if (!CATS.includes(cat)) cat = 'total';
+  let per = localStorage.getItem('bio.lbP') || 'today'; const cat = 'total';
   const cache = {}; let rows = [], err = false, range = ['', ''];
   const load = async () => {
     const days = { today: 1, '7': 7, '30': 30, all: 3650 }[per], today = new Date(); range = [dayStr(addDays(today, -(days - 1))), dayStr(today)];
@@ -199,25 +196,17 @@ route('/rating', async ({ el, alive }) => {
     const rank = k => { const l = [...rows].sort((a, b) => b[k] - a[k]), i = l.findIndex(r => r.user_id === state.user.id); return i < 0 || !l[i][k] ? null : i + 1; };
     $('#lb', el).innerHTML = `<h1>${esc(t('rep.lb'))}</h1>
       <div class="row wrap" style="gap:8px">${ddHtml('per', t('rep.period'), [['today', t('rep.today')], ['7', t('rep.p7')], ['30', t('rep.p30')], ['all', t('rep.all')]], per)}</div>
-      <div class="cats" id="cats">${CATS.map(k => { const rk = rank(k); return `<button type="button" class="cat ${k === cat ? 'on' : ''}" data-c="${k}" style="--cc:${catCol(k)}"><span class="cic">${ic(CIC[k], 22)}</span><b>${esc(catName(k))}</b><small>${rk ? '#' + rk : '—'}</small></button>`; }).join('')}</div>
       ${err || !sorted.length ? '' : (() => { const mi = sorted.findIndex(r => r.user_id === state.user.id), top = sorted.slice(0, 3).filter(r => r[cat] > 0), av = r => `<span class="avatar ${'lg'}">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span>`;
         const pod = top.length >= 2 ? `<div class="podium">${[1, 0, 2].filter(i => top[i]).map(i => `<button type="button" class="pod p${i + 1}" data-u="${top[i].user_id}">${i === 0 ? '<span class="crown">👑</span>' : ''}${av(top[i])}<b class="pn">${esc((top[i].name || '—').split(' ')[0])}</b><span class="pv">${esc(fmtMin(top[i][cat]))}</span><span class="pb">${i + 1}</span></button>`).join('')}</div>` : '';
         return `${pod}${mi >= 0 ? `<div class="card pad merank"><span class="lbrank">${mi + 1}</span><div class="grow"><b>${esc(t('rep.me_rank'))}</b><br><small class="muted">${esc(catName(cat))}: ${esc(fmtMin(sorted[mi][cat]))} / ${rows.length}</small></div></div>` : ''}`; })()}
       <div id="lbody">${err ? `<p class="muted center pad">${esc(t('rep.unavail'))}</p>` : sorted.length ? `<div class="lb">${sorted.map((r, i) => `<button type="button" class="lbrow card ${r.user_id === state.user.id ? 'me' : ''}" data-u="${r.user_id}"><span class="lbrank r${i < 3 ? i + 1 : ''}">${i + 1}</span>
         <span class="avatar sm">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span>
-        <span class="grow left"><b>${esc(r.name || '—')}</b>${cat === 'total' ? `<small class="minis">${['video', 'audio', 'book', 'test', 'browse'].map(k => `<span style="color:${catCol(k)}">${ic(CIC[k], 11)}${Math.round(r[k] || 0)}</span>`).join('')}</small>` : ''}${cat === 'test' ? `<small class="muted">${esc(t('rep.tests_n', { n: r.tests || 0 }))}${r.avg_percent != null ? ' · ' + Math.round(r.avg_percent) + '%' : ''}</small>` : ''}
-          <span class="lbbar" style="width:${Math.max(3, r[cat] / max * 100)}%">${cat === 'total' && r.total > 0 ? ['video', 'audio', 'book', 'test', 'browse'].map(k => `<i style="flex:${r[k]};background:${catCol(k)}"></i>`).join('') : `<i style="flex:1;background:${catCol(cat)}"></i>`}</span></span>
-        <b>${esc(fmtMin(r[cat]))}</b>${ic('chev', 16)}</button>`).join('')}</div>` : `<p class="muted center pad">${esc(t('rep.no_data'))}</p>`}</div>`;
+        <span class="grow left"><b>${esc(r.name || '—')}</b>${cat === 'test' ? `<small class="muted">${esc(t('rep.tests_n', { n: r.tests || 0 }))}${r.avg_percent != null ? ' · ' + Math.round(r.avg_percent) + '%' : ''}</small>` : ''}
+</span>
+        <b class="lbtime">${esc(fmtMin(r[cat]))}</b></button>`).join('')}</div>` : `<p class="muted center pad">${esc(t('rep.no_data'))}</p>`}</div>`;
     ddBind(el, async (k, v) => { per = v; localStorage.setItem('bio.lbP', per); $('#lbody', el).innerHTML = spinner(); await load(); if (alive()) paint(); });
-    $$('.cat', el).forEach(b => b.onclick = () => pick(b.dataset.c));
     $$('[data-u]', el).forEach(b => b.onclick = () => { const r = rows.find(x => x.user_id === b.dataset.u); if (r) userDetail(r, cat, range[0], range[1]); });
-    $('.cat.on', el)?.scrollIntoView({ inline: 'center', block: 'nearest' });
-    // o'ngga/chapga surish — kategoriyani almashtiradi
-    let sx = 0, sy = 0; const body = $('#lbody', el);
-    body.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
-    body.addEventListener('touchend', e => { const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) pick(CATS[Math.max(0, Math.min(CATS.length - 1, CATS.indexOf(cat) + (dx < 0 ? 1 : -1)))]); }, { passive: true });
   };
-  const pick = k => { if (k === cat) return; cat = k; localStorage.setItem('bio.lbS', cat); paint(); };
   el.innerHTML = `<div class="page"><div id="lb">${spinner()}</div></div>`;
   await load(); if (!alive()) return; paint();
 }, { auth: true });

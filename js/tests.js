@@ -126,7 +126,7 @@ export function testGuide(onInsert) {
   $('#gdl', m.el).onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([SAMPLES.map(x => x[2]).join('\n\n\n')], { type: 'text/plain;charset=utf-8' })); a.download = t('tg.sample_name') + '.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); };
 }
 
-export function testImportModal({ folderId = null, itemId = null, onDone } = {}) {
+export function testImportModal({ folderId = null, itemId = null, hidden = false, onDone } = {}) {
   const m = modal(`<h3>${ic('test')} ${esc(t('imp.title'))}</h3><p class="muted small">${esc(t('imp.how'))}</p><p class="small">${esc(t('imp.rules'))}</p>
     <button class="btn soft mb" id="tgb" type="button">${ic('book', 16)} ${esc(t('tg.btn'))}</button>
     <details class="mb"><summary>${esc(t('imp.example'))}</summary><pre class="code">${esc(t('imp.ex_text'))}</pre></details>
@@ -161,7 +161,7 @@ export function testImportModal({ folderId = null, itemId = null, onDone } = {})
         const list = qs.filter(Boolean); let id = itemId;
         if (!id) {
           const title = $('#nm', el).value.trim(); if (!title) throw new Error(t('imp.name'));
-          const { data, error } = await sb.from('items').insert({ folder_id: folderId, kind: 'test', title: await i18nField(title, state.lang), created_by: state.user.id }).select('id').single();
+          const { data, error } = await sb.from('items').insert({ folder_id: folderId, kind: 'test', visible: !hidden, title: await i18nField(title, state.lang), created_by: state.user.id }).select('id').single();
           if (error) throw error; id = data.id;
         }
         const { count } = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('item_id', id);

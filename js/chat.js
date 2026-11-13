@@ -87,7 +87,8 @@ export function mountChat(host, c) {
   }
   async function send(fields) {
     if (c.reply && replyTo) fields = { ...fields, reply_to: replyTo };
-    const { data, error } = await sb.from(c.table).insert({ ...c.insertBase, [uidCol]: state.user.id, ...fields }).select().single();
+    let { data, error } = await sb.from(c.table).insert({ ...c.insertBase, [uidCol]: state.user.id, ...fields }).select().single();
+    if (error && fields.reply_to && /reply_to/.test(error.message || '')) { const { reply_to, ...rest } = fields; ({ data, error } = await sb.from(c.table).insert({ ...c.insertBase, [uidCol]: state.user.id, ...rest }).select().single()); }
     if (error) { toast(t('chat.send_err') + ': ' + error.message, 'err'); return false; }
     add(data); c.onSent?.(data); setReply(null); return true;
   }
