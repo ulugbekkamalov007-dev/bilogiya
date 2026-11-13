@@ -26,3 +26,4 @@ drop function if exists public.item_history(text[]); drop function if exists pub
 -- material_groups, item_views jadvallari, deleted_at/cover_path/image_path/difficulty/points ustunlari ma'lumot yo'qolmasligi uchun qoldiriladi.
 drop function if exists public.leaderboard_meta();
 drop trigger if exists usage_streak on public.usage_daily; drop function if exists public.usage_streak_trg();
+drop function if exists public.admin_users_extra(); drop function if exists public.admin_group_activity(int);

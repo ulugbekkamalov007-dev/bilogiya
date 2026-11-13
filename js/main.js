@@ -20,6 +20,7 @@ import './practice.js';
 import './lab.js';
 import './ai.js';
 import './materials.js';
+import './qedit.js';
 import { offList } from './offline.js';
 import { maybeDevNote } from './contact.js';
 import { initials } from './core.js';

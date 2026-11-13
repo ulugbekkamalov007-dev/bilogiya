@@ -1,6 +1,7 @@
 // Test tizimi: hujjatdan import (Word/PDF/TXT → avtomatik savollar), har safar aralashadigan variantlar,
 // bob bo'yicha tanlash, natija, foiz, motivatsiya va salyut effektlari.
-import { sb, state, t, addDict, friendlyErr, route, go, esc, ic, $, $$, tr, shuffle, rand, modal, toast, btnBusy, fmtDur, trackTime, onLeave, spinner, confirmDlg, i18nField, uzFix } from './core.js';
+import { sb, state, t, addDict, friendlyErr, route, go, esc, ic, $, $$, tr, shuffle, rand, modal, toast, btnBusy, fmtDur, trackTime, onLeave, spinner, confirmDlg, i18nField, uzFix, publicUrl } from './core.js';
+import { T } from './ui.js';
 import { paywall } from './billing.js';
 import { parseQuestions } from './testparse.js';
 import { celebrate } from './fx.js';
@@ -177,8 +178,8 @@ export function testImportModal({ folderId = null, itemId = null, hidden = false
 route('/test/:id', async ({ el, params, alive }) => {
   if (await paywall(el)) return;
   const [{ data: item }, { data: qs }] = await Promise.all([
-    sb.from('items').select('id,title,kind,folder_id').eq('id', params.id).maybeSingle(),
-    sb.from('questions').select('id,chapter,question,correct,wrong,explanation').eq('item_id', params.id).order('position').limit(5000),
+    sb.from('items').select('id,title,kind,folder_id,created_by').eq('id', params.id).maybeSingle(),
+    sb.from('questions').select('id,chapter,question,correct,wrong,explanation,image_path,difficulty,points').eq('item_id', params.id).order('position').limit(5000),
   ]);
   if (!alive()) return;
   if (!item) return go('/library', true);
@@ -190,7 +191,7 @@ function intro(el, item, qs) {
   const chs = {}; qs.forEach(q => { const k = q.chapter || ''; chs[k] = (chs[k] || 0) + 1; });
   const names = Object.keys(chs).sort();
   el.innerHTML = `<div class="page narrow"><a class="btn ghost sm" href="#/library/${item.folder_id || ''}">${ic('back')}</a>
-    <div class="card pad mt"><h2>${esc(tr(item.title))}</h2><p class="muted">${esc(t('tests.q_count', { n: qs.length }))}</p>
+    <div class="card pad mt"><div class="row between"><h2>${esc(tr(item.title))}</h2>${state.isAdmin || item.created_by === state.user.id ? `<a class="btn ghost sm" href="#/test/${item.id}/edit">${ic('edit', 14)} ${esc(T('Savollar', 'Вопросы', 'Questions'))}</a>` : ''}</div><p class="muted">${esc(t('tests.q_count', { n: qs.length }))}</p>
     ${names.length > 1 || names[0] ? `<h4>${esc(t('tests.chapters'))}</h4><div class="chlist">${names.map(n => `<label class="chk"><input type="checkbox" data-ch="${esc(n)}" checked> ${esc(n || t('tests.no_ch'))} <small class="muted">(${chs[n]})</small></label>`).join('')}</div>` : ''}
     <h4>${esc(t('tests.how_many'))}</h4><div class="chips" id="cnt">${[10, 20, 30, 50].filter(n => n < qs.length).map(n => `<button class="chip btnchip" data-n="${n}">${n}</button>`).join('')}<button class="chip btnchip on" data-n="0">${esc(t('tests.all'))}</button></div>
     <button class="btn lg block mt" id="go">${ic('play')} ${esc(t('tests.start'))}</button></div></div>`;
@@ -205,24 +206,24 @@ function intro(el, item, qs) {
 }
 
 function run(el, item, pool, chapters, allQs) {
-  let i = 0, correct = 0, answered = false; const wrongIds = [], wrongInfo = []; const t0 = Date.now();
+  let i = 0, correct = 0, earned = 0, answered = false; const maxPts = pool.reduce((a, x) => a + (x.points || 1), 0); const wrongIds = [], wrongInfo = []; const t0 = Date.now();
   const timer = trackTime('test', item.id); onLeave(() => timer.stop());
   const draw = () => {
     const q = pool[i], opts = shuffle([q.correct, ...q.wrong]); answered = false;
     el.innerHTML = `<div class="page narrow"><div class="row between"><button class="btn ghost sm" id="ex">${ic('x')}</button><small class="muted">${esc(t('tests.q_of', { i: i + 1, n: pool.length }))}</small><span class="mono">⏱ <span id="tm">0:00</span></span></div>
       <div class="bar thick mt"><i style="width:${i / pool.length * 100}%"></i></div>
-      <div class="card pad mt"><h3 class="qtext">${esc(q.question)}</h3>
+      <div class="card pad mt">${q.image_path ? `<img class="qimg full" src="${esc(publicUrl('media', q.image_path))}" alt="" loading="lazy">` : ''}<h3 class="qtext">${esc(q.question)}</h3>
       <div class="opts">${opts.map((o, k) => `<button class="opt" data-o="${k}"><span class="ltr">${'ABCDEFGH'[k]}</span><span>${esc(o)}</span></button>`).join('')}</div>
       <div id="fb"></div></div></div>`;
     const tm = setInterval(() => { if (!$('#tm', el)) return clearInterval(tm); $('#tm', el).textContent = fmtDur((Date.now() - t0) / 1000); }, 1000);
     $('#ex', el).onclick = async () => { if (await confirmDlg(t('tests.exit'), t('yes'))) { timer.stop(); go('/library/' + (item.folder_id || '')); } };
     $$('.opt', el).forEach(b => b.onclick = () => {
       if (answered) return; answered = true; const pick = opts[+b.dataset.o], ok = pick === q.correct;
-      if (ok) correct++; else { wrongIds.push(q.id); wrongInfo.push({ q, pick }); }
+      if (ok) { correct++; earned += q.points || 1; } else { wrongIds.push(q.id); wrongInfo.push({ q, pick }); }
       $$('.opt', el).forEach((x, k) => { x.disabled = true; if (opts[k] === q.correct) x.classList.add('right'); });
       if (!ok) b.classList.add('wrong'); navigator.vibrate?.(ok ? 20 : [40, 40, 40]);
       $('#fb', el).innerHTML = `${q.explanation ? `<p class="expl">💡 ${esc(q.explanation)}</p>` : ''}<button class="btn lg block mt" id="nx">${esc(i + 1 === pool.length ? t('tests.finish') : t('tests.next'))}</button>`;
-      $('#nx', el).onclick = () => { if (++i < pool.length) draw(); else finish(); };
+      $('#nx', el).onclick = async () => { if (i + 1 < pool.length) { i++; draw(); } else if (await confirmDlg(T('Testni topshirasizmi? Natija saqlanadi.', 'Завершить тест? Результат будет сохранён.', 'Submit the test? Your result will be saved.'), T('Topshirish', 'Завершить', 'Submit'))) { i++; finish(); } };
     });
   };
   async function finish() {
@@ -232,7 +233,7 @@ function run(el, item, pool, chapters, allQs) {
     const r = 52, C = 2 * Math.PI * r;
     el.innerHTML = `<div class="page narrow"><div class="card pad center result">
       <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${r}" class="rbg"/><circle cx="60" cy="60" r="${r}" class="rfg" id="rfg" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg><b>${Math.round(pct)}%</b></div>
-      <h2 class="motiv">${esc(motivation(pct))}</h2>
+      <h2 class="motiv">${esc(motivation(pct))}</h2>${maxPts !== pool.length ? `<p class="muted">${esc(T('Ball', 'Баллы', 'Score'))}: <b>${earned} / ${maxPts}</b></p>` : ''}
       <div class="stats3"><div class="stat"><span>${esc(t('tests.correct'))}</span><b class="ok">${correct}/${pool.length}</b></div><div class="stat"><span>${esc(t('tests.wrong'))}</span><b class="bad">${pool.length - correct}</b></div><div class="stat"><span>${esc(t('tests.time'))}</span><b>${fmtDur(dur)}</b></div></div>
       <div class="row wrap center mt"><button class="btn" id="rt">${ic('rewind')} ${esc(t('tests.retry'))}</button>${wrongInfo.length ? `<button class="btn soft" id="rw">${esc(t('tests.retry_wrong'))}</button>` : ''}<a class="btn ghost" href="#/library/${item.folder_id || ''}">${esc(t('tests.back'))}</a></div></div>
       ${wrongInfo.length ? `<h3 class="mt">${esc(t('tests.review'))}</h3>${wrongInfo.map(w => `<div class="card pad mb"><b>${esc(w.q.question)}</b><div class="bad">✗ ${esc(t('tests.your'))}: ${esc(w.pick)}</div><div class="ok">✔ ${esc(t('tests.right'))}: ${esc(w.q.correct)}</div>${w.q.explanation ? `<p class="expl">💡 ${esc(w.q.explanation)}</p>` : ''}</div>`).join('')}` : ''}</div>`;

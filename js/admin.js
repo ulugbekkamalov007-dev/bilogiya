@@ -57,9 +57,11 @@ async function usersTab(body) {
   body.innerHTML = `<input class="input" id="s" placeholder="${esc(t('adm.search'))}"><div id="ul" class="mt">${spinner()}</div>`;
   const load = async (v = '') => {
     const { data, error } = await sb.rpc('admin_users_summary', { p_search: v }); if (error) return $('#ul', body).innerHTML = `<p class="muted center pad">${esc(friendlyErr(error.message))}</p>`;
+    if (!usersTab.ex) { const { data: ex } = await sb.rpc('admin_users_extra'); usersTab.ex = Object.fromEntries((ex || []).map(x => [x.user_id, x])); }
     const ini = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
     $('#ul', body).innerHTML = `<div class="ulist">${(data || []).map((u, i) => `<div class="urow2" data-i="${i}"><span class="avatar">${u.avatar_url ? `<img src="${esc(u.avatar_url)}" alt="">` : esc(ini(u.full_name))}</span>
-      <div class="grow um"><b>${esc(u.full_name || '—')}</b>${u.role === 'admin' ? ' <span class="tag">ADMIN</span>' : ''}${u.blocked ? ` <span class="tag bad">${esc(t('adm.blocked'))}</span>` : ''}<small class="muted">${esc(u.email)}</small>
+      <div class="grow um"><b>${esc(u.full_name || '—')}</b>${u.role === 'admin' ? ' <span class="tag">ADMIN</span>' : u.role === 'teacher' ? ` <span class="tag">${esc(T('O\'QITUVCHI', 'ПРЕПОДАВАТЕЛЬ', 'TEACHER'))}</span>` : ''}${u.blocked ? ` <span class="tag bad">${esc(t('adm.blocked'))}</span>` : ''}<small class="muted">${esc(u.email)}${usersTab.ex[u.id] ? ' · ' + esc(fmtDate(usersTab.ex[u.id].created_at)) : ''}</small>
+        ${(usersTab.ex[u.id]?.groups || []).length ? `<small class="muted">${ic('users', 12)} ${esc(usersTab.ex[u.id].groups.join(', '))}</small>` : ''}
         <small class="muted">${esc(t('adm.7d'))}: ${esc(fmtMin(u.secs_7d))} · ${esc(t('adm.total'))}: ${esc(fmtMin(u.secs_total))} · ${esc(t('adm.tests'))}: ${u.tests_total}</small></div>
       <button class="icon-btn" data-more="${i}" aria-label="menu">⋮</button></div>`).join('')}</div>`;
     const openMenu = u => { const m = modal(`<h3>${esc(u.full_name || '—')}</h3><small class="muted">${esc(u.email)}</small><div class="cards mt">

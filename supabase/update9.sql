@@ -331,3 +331,26 @@ begin
 end $$;
 drop trigger if exists usage_streak on public.usage_daily;
 create trigger usage_streak after insert or update on public.usage_daily for each row execute function public.usage_streak_trg();
+
+-- ---------- 12) Admin: foydalanuvchi ro'yxati uchun qo'shimcha (sana, rol, guruhlar) va guruhlar faolligi
+create or replace function public.admin_users_extra() returns table (user_id uuid, created_at timestamptz, role text, groups text[])
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'ruxsat yo''q'; end if;
+  return query select p.id, p.created_at, p.role::text,
+    coalesce((select array_agg(g.name order by g.name) from public.group_members gm join public.groups g on g.id = gm.group_id where gm.user_id = p.id and gm.status = 'approved'), '{}')
+  from public.profiles p;
+end $$;
+grant execute on function public.admin_users_extra() to authenticated;
+
+create or replace function public.admin_group_activity(p_days int default 30) returns table (group_id uuid, name text, members int, seconds bigint)
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'ruxsat yo''q'; end if;
+  return query select g.id, g.name,
+    (select count(*)::int from public.group_members gm where gm.group_id = g.id and gm.status = 'approved'),
+    coalesce((select sum(u.seconds) from public.usage_daily u join public.group_members gm on gm.user_id = u.user_id and gm.group_id = g.id and gm.status = 'approved'
+              where u.kind <> 'app' and u.day > (now() at time zone 'Asia/Tashkent')::date - greatest(1, p_days)), 0)::bigint
+  from public.groups g where not g.archived order by 4 desc limit 30;
+end $$;
+grant execute on function public.admin_group_activity(int) to authenticated;
