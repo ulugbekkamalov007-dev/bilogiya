@@ -118,4 +118,41 @@ create or replace view public.groups_public as
   from public.groups g where not g.archived;
 grant select on public.groups_public to authenticated;
 
+-- 6) Faollik kalendari uchun 400 kunlik ma'lumot (oylik ko'rinish)
+create or replace function public.my_learning_summary() returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare uid uuid := auth.uid(); today date := (now() at time zone 'Asia/Tashkent')::date; r jsonb;
+begin
+  if uid is null then return null; end if;
+  select jsonb_build_object(
+    'today', (select coalesce(jsonb_object_agg(kind, s), '{}') from (select kind, sum(seconds)::int s from public.usage_daily where user_id = uid and day = today and kind <> 'app' group by kind) a),
+    'week',  (select coalesce(jsonb_object_agg(kind, s), '{}') from (select kind, sum(seconds)::int s from public.usage_daily where user_id = uid and day > today - 7 and kind <> 'app' group by kind) a),
+    'all',   (select coalesce(jsonb_object_agg(kind, s), '{}') from (select kind, sum(seconds)::int s from public.usage_daily where user_id = uid and kind <> 'app' group by kind) a),
+    'days',  (select coalesce(jsonb_agg(jsonb_build_object('d', day, 's', s) order by day), '[]') from (select day, sum(seconds)::int s from public.usage_daily where user_id = uid and kind <> 'app' and day > today - 400 group by day) a),
+    'streak', (select coalesce(streak, 0) from public.user_stats where user_id = uid),
+    'best', (select coalesce(best_streak, 0) from public.user_stats where user_id = uid),
+    'goal', (select coalesce(daily_goal_min, 20) from public.user_stats where user_id = uid),
+    'tests', (select jsonb_build_object('n', count(*), 'correct', coalesce(sum(correct), 0), 'total', coalesce(sum(total), 0), 'best', coalesce(max(percent), 0)) from public.test_attempts where user_id = uid)
+  ) into r;
+  return r;
+end $$;
+grant execute on function public.my_learning_summary() to authenticated;
+
+-- 7) Guruhga e'lon: xabar chatga tushadi VA guruhning barcha a'zolariga e'lon (bildirishnoma) sifatida boradi
+create or replace function public.announce_group(p_group uuid, p_text text, p_assignment uuid default null) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare v_id uuid; v_title text := left(trim(p_text), 80); v_name text;
+begin
+  if auth.uid() is null or not public.g_manage(p_group) then raise exception 'ruxsat yo''q'; end if;
+  if length(trim(coalesce(p_text, ''))) = 0 then raise exception 'matn bo''sh'; end if;
+  select name into v_name from public.groups where id = p_group;
+  insert into public.messages (group_id, assignment_id, user_id, kind, body) values (p_group, p_assignment, auth.uid(), 'text', '📢 ' || trim(p_text));
+  insert into public.announcements (kind, title, body, target, group_ids, pinned, created_by)
+  values ('news', jsonb_build_object('uz', '📢 ' || coalesce(v_name, 'Guruh') || ': ' || v_title, 'ru', '📢 ' || coalesce(v_name, 'Группа') || ': ' || v_title, 'en', '📢 ' || coalesce(v_name, 'Group') || ': ' || v_title),
+          jsonb_build_object('uz', trim(p_text), 'ru', trim(p_text), 'en', trim(p_text)), 'groups', array[p_group], false, auth.uid())
+  returning id into v_id;
+  return v_id;
+end $$;
+grant execute on function public.announce_group(uuid, text, uuid) to authenticated;
+
 select 'update10 tayyor' as natija;

@@ -189,3 +189,20 @@ button.tc-h { border: 0; background: transparent; font: inherit; color: inherit;
 .page.wide { max-width: 1280px; } .tag.soft { background: var(--brand-l); color: var(--brand-d); }
 .catb { cursor: pointer; font: inherit; } .catb.on { background: var(--brand); color: #fff; border-color: var(--brand); } .catb .cn { font-weight: 700; }
 .ulist { display: grid; gap: 8px; } @media (min-width: 1000px) { .ulist { grid-template-columns: repeat(2, 1fr); } }
+
+/* ===== oylik faollik kalendari ===== */
+.mcal { max-width: 420px; margin: 8px auto 0; } .mc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; } .mc-title { text-transform: capitalize; font-size: 1.05rem; }
+.mc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px 4px; justify-items: center; } .mwd { color: var(--muted); font-weight: 600; font-size: .75rem; padding-bottom: 2px; }
+.mday { position: relative; width: 100%; max-width: 46px; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-size: .88rem; color: var(--text); background: var(--card2); } .mday.blank { background: none; }
+.mday b { font-weight: 600; } .mday svg { display: none; } .mday.fut { background: none; color: var(--muted); opacity: .55; }
+.mday.on { background: color-mix(in srgb, var(--brand) 22%, var(--card)); color: var(--brand-d); border: 2px solid var(--brand); } [data-theme=dark] .mday.on { color: #bbf7d0; }
+.mday.on svg { display: block; position: absolute; right: -3px; top: -4px; width: 16px; height: 16px; padding: 2px; border-radius: 50%; background: var(--brand); color: #fff; stroke-width: 3.5; }
+.mday.goal { background: var(--brand); color: #fff; } .mday.today { box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 30%, transparent); }
+.mday.today:not(.on) { border: 2px dashed var(--brand); }
+.mc-foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin-top: 12px; } .mdot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; } .mdot.on { border: 2px solid var(--brand); background: color-mix(in srgb, var(--brand) 22%, var(--card)); } .mdot.goal { background: var(--brand); }
+
+/* ===== yangilanish xabari ===== */
+#updbar { position: fixed; z-index: 300; left: 50%; transform: translateX(-50%); bottom: calc(76px + var(--safe-b)); width: min(94vw, 520px); display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--brand-d, #065f3f); color: #fff; border-radius: 16px; box-shadow: 0 12px 34px rgba(0,0,0,.3); animation: updin .3s ease; }
+#updbar .grow { display: grid; min-width: 0; } #updbar small { opacity: .9; } #updbar .btn { background: #fff; color: var(--brand-d, #065f3f); } #updbar .icon-btn { color: #fff; }
+@media (min-width: 900px) { #updbar { bottom: 24px; } } @keyframes updin { from { opacity: 0; transform: translate(-50%, 14px); } }
+.tupd { position: relative; color: #b45309; } .tupd .badge { position: absolute; top: 2px; right: 2px; }

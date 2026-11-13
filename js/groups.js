@@ -101,7 +101,8 @@ route('/group/:id', async ({ el, params, alive, q }) => {
     if (tab === 'chat') {
       chat = mountChat(body, { table: 'messages', filterCol: 'group_id', filterVal: gid, scope: qq => qq.is('assignment_id', null), accept: m => !m.assignment_id,
         insertBase: { group_id: gid }, folder: `${gid}/${uid}`, canWrite: mgr() || g.students_can_chat, reply: true,
-        canDelete: m => mgr() || m.user_id === uid, onReport: reportMessage });
+        canDelete: m => mgr() || m.user_id === uid, onReport: reportMessage,
+        onAnnounce: mgr() ? async txt => { const { error } = await sb.rpc('announce_group', { p_group: gid, p_text: txt, p_assignment: null }); if (error) { toast(friendlyErr(error.message), 'err'); return false; } return true; } : null });
       onLeave(() => chat?.destroy());
     } else if (tab === 'tasks') await tasksTab(body); else if (tab === 'members') await membersTab(body); else if (tab === 'set') settingsTab(body);
   };
@@ -302,7 +303,8 @@ route('/group/:id/task/:aid/chat', async ({ el, params, alive }) => {
   document.body.classList.add('fs-read'); onLeave(() => document.body.classList.remove('fs-read'));
   el.innerHTML = `<div class="fullchat"><header><a class="btn ghost sm" href="#/group/${gid}/task/${aid}">${ic('back')}</a><div class="grow"><b>${esc(T('Muhokama', 'Обсуждение', 'Discussion'))}</b><small class="muted">${esc(a.title)}</small></div></header><div id="thread" class="fcbody"></div></div>`;
   const chat = mountChat($('#thread', el), { table: 'messages', filterCol: 'group_id', filterVal: gid, aid, scope: qq => qq.eq('assignment_id', aid), accept: m => m.assignment_id === aid,
-    insertBase: { group_id: gid, assignment_id: aid }, folder: `${gid}/${uid}`, canWrite: true, reply: true, canDelete: m => mgr() || m.user_id === uid });
+    insertBase: { group_id: gid, assignment_id: aid }, folder: `${gid}/${uid}`, canWrite: true, reply: true, canDelete: m => mgr() || m.user_id === uid,
+    onAnnounce: mgr() ? async txt => { const { error } = await sb.rpc('announce_group', { p_group: gid, p_text: txt, p_assignment: aid }); if (error) { toast(friendlyErr(error.message), 'err'); return false; } return true; } : null });
   onLeave(() => chat.destroy());
 }, { auth: true });
 

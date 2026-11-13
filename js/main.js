@@ -32,6 +32,7 @@ import { refreshStats, xpChip } from './xp.js';
 import { T } from './ui.js';
 import { registerSW, canInstall, installApp } from './pwa.js';
 import { CONFIG } from './config.js';
+import { startUpdateWatch, updateAvailable } from './update.js';
 
 registerSW();
 
@@ -83,6 +84,7 @@ const SETTINGS_ITEMS = () => [
   ['/settings/look', 'globe', t('settings.look'), 1, /^\/settings\/look/], ['/backgrounds', 'image', T('Fon', 'Фон', 'Background'), 1, /^\/backgrounds/],
   ['/settings/security', 'lock', t('settings.security'), 1, /^\/settings\/security/], ['/settings/notif', 'bell', t('settings.notif'), 1, /^\/settings\/notif/],
   ['/settings/contact', 'phone', t('settings.contact'), 1, /^\/settings\/contact/], ['/settings/about', 'help', t('settings.about'), 1, /^\/settings\/about/],
+  ['/update', 'zap', T('Yangilash', 'Обновление', 'Update'), 1, /^\/update/],
 ];
 const NAV = () => state.isAdmin ? [...ADMIN_NAV(), ...SETTINGS_ITEMS()] : isTeacher() ? [...TEACHER_NAV(), ...SETTINGS_ITEMS()] : [
   ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/courses', 'cap', T('Kurslar', 'Курсы', 'Courses'), 0, /^\/(courses|course|lesson|cert)/],
@@ -121,6 +123,7 @@ function paintShell(path = currentPath()) {
     ${staff ? `<button class="gsearch" id="gs" type="button">${ic('search', 18)}<span>${esc(t('gs.ph'))}</span><kbd>/</kbd></button>` : ''}<span class="grow"></span>${xpChip()}
     <a class="icon-btn tfon" href="#/backgrounds" title="${esc(T('Fon', 'Фон', 'Background'))}" aria-label="bg">${ic('image')}<span>${esc(T('Fon', 'Фон', 'Background'))}</span></a>
     ${lbOn() && !staff ? `<a class="icon-btn trate" href="#/rating" title="${esc(t('nav.rating'))}" aria-label="rating">${ic('trophy')}</a>` : ''}
+    ${updateAvailable() ? `<a class="icon-btn tupd" href="#/update" title="${esc(T('Yangilanish mavjud', 'Доступно обновление', 'Update available'))}" aria-label="update">${ic('zap')}<i class="badge">1</i></a>` : ''}
     ${canInstall() ? `<button class="icon-btn" id="tinst" title="${esc(t('land.install'))}">${ic('download')}</button>` : ''}
     <button class="icon-btn" id="tth" title="${esc(t('set.theme'))}" aria-label="theme">${ic(dark ? 'sun' : 'moon')}</button>
     <select class="langsel" id="tlang" aria-label="language">${['uz', 'ru', 'en'].map(l => `<option value="${l}" ${l === state.lang ? 'selected' : ''}>${l.toUpperCase()}</option>`).join('')}</select>
@@ -141,6 +144,7 @@ function paintShell(path = currentPath()) {
 }
 setShellHook((path, opts) => { document.body.dataset.shell = opts.auth ? 'app' : 'public'; paintShell(path); });
 document.addEventListener('pwa-can-install', () => paintShell());
+document.addEventListener('bio-update', () => paintShell());
 document.addEventListener('bio-stats', () => paintShell());
 
 async function refreshUnread() {
@@ -229,7 +233,7 @@ addEventListener('offline', () => { toast(t('net.off'), 'err'); offBar(); });
 addEventListener('hashchange', offBar);
 
 (async function boot() {
-  setupBackGuard(); initAutoLock();
+  setupBackGuard(); initAutoLock(); startUpdateWatch();
   const { data } = await sb.auth.getSession().catch(() => ({ data: {} }));
   let user = data?.session?.user;
   if (!user && !navigator.onLine) {   // internet yo'q va token yangilanmadi: saqlangan sessiyadan oflayn rejimda kiramiz (faqat saqlangan materiallar)

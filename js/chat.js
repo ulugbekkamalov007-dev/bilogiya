@@ -4,11 +4,11 @@ import { sb, state, t, addDict, esc, ic, $, $$, toast, fmtTime, fmtDate, fmtDur,
 import { startRecording, uploadAttachment, uploadVoice, mediaHtml, fillMedia } from './media.js';
 
 addDict({
-  uz: { 'chat.ph': 'Xabar yozing…', 'chat.older': 'Oldingi xabarlar', 'chat.empty': 'Hali xabar yo\'q. Birinchi bo\'lib yozing 👋', 'chat.readonly': 'Bu guruhda faqat o\'qituvchi yozadi. Savol bo\'lsa — vazifa ichida yoki «Yordam» orqali yozing.',
+  uz: { 'chat.announce': 'E\'lon qilish (hamma a\'zolarga)', 'chat.an_empty': 'Avval xabar matnini yozing', 'chat.an_sent': 'E\'lon guruhning barcha a\'zolariga yuborildi', 'chat.ph': 'Xabar yozing…', 'chat.older': 'Oldingi xabarlar', 'chat.empty': 'Hali xabar yo\'q. Birinchi bo\'lib yozing 👋', 'chat.readonly': 'Bu guruhda faqat o\'qituvchi yozadi. Savol bo\'lsa — vazifa ichida yoki «Yordam» orqali yozing.',
     'chat.send_err': 'Yuborib bo\'lmadi', 'chat.report': 'Shikoyat qilish', 'chat.del': 'O\'chirish', 'chat.rec_send': 'Yuborish', 'chat.you': 'Siz', 'chat.reply': 'Javob berish', 'chat.replying': 'Javob:', 'chat.teacher': 'O\'qituvchi' },
-  ru: { 'chat.ph': 'Напишите сообщение…', 'chat.older': 'Предыдущие сообщения', 'chat.empty': 'Сообщений пока нет. Напишите первым 👋', 'chat.readonly': 'В этой группе пишет только учитель. Есть вопрос — пишите внутри задания или через «Помощь».',
+  ru: { 'chat.announce': 'Объявить (всем участникам)', 'chat.an_empty': 'Сначала напишите текст', 'chat.an_sent': 'Объявление отправлено всем участникам группы', 'chat.ph': 'Напишите сообщение…', 'chat.older': 'Предыдущие сообщения', 'chat.empty': 'Сообщений пока нет. Напишите первым 👋', 'chat.readonly': 'В этой группе пишет только учитель. Есть вопрос — пишите внутри задания или через «Помощь».',
     'chat.send_err': 'Не удалось отправить', 'chat.report': 'Пожаловаться', 'chat.del': 'Удалить', 'chat.rec_send': 'Отправить', 'chat.you': 'Вы', 'chat.reply': 'Ответить', 'chat.replying': 'Ответ:', 'chat.teacher': 'Учитель' },
-  en: { 'chat.ph': 'Type a message…', 'chat.older': 'Earlier messages', 'chat.empty': 'No messages yet. Be the first 👋', 'chat.readonly': 'Only the teacher can post in this group. Ask questions inside an assignment or via "Help".',
+  en: { 'chat.announce': 'Announce (to all members)', 'chat.an_empty': 'Write the message first', 'chat.an_sent': 'Announcement sent to all group members', 'chat.ph': 'Type a message…', 'chat.older': 'Earlier messages', 'chat.empty': 'No messages yet. Be the first 👋', 'chat.readonly': 'Only the teacher can post in this group. Ask questions inside an assignment or via "Help".',
     'chat.send_err': 'Could not send', 'chat.report': 'Report', 'chat.del': 'Delete', 'chat.rec_send': 'Send', 'chat.you': 'You', 'chat.reply': 'Reply', 'chat.replying': 'Replying:', 'chat.teacher': 'Teacher' },
 });
 
@@ -19,7 +19,7 @@ export function mountChat(host, c) {
     ${c.canWrite ? `<div class="composer"><div class="rpbar" hidden><span class="grow"></span><button class="icon-btn" id="rpx" aria-label="x">${ic('x', 16)}</button></div><div class="cmp-main">
         <label class="icon-btn" title="attach">${ic('clip')}<input type="file" id="at" hidden accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.txt"></label>
         <textarea id="tx" rows="1" placeholder="${esc(t('chat.ph'))}" maxlength="2000"></textarea>
-        <button class="icon-btn" id="mic" title="voice">${ic('mic')}</button><button class="icon-btn send" id="sd">${ic('send')}</button></div>
+        ${c.onAnnounce ? `<button class="icon-btn" id="an" title="${esc(t('chat.announce'))}">${ic('mega')}</button>` : ''}<button class="icon-btn" id="mic" title="voice">${ic('mic')}</button><button class="icon-btn send" id="sd">${ic('send')}</button></div>
         <div class="cmp-rec" hidden><span class="recdot"></span><b id="rt">0:00</b><span class="grow">${esc(t('med.rec'))}</span><button class="btn ghost sm" id="rc">${esc(t('med.cancel'))}</button><button class="btn sm" id="rs">${esc(t('chat.rec_send'))}</button></div></div>`
       : `<div class="chat-ro muted small">${esc(t('chat.readonly'))}</div>`}</div>`;
   const list = $('#ml', host);
@@ -95,6 +95,7 @@ export function mountChat(host, c) {
   if (c.canWrite) {
     const tx = $('#tx', host), main = $('.cmp-main', host), recBar = $('.cmp-rec', host);
     const doText = async () => { const v = tx.value.trim(); if (!v) return; tx.value = ''; tx.style.height = ''; if (!(await send({ kind: 'text', body: v }))) tx.value = v; };
+    $('#an', host)?.addEventListener('click', async () => { const v = tx.value.trim(); if (!v) return toast(t('chat.an_empty'), 'err'); const b = $('#an', host); btnBusy(b, true); const ok = await c.onAnnounce(v); btnBusy(b, false); if (ok) { tx.value = ''; tx.style.height = ''; toast(t('chat.an_sent'), 'ok'); } });
     $('#sd', host).onclick = doText; $('#rpx', host).onclick = () => setReply(null);
     tx.oninput = () => { tx.style.height = 'auto'; tx.style.height = Math.min(120, tx.scrollHeight) + 'px'; };
     tx.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && matchMedia('(pointer:fine)').matches) { e.preventDefault(); doText(); } };

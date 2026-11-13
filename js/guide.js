@@ -140,6 +140,37 @@ en: [
 ],
 };
 
+// ---- Yangi imkoniyatlar bo'limlari (tizim yangilangan sari shu yerga qo'shib boriladi — docs/YANGILANISHLAR.md ga qarang)
+G.uz.push(
+['panel', 'Chap menyu va yuqori panel', `<ul><li><b>🧬 tugmasi</b> (chap yuqorida) — hamma bo'limlar menyusini ochadi: Guruhlar, Kartalar, Laboratoriya, Reyting, Yutuqlar, Xabarlar, Sozlamalar bo'limlari, Yangilash va boshqalar.</li>
+<li><b>Fon</b> tugmasi (rasm belgisi) — ilova fonini tanlash sahifasi. <b>Kubok</b> tugmasi — reytingga tez o'tish.</li>
+<li>Profil rasmingiz menyusida faqat <b>Profil, Foydalanish yo'riqnomasi, Hisobdan chiqish</b> bor.</li></ul>`],
+['test', 'Test yechish: tasdiqlash', `<ol><li>Variantni bosing — u belgilanadi (hali natija ko'rinmaydi, fikringizni o'zgartirishingiz mumkin).</li><li><b>«Tasdiqlash»</b> ni bosing.</li><li>Ilova darhol <b>«To'g'ri»</b> yoki <b>«Noto'g'ri»</b> deydi, to'g'ri javobni va izohni ko'rsatadi.</li><li>«Keyingi» bilan davom eting. Adaptiv mashq va Xatolar daftarida ham shunday.</li></ol>
+<p>Natijalar tarixida sana <b>13.11.2026</b> ko'rinishida, vaqti uning ostida chiqadi.</p>`],
+['chart', 'Faollik kalendari', `<p>Bosh sahifadagi kalendar <b>oylik</b>: kamida 1 daqiqa o'qigan kuningiz belgilanadi (✓), kunlik maqsad bajarilgan kun to'liq to'ldiriladi. Strelkalar bilan oylar o'rtasida yuring (hisob <b>2026 yil noyabrdan</b> boshlanadi).</p>`],
+['users', 'Guruhlar, vazifa va muhokama', `<ul><li><b>Barcha guruhlar</b> ro'yxatda ko'rinadi. «So'rov yuborish» ni bosing — o'qituvchi qabul qilsa, guruhga qo'shilasiz.</li>
+<li>Vazifada uchta karta bor: <b>Audio paket</b> (ichida + tugmalari — har biriga audio yozasiz yoki yuklaysiz), <b>Kitob</b> va <b>Muhokama</b>.</li>
+<li><b>Muhokama</b> bosilsa, butun ekranli chat ochiladi; xabarlar sahifani yangilamasdan darhol keladi.</li>
+<li>O'qituvchi/admin: muhokamada xabar yozib <b>📢</b> tugmasini bossa, u guruhning <b>barcha a'zolariga</b> e'lon bo'lib boradi.</li></ul>`],
+['zap', 'Yangilash', `<p>Tizim yangilanishlarni <b>o'zi tekshiradi</b> (ochilganda, har 10 daqiqada). Yangilanish bo'lsa, ekranda <b>«Yangilanish mavjud»</b> xabari chiqadi (bildirishnoma o'chiq bo'lsa ham). «Yangilash» ni bosing yoki ilovadan chiqib qayta kiring. Qo'lda tekshirish: chap menyu → <b>Yangilash</b>.</p>`],
+['shield', 'O\'qituvchi va admin paneli', `<ul><li>Kompyuterda chap menyuda barcha bo'limlar; telefonda 🧬 tugmasi orqali.</li><li>Vazifa yaratganda audio sonini kiriting — audio joylari, kitob va muhokama o'zi paydo bo'ladi. Kitobni vazifa ichida yuklaysiz yoki tizimdagidan ulaysiz.</li>
+<li>Admin: «Foydalanuvchilar» ro'yxatida Talaba / O'qituvchi / Admin bo'yicha filtr. Admin va o'qituvchi talabalar reytingida ko'rinmaydi.</li></ul>`, true],
+);
+G.ru.push(
+['panel', 'Левое меню и верхняя панель', `<ul><li>Кнопка <b>🧬</b> открывает меню всех разделов. Кнопка <b>Фон</b> — выбор фона, <b>кубок</b> — быстрый переход в рейтинг. В меню профиля: Профиль, Руководство, Выход.</li></ul>`],
+['test', 'Прохождение теста: подтверждение', `<ol><li>Выберите вариант.</li><li>Нажмите <b>«Подтвердить»</b>.</li><li>Приложение сразу покажет «Верно» или «Неверно» и правильный ответ.</li></ol>`],
+['chart', 'Календарь активности', `<p>Календарь по месяцам: день с минимум 1 минутой обучения отмечается ✓; выполненная цель — заливка. Отсчёт с ноября 2026.</p>`],
+['users', 'Группы, задания и обсуждение', `<ul><li>Видны все группы — отправьте заявку, учитель примет. В задании: <b>аудио-пакет</b> (кнопки +), <b>книга</b>, <b>обсуждение</b> (чат на весь экран). Учитель кнопкой 📢 отправляет сообщение всем участникам.</li></ul>`],
+['zap', 'Обновление', `<p>Приложение само проверяет обновления и показывает сообщение «Доступно обновление» (даже при выключенных уведомлениях). Нажмите «Обновить» или перезайдите. Вручную: меню → Обновление.</p>`],
+);
+G.en.push(
+['panel', 'Side menu and top bar', `<ul><li>The <b>🧬</b> button opens the menu with every section. <b>Background</b> opens the background picker, the <b>trophy</b> jumps to the leaderboard. The profile menu has only Profile, User guide and Log out.</li></ul>`],
+['test', 'Taking a test: confirm', `<ol><li>Pick an option.</li><li>Tap <b>Confirm</b>.</li><li>The app instantly says Correct or Wrong and shows the right answer.</li></ol>`],
+['chart', 'Activity calendar', `<p>A monthly calendar: a day with at least 1 minute of learning gets a ✓; a day that meets your goal is filled. It starts in November 2026.</p>`],
+['users', 'Groups, assignments and discussion', `<ul><li>All groups are listed — send a join request and the teacher accepts. An assignment has an <b>audio pack</b> (+ buttons), a <b>book</b> and a full-screen <b>discussion</b>. Teachers can press 📢 to announce a message to every member.</li></ul>`],
+['zap', 'Updates', `<p>The app checks for updates on its own and shows an “Update available” banner (even with notifications off). Tap Update or reopen the app. Manual check: menu → Update.</p>`],
+);
+
 // ---- "Ilova haqida": imkoniyatlar (qanday ishlatish emas, nimalar bor)
 const A = {
 uz: [['video', 'Video va audio darslar', 'Sifat va tezlikni tanlash, oldinga o\'tkazmasdan ketma-ket o\'rganish, to\'xtagan joydan davom ettirish, YouTube ham ilova ichida.'],

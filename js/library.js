@@ -87,7 +87,7 @@ const browse = async ({ el, params, alive }) => {
   el.innerHTML = `<div class="page"><h1 class="mb0">${esc(path.length ? tr(path[path.length - 1].title) : t('lib.title'))}</h1>${crumbHtml}${!path.length && offList().length ? `<a class="btn sm soft mt" href="#/offline">${ic('download', 14)} ${esc(t('off.open'))} (${offList().length})</a>` : ''}${adminBar}
     ${lockedAnc ? `<div class="card pad center mt"><div class="bigic">🔒</div><h3>${esc(t('lib.locked_t'))}: ${esc(tr(lockedAnc.title))}</h3><p class="muted">${esc(t('lib.locked_d'))}</p>
        ${reqMap[lockedAnc.id] === 'pending' ? `<p class="ok">${esc(t('lib.pending'))}</p>` : `<button class="btn lg" id="rq">${esc(t('lib.request'))}</button>`}</div>` : `
-    ${folders.length ? `<div class="flist mt">${folders.map(fo => `<div class="card fcard ${fo.visible ? '' : 'dim'}" data-open="${fo.id}">
+    ${folders.length ? `<div class="flist mt">${folders.map(fo => `<div class="card fldcard ${fo.visible ? '' : 'dim'}" data-open="${fo.id}">
       <div class="fic">${isLocked(fo) ? '🔒' : ic('folder', 30)}</div><b>${esc(tr(fo.title))}</b>
       <small class="muted">${fo.price > 0 ? `<span class="chip paid">${esc(t('lib.paid'))} · ${esc(fmtPrice(fo))}</span>` : ''}${fo.visible ? '' : `<span class="chip warn">${esc(t('lib.hidden'))}</span>`}</small>
       ${adm('folder', fo.id, fo.visible)}</div>`).join('')}</div>` : ''}

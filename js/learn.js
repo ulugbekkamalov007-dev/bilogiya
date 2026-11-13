@@ -20,15 +20,35 @@ export const sumSec = o => Object.entries(o || {}).reduce((a, [k, v]) => a + (k 
 
 export async function learnSummary() { const { data } = await sb.rpc('my_learning_summary'); return data || { today: {}, week: {}, all: {}, days: [], streak: 0, best: 0, goal: 20, tests: {} }; }
 
-// Faollik kalendari (GitHub uslubida): oxirgi 18 hafta; kun rangi = o'qish vaqti
-export function streakCalendar(days, weeks = 18) {
-  const map = {}; (days || []).forEach(x => { map[String(x.d).slice(0, 10)] = +x.s; });
-  const today = new Date(), dow = (today.getDay() + 6) % 7, start = addDays(today, -(weeks - 1) * 7 - dow); const cols = [];
-  for (let w = 0; w < weeks; w++) { const col = []; for (let d = 0; d < 7; d++) { const dt = addDays(start, w * 7 + d), k = dayStr(dt), future = dt > today, s = map[k] || 0;
-    const lv = future ? -1 : s <= 0 ? 0 : s < 600 ? 1 : s < 1800 ? 2 : 3; col.push(`<i class="cal l${lv}" title="${esc(k + ' · ' + fmtLearn(s))}"></i>`); } cols.push(`<div class="calc">${col.join('')}</div>`); }
-  return `<div class="cal-wrap" role="img" aria-label="${esc(T('Faollik kalendari', 'Календарь активности', 'Activity calendar'))}">${cols.join('')}</div>
-    <div class="cal-leg muted small"><span>${esc(T('Kam', 'Меньше', 'Less'))}</span><i class="cal l0"></i><i class="cal l1"></i><i class="cal l2"></i><i class="cal l3"></i><span>${esc(T('Ko\'p', 'Больше', 'More'))}</span></div>`;
+// Faollik kalendari: oylik ko'rinish (Ibrat / Chess.com uslubida). Kamida 1 daqiqa o'qilgan kun belgilanadi; boshlanish — 2026 yil noyabr
+const CAL_MIN = { y: 2026, m: 10 }, calData = {};
+const UZM = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'];
+const monthName = (y, m) => { if (state.lang === 'uz') return UZM[m] + ' ' + y; try { return new Intl.DateTimeFormat(({ uz: 'uz-UZ', ru: 'ru-RU', en: 'en-US' })[state.lang] || 'uz-UZ', { month: 'long', year: 'numeric' }).format(new Date(y, m, 1)); } catch { return (m + 1) + '.' + y; } };
+function calInner(id, y, m) {
+  const days = calData[id] || [], goal = (calData[id + 'g'] || 20) * 60, map = {}; days.forEach(x => { map[String(x.d).slice(0, 10)] = +x.s; });
+  const now = new Date(), todayK = dayStr(now), first = new Date(y, m, 1), dim = new Date(y, m + 1, 0).getDate(), lead = (first.getDay() + 6) % 7;
+  const wd = [T('Du', 'Пн', 'Mo'), T('Se', 'Вт', 'Tu'), T('Ch', 'Ср', 'We'), T('Pa', 'Чт', 'Th'), T('Ju', 'Пт', 'Fr'), T('Sh', 'Сб', 'Sa'), T('Ya', 'Вс', 'Su')];
+  let cells = '', active = 0, goals = 0;
+  for (let i = 0; i < lead; i++) cells += '<span class="mday blank"></span>';
+  for (let d = 1; d <= dim; d++) {
+    const k = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0'), sec = map[k] || 0, fut = k > todayK;
+    const on = sec >= 60, g = sec >= goal; if (on) active++; if (g) goals++;
+    cells += `<span class="mday ${on ? 'on' : ''} ${g ? 'goal' : ''} ${k === todayK ? 'today' : ''} ${fut ? 'fut' : ''}" title="${esc(k + ' · ' + fmtLearn(sec))}">${on ? ic('check', 14) : ''}<b>${d}</b></span>`;
+  }
+  const canPrev = y > CAL_MIN.y || (y === CAL_MIN.y && m > CAL_MIN.m), canNext = y < now.getFullYear() || (y === now.getFullYear() && m < now.getMonth());
+  return `<div class="mc-head"><button class="icon-btn" data-calnav="${id}:${y}:${m}:-1" ${canPrev ? '' : 'disabled'} aria-label="prev">${ic('back', 18)}</button><b class="mc-title">${esc(monthName(y, m))}</b><button class="icon-btn" data-calnav="${id}:${y}:${m}:1" ${canNext ? '' : 'disabled'} aria-label="next">${ic('chev', 18)}</button></div>
+    <div class="mc-grid">${wd.map(x => `<small class="mwd">${esc(x)}</small>`).join('')}${cells}</div>
+    <div class="mc-foot muted small"><span><i class="mdot on"></i> ${esc(T('Faol kun', 'Активный день', 'Active day'))}: <b>${active}</b></span><span><i class="mdot goal"></i> ${esc(T('Maqsad bajarilgan', 'Цель выполнена', 'Goal reached'))}: <b>${goals}</b></span></div>`;
 }
+export function streakCalendar(days, goalMin = 20) {
+  const id = 'cal' + Math.random().toString(36).slice(2, 7), n = new Date(); calData[id] = days || []; calData[id + 'g'] = goalMin;
+  const y = Math.max(CAL_MIN.y, n.getFullYear()), m = (n.getFullYear() < CAL_MIN.y || (n.getFullYear() === CAL_MIN.y && n.getMonth() < CAL_MIN.m)) ? CAL_MIN.m : n.getMonth();
+  return `<div class="mcal" id="${id}" role="group" aria-label="${esc(T('Faollik kalendari', 'Календарь активности', 'Activity calendar'))}">${calInner(id, y, m)}</div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-calnav]'); if (!b || b.disabled) return;
+  const [id, y, m, dlt] = b.dataset.calnav.split(':'); const d = new Date(+y, +m + +dlt, 1), host = document.getElementById(id); if (host) host.innerHTML = calInner(id, d.getFullYear(), d.getMonth());
+});
 
 // Bosh sahifa bloki: kunlik maqsad, streak, tur bo'yicha vaqt, haftalik grafik, tarix kategoriyalari
 export function learnBlock(s, histCounts = {}) {
@@ -44,7 +64,7 @@ export function learnBlock(s, histCounts = {}) {
   </div>
   <div class="ltiles mt">${tiles.map(k => `<a class="ltile" href="#/history/${k}" style="--c:${KINDS[k].c}"><span class="item-ic ${k}">${ic(KINDS[k].ic, 18)}</span><small class="muted">${esc(KINDS[k].one())}</small><b>${esc(fmtLearn(s.today?.[k] || 0))}</b><small class="muted">${esc(T('hafta', 'нед.', 'wk'))}: ${esc(fmtLearn(s.week?.[k] || 0))}</small></a>`).join('')}</div>
   <div class="card pad mt"><h3 class="mb0">${esc(T('Haftalik faollik', 'Активность за неделю', 'Weekly activity'))}</h3><div class="wbars">${wk.map(w => `<div class="wb" title="${esc(w.k + ' · ' + fmtLearn(w.s))}"><i style="height:${Math.max(4, Math.round(w.s / mx * 100))}%"></i><span>${w.k.slice(8)}</span></div>`).join('')}</div></div>
-  <div class="card pad mt"><div class="row between"><h3 class="mb0">${esc(T('Faollik kalendari', 'Календарь активности', 'Activity calendar'))}</h3></div>${streakCalendar(s.days)}</div>
+  <div class="card pad mt"><div class="row between"><h3 class="mb0">${esc(T('Faollik kalendari', 'Календарь активности', 'Activity calendar'))}</h3></div>${streakCalendar(s.days, s.goal)}</div>
   <h3 class="mt">${esc(T('Materiallar tarixi', 'История материалов', 'Material history'))}</h3>
   <div class="hcats">${Object.keys(KINDS).map(k => `<a class="card pad hcat" href="#/history/${k}"><span class="item-ic ${k}">${ic(KINDS[k].ic, 22)}</span><div class="grow"><b>${esc(KINDS[k].n())}</b><br><small class="muted">${histCounts[k] != null ? histCounts[k] + ' ' + esc(T('ta', '', '')) : ''}</small></div>${ic('chev', 16)}</a>`).join('')}</div>`;
 }
