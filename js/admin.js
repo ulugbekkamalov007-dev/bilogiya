@@ -39,7 +39,7 @@ export const TABS = [['users', 'adm.users', 'users'], ['requests', 'adm.requests
 const save = async (key, value) => { const { error } = await sb.from('app_settings').upsert({ key, value, updated_at: new Date().toISOString() }); if (error) return toast(error.message, 'err'); await loadSettings(); toast(t('adm.saved'), 'ok'); };
 
 route('/admin', async ({ el, q, alive }) => {
-  const tab = q.tab || 'stats'; if (!TABS.some(x => x[0] === tab)) { location.replace('#/admin?tab=stats'); return; }
+  const tab = q.tab || 'users'; if (!TABS.some(x => x[0] === tab)) { location.replace('#/admin?tab=users'); return; }
   const title = t(TABS.find(x => x[0] === tab)[1]);
   el.innerHTML = `<div class="page wide"><div class="row"><h1 class="mb0">${esc(title)}</h1></div><div id="body" class="mt">${spinner()}</div></div>`;
   await ({ users: usersTab, requests: requestsTab, video: videoTab, app: appTab, stats: statsTab, storage: storageTab, news: newsTab, billing: billingTab, analytics: analyticsTab, audit: auditTab, teachers: teachersTab, ai: aiTab })[tab]($('#body', el));

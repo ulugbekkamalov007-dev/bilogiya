@@ -188,7 +188,10 @@ export function modal(inner, { cls = '', onClose } = {}) {
   wrap.innerHTML = `<div class="modal ${cls}" role="dialog" aria-modal="true"><button class="modal-x" aria-label="close">${ic('x')}</button><div class="modal-body">${inner}</div></div>`;
   document.body.appendChild(wrap);
   const close = () => { wrap.remove(); onClose?.(); };
-  wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
+  // Ichida kiritish maydoni (forma) bo'lsa: orqa fonga tegib ketsa yopilmaydi (kiritilgan ma'lumot yo'qolmasin); telefonda to'liq ekran
+  const sticky = !!wrap.querySelector('input:not([type=hidden]), textarea, select');
+  if (sticky) wrap.classList.add('formmodal');
+  wrap.addEventListener('click', e => { if (e.target === wrap && !sticky) close(); });
   $('.modal-x', wrap).onclick = close;
   return { el: $('.modal-body', wrap), close };
 }

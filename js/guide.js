@@ -156,6 +156,11 @@ G.uz.push(
 ['shield', 'O\'qituvchi va admin paneli', `<ul><li>Kompyuterda chap menyuda barcha bo'limlar; telefonda 🧬 tugmasi orqali.</li><li>Vazifa yaratganda audio sonini kiriting — audio joylari, kitob va muhokama o'zi paydo bo'ladi. Kitobni vazifa ichida yuklaysiz yoki tizimdagidan ulaysiz.</li>
 <li>Admin: «Foydalanuvchilar» ro'yxatida Talaba / O'qituvchi / Admin bo'yicha filtr. Admin va o'qituvchi talabalar reytingida ko'rinmaydi.</li></ul>`, true],
 );
+G.uz.push(
+['chart', 'Statistika va Reyting — farqi', `<ul><li><b>Reyting</b> — kim qancha o'qigani: o'rinlar (1, 2, 3...), davr va kategoriya bo'yicha. Talabalar o'z o'rnini ko'radi. Telefonda yuqori uch o'rin bir ekranga sig'adi.</li>
+<li><b>Statistika</b> (o'qituvchi va admin) — umumiy ko'rsatkichlar: foydalanuvchilar soni, faollari, jami foydalanishlar, o'qish vaqti, testlar va diagrammalar. Bosh sahifadagi katta «Statistika» tugmasi orqali ochiladi. Talabada shu tugma «Mening statistikam»ga olib boradi.</li></ul>`],
+['clip', 'Chatda fayl yuborish', `<p>Skrepka (📎) tugmasi Telegramdagi kabi ishlaydi: <b>Galereya, Kamera yoki Fayl</b> ni tanlang → oldindan ko'rish oynasida izoh yozing → «Yuborish». Forma oynalari endi telefonda to'liq ekranda ochiladi va orqa fonga tegib ketsangiz yopilmaydi — kiritganingiz yo'qolmaydi.</p>`],
+);
 G.ru.push(
 ['panel', 'Левое меню и верхняя панель', `<ul><li>Кнопка <b>🧬</b> открывает меню всех разделов. Кнопка <b>Фон</b> — выбор фона, <b>кубок</b> — быстрый переход в рейтинг. В меню профиля: Профиль, Руководство, Выход.</li></ul>`],
 ['test', 'Прохождение теста: подтверждение', `<ol><li>Выберите вариант.</li><li>Нажмите <b>«Подтвердить»</b>.</li><li>Приложение сразу покажет «Верно» или «Неверно» и правильный ответ.</li></ol>`],

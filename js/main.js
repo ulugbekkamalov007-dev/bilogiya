@@ -20,6 +20,7 @@ import './practice.js';
 import './lab.js';
 import './ai.js';
 import './materials.js';
+import './stats.js';
 import './qedit.js';
 import { offList } from './offline.js';
 import { maybeDevNote } from './contact.js';
@@ -63,7 +64,7 @@ const ADMIN_NAV = () => [
   ['/teach', 'cap', T('Kurslar', 'Курсы', 'Courses'), 1, /^\/(teach(\/course.*)?$|courses|course|lesson|cert)/, 'sep'],
   ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 1, /^\/(tests|test|practice)/], ['/library', 'book', t('nav.library'), 1, /^\/library/],
   ['/rating', 'trophy', t('nav.rating'), 1, /^\/(rating|reports)/],
-  ADM('stats', 'chart', 'Platforma statistikasi', 'Статистика платформы', 'Platform stats'), ADM('analytics', 'chart', 'Tahlil', 'Аналитика', 'Analytics'),
+  ['/stats', 'chart', T('Statistika', 'Статистика', 'Statistics'), 1, /^\/stats/], ADM('analytics', 'chart', 'Tahlil', 'Аналитика', 'Analytics'),
   ADM('teachers', 'cap', 'O\'qituvchilar', 'Преподаватели', 'Teachers'), ADM('requests', 'bell', 'So\'rovlar', 'Заявки', 'Requests'), ADM('news', 'mega', 'E\'lon va reklama', 'Объявления', 'News & ads'),
   ADM('billing', 'dollar', 'To\'lovlar', 'Платежи', 'Billing'), ADM('app', 'settings', 'Ilova sozlamalari', 'Настройки', 'App settings'), ADM('video', 'video', 'Video qoidalari', 'Правила видео', 'Video rules'),
   ADM('storage', 'download', 'Saqlash joyi', 'Хранилище', 'Storage'), ADM('audit', 'shield', 'Audit jurnali', 'Журнал', 'Audit log'), ADM('ai', 'bot', 'AI sozlamalari', 'ИИ', 'AI'),
@@ -74,7 +75,7 @@ const TEACHER_NAV = () => [
   ['/teach/materials', 'plus', T('Materiallar', 'Материалы', 'Materials'), 0, /^\/(teach\/materials|library|item|audios)/, 'cfab'],
   ['/groups', 'users', t('nav.groups'), 0, /^\/group/],
   ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 1, /^\/(tests|test|practice)/], ['/library', 'book', t('nav.library'), 1, /^\/(library|item|audios)/],
-  ['/reports/all', 'chart', T('Statistika', 'Статистика', 'Statistics'), 1, /^\/reports/], ['/rating', 'trophy', t('nav.rating'), 1, /^\/rating/],
+  ['/stats', 'chart', T('Statistika', 'Статистика', 'Statistics'), 1, /^\/stats/], ['/rating', 'trophy', t('nav.rating'), 1, /^\/rating/],
   ['/inbox', 'msg', T('Chat', 'Чат', 'Chat'), 1, /^\/inbox/], ['/forum', 'msg', T('Forum', 'Форум', 'Forum'), 1, /^\/forum/],
   ['/settings', 'user', t('nav.profile'), 0, /^\/(settings|offline|guide|teacher-apply|inbox|backgrounds)/],
 ];
@@ -122,7 +123,7 @@ function paintShell(path = currentPath()) {
   $('#top').innerHTML = `<button class="brandbtn" id="ntg" title="menu" aria-label="menu">🧬</button><a class="brand" href="#/home"><b>${esc(CONFIG.APP_NAME)}</b></a>
     ${staff ? `<button class="gsearch" id="gs" type="button">${ic('search', 18)}<span>${esc(t('gs.ph'))}</span><kbd>/</kbd></button>` : ''}<span class="grow"></span>${xpChip()}
     <a class="icon-btn tfon" href="#/backgrounds" title="${esc(T('Fon', 'Фон', 'Background'))}" aria-label="bg">${ic('image')}<span>${esc(T('Fon', 'Фон', 'Background'))}</span></a>
-    ${lbOn() && !staff ? `<a class="icon-btn trate" href="#/rating" title="${esc(t('nav.rating'))}" aria-label="rating">${ic('trophy')}</a>` : ''}
+    ${lbOn() ? `<a class="icon-btn trate" href="#/rating" title="${esc(t('nav.rating'))}" aria-label="rating">${ic('trophy')}</a>` : ''}
     ${updateAvailable() ? `<a class="icon-btn tupd" href="#/update" title="${esc(T('Yangilanish mavjud', 'Доступно обновление', 'Update available'))}" aria-label="update">${ic('zap')}<i class="badge">1</i></a>` : ''}
     ${canInstall() ? `<button class="icon-btn" id="tinst" title="${esc(t('land.install'))}">${ic('download')}</button>` : ''}
     <button class="icon-btn" id="tth" title="${esc(t('set.theme'))}" aria-label="theme">${ic(dark ? 'sun' : 'moon')}</button>

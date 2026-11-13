@@ -206,3 +206,30 @@ button.tc-h { border: 0; background: transparent; font: inherit; color: inherit;
 #updbar .grow { display: grid; min-width: 0; } #updbar small { opacity: .9; } #updbar .btn { background: #fff; color: var(--brand-d, #065f3f); } #updbar .icon-btn { color: #fff; }
 @media (min-width: 900px) { #updbar { bottom: 24px; } } @keyframes updin { from { opacity: 0; transform: translate(-50%, 14px); } }
 .tupd { position: relative; color: #b45309; } .tupd .badge { position: absolute; top: 2px; right: 2px; }
+
+/* forma oynalari: telefonda to'liq ekran, orqa fonga tegib ketsa yopilmaydi */
+@media (max-width: 700px) {
+  .modal-wrap.formmodal { padding: 0; align-items: stretch !important; }
+  .modal-wrap.formmodal .modal { width: 100% !important; max-width: none !important; height: 100dvh; max-height: 100dvh; border-radius: 0 !important; padding: calc(var(--safe-t) + 56px) 16px calc(var(--safe-b) + 20px); animation: none; }
+  .modal-wrap.formmodal .modal::before { display: none; }
+  .modal-wrap.formmodal .modal-x { top: calc(var(--safe-t) + 10px); right: 12px; width: 40px; height: 40px; }
+  .modal-wrap.formmodal .modal-body > h3:first-child { position: absolute; top: calc(var(--safe-t) + 16px); left: 16px; right: 60px; margin: 0; font-size: 1.1rem; }
+}
+
+/* statistika sahifasi va bosh sahifadagi katta tugma */
+.stiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
+.stile { display: grid; gap: 2px; align-content: start; } .stile .item-ic { width: 38px; height: 38px; border-radius: 12px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--card)); margin-bottom: 6px; } .stile b { font-size: 1.5rem; line-height: 1.1; overflow-wrap: anywhere; }
+.scols { display: grid; gap: 12px; } @media (min-width: 900px) { .scols { grid-template-columns: repeat(2, 1fr); } }
+.ldot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.bigtile { display: flex; align-items: center; gap: 16px; padding: 22px 20px; min-height: 120px; border-radius: 18px; background: linear-gradient(135deg, var(--brand), #34b27b); color: #fff; text-decoration: none; box-shadow: var(--shadow); }
+.bigtile .item-ic { width: 60px; height: 60px; border-radius: 18px; background: rgba(255,255,255,.2); color: #fff; flex: none; } .bigtile b { font-size: 1.25rem; display: block; } .bigtile small { color: rgba(255,255,255,.88); } .bigtile > svg:last-child { margin-left: auto; flex: none; }
+.bigtile:hover { filter: brightness(1.05); }
+/* reyting: telefonda ixcham, 3 o'rin bir ekranga sig'adi */
+.lbfilt { margin-bottom: 8px; } .lbfilt > summary { cursor: pointer; display: inline-flex; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; font-weight: 600; font-size: .85rem; list-style: none; margin-bottom: 8px; } .lbfilt > summary::-webkit-details-marker { display: none; }
+@media (max-width: 700px) { #lb > h1 { font-size: 1.35rem; margin: 0 0 6px; } .ticker { display: none; } .catchips { margin-bottom: 6px; } .ptabs { margin-bottom: 4px; } .podium { margin: 6px 0 6px; gap: 6px; } .pod .avatar.lg { width: 48px; height: 48px; } .pod.p1 .avatar.lg { width: 60px; height: 60px; } .pod .pb { padding-block: 4px; } .pod.p1 .pb { padding-block: 12px; } .pod.p2 .pb { padding-block: 8px; } .pod.p3 .pb { padding-block: 5px; } .merank { padding: 8px 12px; margin-bottom: 6px; } }
+
+/* chat: Telegram kabi biriktirish menyusi */
+.attgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 6px 0 10px; } .attgrid button { display: grid; justify-items: center; gap: 8px; border: 0; background: none; font: inherit; color: var(--text); cursor: pointer; font-weight: 600; font-size: .9rem; }
+.attgrid button span { display: grid; place-items: center; width: 62px; height: 62px; border-radius: 50%; font-size: 1.7rem; background: color-mix(in srgb, var(--c) 16%, var(--card)); }
+.attprev { display: grid; place-items: center; margin: 10px 0; max-height: 52dvh; overflow: hidden; border-radius: 14px; background: var(--card2); } .attprev img { max-width: 100%; max-height: 52dvh; object-fit: contain; }
+.attfile { display: grid; justify-items: center; gap: 4px; padding: 26px; text-align: center; } .attfile span { font-size: 2.6rem; } .attfile b { overflow-wrap: anywhere; }

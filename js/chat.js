@@ -1,14 +1,14 @@
 // Umumiy chat komponenti: guruh chati, vazifa muhokamasi va shaxsiy yozishmalar uchun.
 // Matn + ovozli xabar + rasm/fayl, real vaqt (Supabase Realtime), eski xabarlarni sahifalab yuklash.
-import { sb, state, t, addDict, esc, ic, $, $$, toast, fmtTime, fmtDate, fmtDur, btnBusy } from './core.js';
+import { sb, state, t, addDict, esc, ic, $, $$, toast, fmtTime, fmtDate, fmtDur, btnBusy, modal, fmtSize } from './core.js';
 import { startRecording, uploadAttachment, uploadVoice, mediaHtml, fillMedia } from './media.js';
 
 addDict({
-  uz: { 'chat.announce': 'E\'lon qilish (hamma a\'zolarga)', 'chat.an_empty': 'Avval xabar matnini yozing', 'chat.an_sent': 'E\'lon guruhning barcha a\'zolariga yuborildi', 'chat.ph': 'Xabar yozing…', 'chat.older': 'Oldingi xabarlar', 'chat.empty': 'Hali xabar yo\'q. Birinchi bo\'lib yozing 👋', 'chat.readonly': 'Bu guruhda faqat o\'qituvchi yozadi. Savol bo\'lsa — vazifa ichida yoki «Yordam» orqali yozing.',
+  uz: { 'chat.attach': 'Biriktirish', 'chat.gallery': 'Galereya', 'chat.camera': 'Kamera', 'chat.file': 'Fayl', 'chat.caption': 'Izoh qo\'shing…', 'chat.send_file': 'Yuborish', 'chat.announce': 'E\'lon qilish (hamma a\'zolarga)', 'chat.an_empty': 'Avval xabar matnini yozing', 'chat.an_sent': 'E\'lon guruhning barcha a\'zolariga yuborildi', 'chat.ph': 'Xabar yozing…', 'chat.older': 'Oldingi xabarlar', 'chat.empty': 'Hali xabar yo\'q. Birinchi bo\'lib yozing 👋', 'chat.readonly': 'Bu guruhda faqat o\'qituvchi yozadi. Savol bo\'lsa — vazifa ichida yoki «Yordam» orqali yozing.',
     'chat.send_err': 'Yuborib bo\'lmadi', 'chat.report': 'Shikoyat qilish', 'chat.del': 'O\'chirish', 'chat.rec_send': 'Yuborish', 'chat.you': 'Siz', 'chat.reply': 'Javob berish', 'chat.replying': 'Javob:', 'chat.teacher': 'O\'qituvchi' },
-  ru: { 'chat.announce': 'Объявить (всем участникам)', 'chat.an_empty': 'Сначала напишите текст', 'chat.an_sent': 'Объявление отправлено всем участникам группы', 'chat.ph': 'Напишите сообщение…', 'chat.older': 'Предыдущие сообщения', 'chat.empty': 'Сообщений пока нет. Напишите первым 👋', 'chat.readonly': 'В этой группе пишет только учитель. Есть вопрос — пишите внутри задания или через «Помощь».',
+  ru: { 'chat.attach': 'Прикрепить', 'chat.gallery': 'Галерея', 'chat.camera': 'Камера', 'chat.file': 'Файл', 'chat.caption': 'Добавьте подпись…', 'chat.send_file': 'Отправка', 'chat.announce': 'Объявить (всем участникам)', 'chat.an_empty': 'Сначала напишите текст', 'chat.an_sent': 'Объявление отправлено всем участникам группы', 'chat.ph': 'Напишите сообщение…', 'chat.older': 'Предыдущие сообщения', 'chat.empty': 'Сообщений пока нет. Напишите первым 👋', 'chat.readonly': 'В этой группе пишет только учитель. Есть вопрос — пишите внутри задания или через «Помощь».',
     'chat.send_err': 'Не удалось отправить', 'chat.report': 'Пожаловаться', 'chat.del': 'Удалить', 'chat.rec_send': 'Отправить', 'chat.you': 'Вы', 'chat.reply': 'Ответить', 'chat.replying': 'Ответ:', 'chat.teacher': 'Учитель' },
-  en: { 'chat.announce': 'Announce (to all members)', 'chat.an_empty': 'Write the message first', 'chat.an_sent': 'Announcement sent to all group members', 'chat.ph': 'Type a message…', 'chat.older': 'Earlier messages', 'chat.empty': 'No messages yet. Be the first 👋', 'chat.readonly': 'Only the teacher can post in this group. Ask questions inside an assignment or via "Help".',
+  en: { 'chat.attach': 'Attach', 'chat.gallery': 'Gallery', 'chat.camera': 'Camera', 'chat.file': 'File', 'chat.caption': 'Add a caption…', 'chat.send_file': 'Send', 'chat.announce': 'Announce (to all members)', 'chat.an_empty': 'Write the message first', 'chat.an_sent': 'Announcement sent to all group members', 'chat.ph': 'Type a message…', 'chat.older': 'Earlier messages', 'chat.empty': 'No messages yet. Be the first 👋', 'chat.readonly': 'Only the teacher can post in this group. Ask questions inside an assignment or via "Help".',
     'chat.send_err': 'Could not send', 'chat.report': 'Report', 'chat.del': 'Delete', 'chat.rec_send': 'Send', 'chat.you': 'You', 'chat.reply': 'Reply', 'chat.replying': 'Replying:', 'chat.teacher': 'Teacher' },
 });
 
@@ -17,7 +17,7 @@ export function mountChat(host, c) {
   const seen = new Set(), byId = new Map(); let replyTo = null; let oldest = null, hasMore = false, destroyed = false;
   host.innerHTML = `<div class="chat"><div class="msgs" id="ml"></div>
     ${c.canWrite ? `<div class="composer"><div class="rpbar" hidden><span class="grow"></span><button class="icon-btn" id="rpx" aria-label="x">${ic('x', 16)}</button></div><div class="cmp-main">
-        <label class="icon-btn" title="attach">${ic('clip')}<input type="file" id="at" hidden accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.txt"></label>
+        <button class="icon-btn" id="atb" title="attach" type="button">${ic('clip')}</button>
         <textarea id="tx" rows="1" placeholder="${esc(t('chat.ph'))}" maxlength="2000"></textarea>
         ${c.onAnnounce ? `<button class="icon-btn" id="an" title="${esc(t('chat.announce'))}">${ic('mega')}</button>` : ''}<button class="icon-btn" id="mic" title="voice">${ic('mic')}</button><button class="icon-btn send" id="sd">${ic('send')}</button></div>
         <div class="cmp-rec" hidden><span class="recdot"></span><b id="rt">0:00</b><span class="grow">${esc(t('med.rec'))}</span><button class="btn ghost sm" id="rc">${esc(t('med.cancel'))}</button><button class="btn sm" id="rs">${esc(t('chat.rec_send'))}</button></div></div>`
@@ -99,9 +99,25 @@ export function mountChat(host, c) {
     $('#sd', host).onclick = doText; $('#rpx', host).onclick = () => setReply(null);
     tx.oninput = () => { tx.style.height = 'auto'; tx.style.height = Math.min(120, tx.scrollHeight) + 'px'; };
     tx.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && matchMedia('(pointer:fine)').matches) { e.preventDefault(); doText(); } };
-    $('#at', host).onchange = async e => {
-      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-      try { const up = await uploadAttachment(c.folder, f); await send({ kind: up.isImg ? 'image' : 'file', body: up.isImg ? '' : f.name, media_path: up.path }); } catch (x) { toast(x.message || String(x), 'err'); }
+    // Telegram kabi: skrepka → tanlov (Galereya / Kamera / Fayl) → oldindan ko'rish + izoh → Yuborish
+    const preview = f => {
+      const isImg = f.type.startsWith('image/'), url = isImg ? URL.createObjectURL(f) : '';
+      const m = modal(`<h3>${esc(t('chat.send_file'))}</h3><div class="attprev">${isImg ? `<img src="${url}" alt="">` : `<div class="attfile"><span>📄</span><b>${esc(f.name)}</b><small class="muted">${esc(fmtSize(f.size))}</small></div>`}</div>
+        <textarea class="input" id="cap" rows="2" maxlength="500" placeholder="${esc(t('chat.caption'))}"></textarea><button class="btn lg block mt" id="go">${ic('send', 16)} ${esc(t('chat.rec_send'))}</button>`, { onClose: () => url && URL.revokeObjectURL(url) });
+      $('#go', m.el).onclick = async ev => {
+        const b = ev.currentTarget, cap = $('#cap', m.el).value.trim(); btnBusy(b, true);
+        try { const up = await uploadAttachment(c.folder, f); const ok = await send({ kind: up.isImg ? 'image' : 'file', body: up.isImg ? cap : f.name, media_path: up.path }); if (ok && cap && !up.isImg) await send({ kind: 'text', body: cap }); m.close(); }
+        catch (x) { toast(x.message || String(x), 'err'); btnBusy(b, false); }
+      };
+    };
+    $('#atb', host).onclick = () => {
+      const m = modal(`<h3>${esc(t('chat.attach'))}</h3><div class="attgrid">
+        <button type="button" data-a="gal"><span style="--c:#8b5cf6">🖼</span>${esc(t('chat.gallery'))}</button><button type="button" data-a="cam"><span style="--c:#ef4444">📷</span>${esc(t('chat.camera'))}</button><button type="button" data-a="doc"><span style="--c:#2563eb">📄</span>${esc(t('chat.file'))}</button></div>`);
+      $$('[data-a]', m.el).forEach(btn => btn.onclick = () => {
+        const inp = document.createElement('input'); inp.type = 'file';
+        inp.accept = btn.dataset.a === 'doc' ? '.pdf,.doc,.docx,.ppt,.pptx,.txt,.xls,.xlsx,.zip' : 'image/*'; if (btn.dataset.a === 'cam') inp.setAttribute('capture', 'environment');
+        inp.onchange = () => { const f = inp.files[0]; if (f) { m.close(); preview(f); } }; inp.click();
+      });
     };
     let rec = null;
     $('#mic', host).onclick = async () => {

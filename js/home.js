@@ -21,6 +21,13 @@ addDict({
     'home.rep': 'Reports', 'home.all_users': 'Users', 'home.dau14': 'Active users (14 days)', 'home.by30': 'Time by section (30 days)', 'home.admin_today': 'Active today', 'home.admin_min': 'Total time today', 'home.users': 'learners', 'home.all_news': 'All', 'home.pinned': 'Pinned' },
 });
 
+
+// Bosh sahifadagi katta "Statistika" tugmasi (fayl kartasi kabi katta maydon): o'qituvchi/admin — umumiy statistika, talaba — o'z statistikasi
+function statTile() {
+  const st = state.isAdmin || state.profile?.role === 'teacher';
+  return `<a class="bigtile" href="${st ? '#/stats' : '#/reports'}"><span class="item-ic">${ic('chart', 30)}</span><div><b>${esc(st ? T('Statistika', 'Статистика', 'Statistics') : T('Mening statistikam', 'Моя статистика', 'My statistics'))}</b><small>${esc(st ? T('Foydalanuvchilar, faollik va diagrammalar', 'Пользователи, активность и диаграммы', 'Users, activity and charts') : T('Kunlik va haftalik natijalaringiz', 'Ваши результаты по дням и неделям', 'Your daily and weekly results'))}</small></div>${ic('chev', 22)}</a>`;
+}
+
 route('/home', async ({ el, alive }) => {
   const uid = state.user.id, today = dayStr(), from = dayStr(addDays(new Date(), -6));
   const [usage, att, anns, prog] = await Promise.all([
@@ -107,6 +114,7 @@ route('/home', async ({ el, alive }) => {
     <div class="center mt"><a class="btn" href="#/library">${ic('book')} ${esc(t('home.to_lib'))}</a></div>
   </div>`;
 
+  el.querySelector('h1.mb0')?.nextElementSibling?.insertAdjacentHTML('afterend', `<div class="mb">${statTile()}</div>`);
   $$('[data-ann]', el).forEach(c => c.onclick = () => openAnnouncement(all.find(a => a.id === c.dataset.ann)));
   $$('[data-ad]', el).forEach(c => c.onclick = () => openAnnouncement(all.find(a => a.id === c.dataset.ad)));
   const car = $('#car', el);
@@ -137,5 +145,6 @@ async function teacherHome(el, alive, anns) {
         <a class="btn ghost block" href="#/teach">${ic('cap', 16)} ${esc(T('Yangi kurs', 'Новый курс', 'New course'))}</a><a class="btn ghost block" href="#/tests">${ic('test', 16)} ${esc(T('Yangi test', 'Новый тест', 'New test'))}</a><a class="btn ghost block" href="#/groups">${ic('users', 16)} ${esc(T('Yangi guruh', 'Новая группа', 'New group'))}</a></div></div></div>
     ${(pend.data || []).length ? `<div class="card pad mt"><div class="row between"><h3 class="mb0">${esc(T('Guruhga qo\'shilish so\'rovlari', 'Заявки в группы', 'Group join requests'))}</h3><a href="#/groups">${esc(T('Ko\'rish', 'Открыть', 'Open'))}</a></div><div class="stack mt">${pend.data.map(p => `<div class="row" style="gap:10px"><span class="item-ic">${ic('user', 16)}</span><span class="grow"><b>${esc(p.profiles?.full_name || '')}</b><br><small class="muted">${esc(p.groups?.name || '')}</small></span></div>`).join('')}</div></div>` : ''}
     <div class="row between mt"><h3>${esc(t('home.news'))}</h3><a href="#/news">${esc(t('home.all_news'))}</a></div><div class="cards">${anns.filter(a => a.kind === 'news').slice(0, 3).map(annCard).join('') || `<p class="muted">${esc(t('home.no_news'))}</p>`}</div></div>`;
+  el.querySelector('.thero')?.insertAdjacentHTML('afterend', `<div class="mt">${statTile()}</div>`);
   $$('[data-ann]', el).forEach(c => c.onclick = () => openAnnouncement(anns.find(a => a.id === c.dataset.ann)));
 }

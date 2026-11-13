@@ -155,4 +155,81 @@ begin
 end $$;
 grant execute on function public.announce_group(uuid, text, uuid) to authenticated;
 
+
+-- 8) Sinov hisobi reytingda chiqmaydi (hide_rating belgisi)
+alter table public.profiles add column if not exists hide_rating boolean not null default false;
+update public.profiles set hide_rating = true where lower(email) = 'ulugbekkamalov0609@gmail.com';
+create or replace function public.leaderboard(p_from date, p_to date)
+returns table (user_id uuid, name text, avatar_url text, video bigint, audio bigint, book bigint, test bigint,
+               browse bigint, total bigint, tests bigint, avg_percent numeric)
+language plpgsql stable security definer set search_path = public as $$
+declare mode text := coalesce((select value->>'leaderboard_names' from public.app_settings where key = 'app'), 'short');
+begin
+  if auth.uid() is null then raise exception 'ruxsat yo''q'; end if;
+  if not public.is_admin() and not coalesce((select (value->>'leaderboard')::boolean from public.app_settings where key = 'app'), true) then
+    raise exception 'ruxsat yo''q';
+  end if;
+  return query
+  with d as (
+    select u.user_id, u.day,
+      coalesce(sum(u.seconds) filter (where u.kind = 'video'), 0) v,
+      coalesce(sum(u.seconds) filter (where u.kind = 'audio'), 0) a,
+      coalesce(sum(u.seconds) filter (where u.kind = 'book'), 0)  b,
+      coalesce(sum(u.seconds) filter (where u.kind = 'test'), 0)  t,
+      coalesce(sum(u.seconds) filter (where u.kind = 'app'), 0)   p
+    from public.usage_daily u where u.day between p_from and p_to group by u.user_id, u.day
+  ), g as (
+    select d.user_id, sum(v)::bigint v, sum(a)::bigint a, sum(b)::bigint b, sum(t)::bigint t,
+           sum(greatest(p - v - a - b - t, 0))::bigint br
+    from d group by d.user_id
+  ), ta as (
+    select x.user_id, count(*)::bigint n, round(avg(x.percent), 1) av
+    from public.test_attempts x where (x.created_at at time zone 'Asia/Tashkent')::date between p_from and p_to group by x.user_id
+  )
+  select p.id,
+    case when public.is_admin() or mode = 'full' or p.id = auth.uid() then p.full_name
+         else split_part(p.full_name, ' ', 1) || case when position(' ' in trim(p.full_name)) > 0 then ' ' || left(split_part(trim(p.full_name), ' ', 2), 1) || '.' else '' end end,
+    p.avatar_url,
+    coalesce(g.v, 0)::bigint, coalesce(g.a, 0)::bigint, coalesce(g.b, 0)::bigint, coalesce(g.t, 0)::bigint, coalesce(g.br, 0)::bigint,
+    (coalesce(g.v, 0) + coalesce(g.a, 0) + coalesce(g.b, 0) + coalesce(g.t, 0) + coalesce(g.br, 0))::bigint,
+    coalesce(ta.n, 0)::bigint, ta.av
+  from public.profiles p
+  left join g on g.user_id = p.id
+  left join ta on ta.user_id = p.id
+  where p.role = 'user' and not p.hide_rating and (g.user_id is not null or ta.user_id is not null)
+  order by 9 desc, 10 desc limit 300;
+end $$;
+grant execute on function public.leaderboard(date, date) to authenticated;
+
+-- 9) Statistika (reytingdan alohida): umumiy ko'rsatkichlar va diagrammalar uchun. Admin — barcha talabalar, o'qituvchi — o'z guruhlaridagi talabalar.
+create or replace function public.platform_stats(p_from date, p_to date) returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_adm boolean := public.is_admin(); v_ids uuid[];
+begin
+  if not public.is_staff() then raise exception 'ruxsat yo''q'; end if;
+  select array_agg(p.id) into v_ids from public.profiles p
+   where p.role = 'user' and not p.hide_rating
+     and (v_adm or exists (select 1 from public.group_members gm join public.groups g on g.id = gm.group_id where gm.user_id = p.id and gm.status = 'approved' and g.owner_id = auth.uid()));
+  v_ids := coalesce(v_ids, '{}');
+  return jsonb_build_object(
+    'scope', case when v_adm then 'all' else 'mine' end,
+    'users', cardinality(v_ids),
+    'new_users', (select count(*) from public.profiles p where p.id = any(v_ids) and (p.created_at at time zone 'Asia/Tashkent')::date between p_from and p_to),
+    'active', (select count(distinct u.user_id) from public.usage_daily u where u.user_id = any(v_ids) and u.day between p_from and p_to and u.seconds > 0),
+    'sessions', (select count(*) from public.usage_daily u where u.user_id = any(v_ids) and u.day between p_from and p_to and u.seconds > 0),
+    'seconds', (select coalesce(sum(u.seconds), 0) from public.usage_daily u where u.user_id = any(v_ids) and u.day between p_from and p_to and u.kind <> 'app'),
+    'by_kind', (select coalesce(jsonb_object_agg(k, s), '{}') from (select u.kind k, sum(u.seconds) s from public.usage_daily u where u.user_id = any(v_ids) and u.day between p_from and p_to group by u.kind) a),
+    'tests', (select jsonb_build_object('n', count(*), 'avg', coalesce(round(avg(a.percent), 1), 0)) from public.test_attempts a where a.user_id = any(v_ids) and (a.created_at at time zone 'Asia/Tashkent')::date between p_from and p_to),
+    'groups', (select count(*) from public.groups g where not g.archived and (v_adm or g.owner_id = auth.uid())),
+    'materials', (select count(*) from public.items i where i.deleted_at is null and (v_adm or i.created_by = auth.uid())),
+    'daily', (select coalesce(jsonb_agg(jsonb_build_object('d', d, 'users', c, 's', s) order by d), '[]') from (
+        select u.day d, count(distinct u.user_id) filter (where u.seconds > 0) c, sum(u.seconds) filter (where u.kind <> 'app') s
+        from public.usage_daily u where u.user_id = any(v_ids) and u.day between p_from and p_to group by u.day) x),
+    'top_groups', (select coalesce(jsonb_agg(jsonb_build_object('name', name, 'members', m, 'seconds', s) order by s desc), '[]') from (
+        select g.name, (select count(*) from public.group_members gm where gm.group_id = g.id and gm.status = 'approved') m,
+               coalesce((select sum(u.seconds) from public.usage_daily u join public.group_members gm on gm.user_id = u.user_id and gm.group_id = g.id and gm.status = 'approved' where u.day between p_from and p_to and u.kind <> 'app'), 0) s
+        from public.groups g where not g.archived and (v_adm or g.owner_id = auth.uid()) order by s desc limit 5) y));
+end $$;
+grant execute on function public.platform_stats(date, date) to authenticated;
+
 select 'update10 tayyor' as natija;
