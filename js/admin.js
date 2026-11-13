@@ -39,9 +39,9 @@ export const TABS = [['users', 'adm.users', 'users'], ['requests', 'adm.requests
 const save = async (key, value) => { const { error } = await sb.from('app_settings').upsert({ key, value, updated_at: new Date().toISOString() }); if (error) return toast(error.message, 'err'); await loadSettings(); toast(t('adm.saved'), 'ok'); };
 
 route('/admin', async ({ el, q, alive }) => {
-  const tab = q.tab; if (!tab || !TABS.some(x => x[0] === tab)) { location.replace('#/settings'); return; }
+  const tab = q.tab || 'stats'; if (!TABS.some(x => x[0] === tab)) { location.replace('#/admin?tab=stats'); return; }
   const title = t(TABS.find(x => x[0] === tab)[1]);
-  el.innerHTML = `<div class="page"><div class="row"><a class="icon-btn" href="#/settings" aria-label="back">${ic('back')}</a><h1 class="mb0">${esc(title)}</h1></div><div id="body" class="mt">${spinner()}</div></div>`;
+  el.innerHTML = `<div class="page wide"><div class="row"><h1 class="mb0">${esc(title)}</h1></div><div id="body" class="mt">${spinner()}</div></div>`;
   await ({ users: usersTab, requests: requestsTab, video: videoTab, app: appTab, stats: statsTab, storage: storageTab, news: newsTab, billing: billingTab, analytics: analyticsTab, audit: auditTab, teachers: teachersTab, ai: aiTab })[tab]($('#body', el));
 }, { auth: true, admin: true });
 
@@ -54,13 +54,16 @@ function newsTab(body) {
 
 // ---------------- foydalanuvchilar
 async function usersTab(body) {
-  body.innerHTML = `<input class="input" id="s" placeholder="${esc(t('adm.search'))}"><div id="ul" class="mt">${spinner()}</div>`;
+  let cat = 'all';
+  body.innerHTML = `<div class="row wrap"><input class="input grow" id="s" placeholder="${esc(t('adm.search'))}"></div><div class="chips mt" id="cats">${[['all', T('Hammasi', 'Все', 'All')], ['user', T('Talabalar', 'Студенты', 'Students')], ['teacher', T('O\'qituvchilar', 'Преподаватели', 'Teachers')], ['admin', 'Admin']].map(([k, l]) => `<button class="chip catb ${k === cat ? 'on' : ''}" data-c="${k}">${esc(l)}<b class="cn" id="cn-${k}"></b></button>`).join('')}</div><div id="ul" class="mt">${spinner()}</div>`;
   const load = async (v = '') => {
-    const { data, error } = await sb.rpc('admin_users_summary', { p_search: v }); if (error) return $('#ul', body).innerHTML = `<p class="muted center pad">${esc(friendlyErr(error.message))}</p>`;
+    let { data, error } = await sb.rpc('admin_users_summary', { p_search: v }); if (error) return $('#ul', body).innerHTML = `<p class="muted center pad">${esc(friendlyErr(error.message))}</p>`;
     if (!usersTab.ex) { const { data: ex } = await sb.rpc('admin_users_extra'); usersTab.ex = Object.fromEntries((ex || []).map(x => [x.user_id, x])); }
     const ini = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    const all = data || []; ['all', 'user', 'teacher', 'admin'].forEach(k => { const n = $('#cn-' + k, body); if (n) n.textContent = ' ' + (k === 'all' ? all.length : all.filter(u => (u.role || 'user') === k).length); });
+    data = cat === 'all' ? all : all.filter(u => (u.role || 'user') === cat);
     $('#ul', body).innerHTML = `<div class="ulist">${(data || []).map((u, i) => `<div class="urow2" data-i="${i}"><span class="avatar">${u.avatar_url ? `<img src="${esc(u.avatar_url)}" alt="">` : esc(ini(u.full_name))}</span>
-      <div class="grow um"><b>${esc(u.full_name || '—')}</b>${u.role === 'admin' ? ' <span class="tag">ADMIN</span>' : u.role === 'teacher' ? ` <span class="tag">${esc(T('O\'QITUVCHI', 'ПРЕПОДАВАТЕЛЬ', 'TEACHER'))}</span>` : ''}${u.blocked ? ` <span class="tag bad">${esc(t('adm.blocked'))}</span>` : ''}<small class="muted">${esc(u.email)}${usersTab.ex[u.id] ? ' · ' + esc(fmtDate(usersTab.ex[u.id].created_at)) : ''}</small>
+      <div class="grow um"><b>${esc(u.full_name || '—')}</b>${u.role === 'admin' ? ' <span class="tag">ADMIN</span>' : u.role === 'teacher' ? ` <span class="tag">${esc(T('O\'QITUVCHI', 'ПРЕПОДАВАТЕЛЬ', 'TEACHER'))}</span>` : ` <span class="tag soft">${esc(T('TALABA', 'СТУДЕНТ', 'STUDENT'))}</span>`}${u.blocked ? ` <span class="tag bad">${esc(t('adm.blocked'))}</span>` : ''}<small class="muted">${esc(u.email)}${usersTab.ex[u.id] ? ' · ' + esc(fmtDate(usersTab.ex[u.id].created_at)) : ''}</small>
         ${(usersTab.ex[u.id]?.groups || []).length ? `<small class="muted">${ic('users', 12)} ${esc(usersTab.ex[u.id].groups.join(', '))}</small>` : ''}
         <small class="muted">${esc(t('adm.7d'))}: ${esc(fmtMin(u.secs_7d))} · ${esc(t('adm.total'))}: ${esc(fmtMin(u.secs_total))} · ${esc(t('adm.tests'))}: ${u.tests_total}</small></div>
       <button class="icon-btn" data-more="${i}" aria-label="menu">⋮</button></div>`).join('')}</div>`;
@@ -76,6 +79,7 @@ async function usersTab(body) {
     const act = async (fn, args, q, ok) => { if (!(await confirmDlg(q, ok))) return; const { error } = await sb.rpc(fn, args); if (error) return toast(friendlyErr(error.message), 'err'); toast(t('adm.done'), 'ok'); load($('#s', body).value.trim()); };
     $$('.urow2', body).forEach(r => r.onclick = e => { const u = (data || [])[+r.dataset.i]; if (!u) return; if (e.target.closest('[data-more]')) openMenu(u); else location.hash = '#/reports/user/' + u.id; });
   };
+  $$('.catb', body).forEach(b => b.onclick = () => { cat = b.dataset.c; $$('.catb', body).forEach(x => x.classList.toggle('on', x === b)); load($('#s', body).value.trim()); });
   let to; $('#s', body).oninput = e => { clearTimeout(to); to = setTimeout(() => load(e.target.value.trim()), 300); }; load();
 }
 

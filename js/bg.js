@@ -1,10 +1,10 @@
 // Ilova foni: biologiya mavzusidagi fon naqshlari (DNK, hujayra, barg, neyron, plankton, mikroskop). Tanlov shu qurilmada saqlanadi.
-import { t, addDict, esc, $, $$ } from './core.js';
+import { t, addDict, esc, ic, $, $$, route } from './core.js';
 
 addDict({
-  uz: { 'bg.title': 'Ilova foni', 'bg.none': 'Oddiy', 'bg.dna': 'DNK spirali', 'bg.cells': 'Hujayralar', 'bg.leaf': 'Barg tomirlari', 'bg.neuro': 'Neyron tarmog\'i', 'bg.plankton': 'Yorug\' plankton', 'bg.micro': 'Mikroskop maydoni', 'bg.hint': 'Fonni tanlang — ilova ranglari saqlanadi' },
-  ru: { 'bg.title': 'Фон приложения', 'bg.none': 'Обычный', 'bg.dna': 'Спираль ДНК', 'bg.cells': 'Клетки', 'bg.leaf': 'Жилки листа', 'bg.neuro': 'Сеть нейронов', 'bg.plankton': 'Светящийся планктон', 'bg.micro': 'Поле микроскопа', 'bg.hint': 'Выберите фон — цвета приложения сохранятся' },
-  en: { 'bg.title': 'App background', 'bg.none': 'Plain', 'bg.dna': 'DNA helix', 'bg.cells': 'Cells', 'bg.leaf': 'Leaf veins', 'bg.neuro': 'Neuron network', 'bg.plankton': 'Glowing plankton', 'bg.micro': 'Microscope field', 'bg.hint': 'Pick a background — app colors stay the same' },
+  uz: { 'bg.title': 'Ilova foni', 'bg.none': 'Oddiy', 'bg.dna': 'DNK spirali', 'bg.cells': 'Hujayralar', 'bg.leaf': 'Barg tomirlari', 'bg.neuro': 'Neyron tarmog\'i', 'bg.plankton': 'Yorug\' plankton', 'bg.aurora': 'Shimol nuri', 'bg.sunset': 'Quyosh botishi', 'bg.ocean': 'Okean to\'lqinlari', 'bg.honey': 'Asal chuchvara', 'bg.bubbles': 'Pufakchalar', 'bg.stars': 'Yulduzli osmon', 'bg.forest': 'Tun o\'rmoni', 'bg.mint': 'Yalpiz bulut', 'bg.page': 'Fon tanlash', 'bg.hint': 'Fonni tanlang — ilova ranglari saqlanadi' },
+  ru: { 'bg.title': 'Фон приложения', 'bg.none': 'Обычный', 'bg.dna': 'Спираль ДНК', 'bg.cells': 'Клетки', 'bg.leaf': 'Жилки листа', 'bg.neuro': 'Сеть нейронов', 'bg.plankton': 'Светящийся планктон', 'bg.aurora': 'Северное сияние', 'bg.sunset': 'Закат', 'bg.ocean': 'Волны океана', 'bg.honey': 'Соты', 'bg.bubbles': 'Пузырьки', 'bg.stars': 'Звёздное небо', 'bg.forest': 'Ночной лес', 'bg.mint': 'Мятные облака', 'bg.page': 'Выбор фона', 'bg.hint': 'Выберите фон — цвета приложения сохранятся' },
+  en: { 'bg.title': 'App background', 'bg.none': 'Plain', 'bg.dna': 'DNA helix', 'bg.cells': 'Cells', 'bg.leaf': 'Leaf veins', 'bg.neuro': 'Neuron network', 'bg.plankton': 'Glowing plankton', 'bg.aurora': 'Aurora', 'bg.sunset': 'Sunset', 'bg.ocean': 'Ocean waves', 'bg.honey': 'Honeycomb', 'bg.bubbles': 'Bubbles', 'bg.stars': 'Starry sky', 'bg.forest': 'Night forest', 'bg.mint': 'Mint clouds', 'bg.page': 'Choose background', 'bg.hint': 'Pick a background — app colors stay the same' },
 });
 
 const G = 'rgba(34,197,94,', T = 'rgba(20,184,166,', P = 'rgba(139,92,246,';
@@ -25,7 +25,14 @@ export const BGS = {
   leaf: () => ({ img: leaf(), size: '160px 160px' }),
   neuro: () => ({ img: neuro(), size: '240px 240px', anim: 'bgslide' }),
   plankton: () => ({ img: `radial-gradient(circle at 20% 25%, ${G}.22), transparent 38%), radial-gradient(circle at 80% 15%, ${T}.2), transparent 34%), radial-gradient(circle at 70% 80%, ${P}.18), transparent 40%), radial-gradient(circle at 15% 85%, ${G}.16), transparent 36%)`, size: '100% 100%', anim: 'bgglow' }),
-  micro: () => ({ img: `radial-gradient(circle at 50% 50%, transparent 55%, rgba(0,0,0,.12) 100%), radial-gradient(circle, ${G}.2) 0 2px, transparent 3px), radial-gradient(circle, ${T}.16) 0 5px, transparent 6px)`, size: '100% 100%, 46px 46px, 97px 97px' }),
+  aurora: () => ({ img: `linear-gradient(135deg, ${G}.2), ${T}.16) 38%, ${P}.18) 70%, rgba(59,130,246,.16))`, size: '100% 100%', anim: 'bgglow' }),
+  sunset: () => ({ img: `linear-gradient(180deg, rgba(251,146,60,.2), rgba(244,114,182,.16) 55%, ${P}.16))`, size: '100% 100%' }),
+  ocean: () => ({ img: `${svg(200, 50, `<path d='M0 25 Q25 5 50 25 T100 25 T150 25 T200 25' fill='none' stroke='rgba(14,165,233,.3)' stroke-width='2.4'/><path d='M0 40 Q25 22 50 40 T100 40 T150 40 T200 40' fill='none' stroke='${T}.26)' stroke-width='2'/>`)}, linear-gradient(180deg, rgba(14,165,233,.1), rgba(20,184,166,.1))`, size: '200px 50px, 100% 100%', anim: 'bgslide' }),
+  honey: () => ({ img: svg(56, 98, `<path d='M28 2 L54 17 L54 47 L28 62 L2 47 L2 17 Z' fill='rgba(245,158,11,.06)' stroke='rgba(245,158,11,.32)' stroke-width='2'/><path d='M0 51 L26 66 L26 96 M56 51 L30 66' fill='none' stroke='rgba(245,158,11,.28)' stroke-width='2'/>`), size: '56px 98px' }),
+  bubbles: () => ({ img: svg(220, 220, [[40, 60, 22], [150, 40, 12], [110, 150, 30], [190, 190, 14], [30, 190, 10], [190, 100, 8]].map(([x, y, r]) => `<circle cx='${x}' cy='${y}' r='${r}' fill='${T}.07)' stroke='${T}.32)' stroke-width='2'/><circle cx='${x - r * .3}' cy='${y - r * .3}' r='${Math.max(2, r * .16)}' fill='rgba(255,255,255,.6)'/>`).join('')), size: '220px 220px', anim: 'bgslide' }),
+  stars: () => ({ img: `${svg(180, 180, [[20, 30, 2], [90, 12, 1.4], [150, 60, 2.2], [60, 100, 1.6], [120, 140, 2], [16, 160, 1.4], [165, 165, 1.8]].map(([x, y, r]) => `<circle cx='${x}' cy='${y}' r='${r}' fill='rgba(250,204,21,.7)'/>`).join(''))}, linear-gradient(180deg, rgba(30,41,99,.14), rgba(79,70,229,.1))`, size: '180px 180px, 100% 100%' }),
+  forest: () => ({ img: `${svg(160, 120, `<path d='M30 110 L30 60 M30 80 L14 66 M30 70 L46 56 M110 110 L110 40 M110 70 L90 52 M110 56 L128 40' stroke='${G}.3)' stroke-width='3' fill='none' stroke-linecap='round'/><circle cx='30' cy='56' r='7' fill='${G}.22)'/><circle cx='110' cy='34' r='9' fill='${G}.2)'/>`)}, linear-gradient(180deg, rgba(5,46,22,.1), rgba(21,128,61,.08))`, size: '160px 120px, 100% 100%' }),
+  mint: () => ({ img: `radial-gradient(ellipse at 15% 20%, ${G}.18), transparent 45%), radial-gradient(ellipse at 85% 30%, ${T}.16), transparent 42%), radial-gradient(ellipse at 40% 90%, ${G}.14), transparent 50%)`, size: '100% 100%', anim: 'bgglow' }),
 };
 
 export const getBg = () => { try { return localStorage.getItem('bio.bg') || 'none'; } catch { return 'none'; } };
@@ -36,6 +43,13 @@ export function applyBg(id = getBg()) {
 }
 export function bgPicker(host) {
   const cur = getBg();
-  host.innerHTML = `<h3 class="mt">${esc(t('bg.title'))}</h3><p class="muted small">${esc(t('bg.hint'))}</p><div class="bgs">${Object.keys(BGS).map(k => { const d = BGS[k](); return `<button type="button" class="bgsw ${k === cur ? 'on' : ''}" data-b="${k}"><span class="bgp" style="${d.img ? `background-image:${d.img.replace(/"/g, "'")};background-size:${(d.size || 'auto').split(',')[0]}` : ''}"></span><small>${esc(t('bg.' + k))}</small></button>`; }).join('')}</div>`;
+  host.innerHTML = `<h3 class="mt">${esc(t('bg.title'))}</h3><p class="muted small">${esc(t('bg.hint'))}</p><div class="bgs">${Object.keys(BGS).map(k => { const d = BGS[k](); return `<button type="button" class="bgsw ${k === cur ? 'on' : ''}" data-b="${k}"><span class="bgp" data-k="${k}"></span><small>${esc(t('bg.' + k))}</small></button>`; }).join('')}</div>`;
+  $$('.bgp', host).forEach(sp => { const d = BGS[sp.dataset.k](); if (d.img) { sp.style.backgroundImage = d.img; sp.style.backgroundSize = d.size || 'auto'; } });
   $$('.bgsw', host).forEach(b => b.onclick = () => { try { localStorage.setItem('bio.bg', b.dataset.b); } catch { /* */ } applyBg(b.dataset.b); $$('.bgsw', host).forEach(x => x.classList.toggle('on', x === b)); });
 }
+
+// Alohida "Fon" sahifasi (yuqori paneldagi tugma shu yerga olib keladi)
+route('/backgrounds', async ({ el }) => {
+  el.innerHTML = `<div class="page"><div class="row"><a class="btn ghost sm" href="#/settings">${ic('back')}</a><h1 class="mb0">${esc(t('bg.page'))}</h1></div><div id="bgp" class="card pad mt"></div></div>`;
+  bgPicker($('#bgp', el));
+}, { auth: true });

@@ -28,7 +28,7 @@ export function mountChat(host, c) {
   const prev = r => { const x = norm(r); return x.kind === 'text' || x.body ? x.body : x.kind === 'voice' ? '🎤' : x.kind === 'image' ? '🖼' : '📎'; };
   const quote = id => { const r = byId.get(id); return `<div class="mquote" data-q="${id}"><b>${esc(r ? (norm(r).name || '') : '↩')}</b><span>${esc(r ? prev(r).slice(0, 90) : '…')}</span></div>`; };
   const bubble = raw => {
-    const m = norm(raw); const staff = m.role === 'admin';
+    const m = norm(raw); const staff = m.role === 'admin' || m.role === 'teacher';
     const showText = m.kind === 'text' || (m.kind === 'image' && m.body);
     return `<div class="msg ${m.mine ? 'mine' : ''} ${staff ? 'staff' : ''}" data-id="${m.id}">
       ${!m.mine ? `<div class="mname">${esc(m.name || '')}${staff ? ` <span class="tag">${esc(t('chat.teacher'))}</span>` : ''}</div>` : ''}
@@ -115,5 +115,14 @@ export function mountChat(host, c) {
       try { const path = await uploadVoice(c.folder, r); await send({ kind: 'voice', media_path: path, media_secs: r.secs }); } catch (x) { toast(x.message || String(x), 'err'); }
     };
   }
-  return { destroy() { destroyed = true; sb.removeChannel(ch); } };
+  // zaxira: real vaqt kanali uzilib qolsa ham yangi xabarlar har 5 soniyada o'zi keladi (sahifani yangilash shart emas)
+  const poll = setInterval(async () => {
+    if (destroyed || document.hidden || !navigator.onLine) return;
+    let newest = null; byId.forEach(r => { if (!newest || r.created_at > newest) newest = r.created_at; });
+    let q = sb.from(c.table).select('*').eq(c.filterCol, c.filterVal); if (c.scope) q = c.scope(q);
+    if (newest) q = q.gt('created_at', newest);
+    const { data } = await q.order('created_at', { ascending: true }).limit(50);
+    (data || []).forEach(r => { if (!c.accept || c.accept(r)) add(r); });
+  }, 5000);
+  return { destroy() { destroyed = true; clearInterval(poll); sb.removeChannel(ch); } };
 }

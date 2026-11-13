@@ -52,6 +52,22 @@ document.documentElement.lang = state.lang;
 const staffNow = () => state.isAdmin || state.profile?.role === 'teacher';
 // [yo'l, ikonka, nom, kompyuterda ham/faqat, faol bo'lgan yo'llar]
 const isTeacher = () => !state.isAdmin && state.profile?.role === 'teacher';
+const lbOn = () => state.isAdmin || state.settings?.app?.leaderboard !== false;
+const ADM = (k, i, uz, ru, en) => ['/admin?tab=' + k, i, T(uz, ru, en), 1, p => /^\/admin/.test(p) && location.hash.includes('tab=' + k)];
+const ADMIN_NAV = () => [
+  ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/groups', 'users', t('nav.groups'), 0, /^\/group/],
+  ['/teach/materials', 'plus', T('Materiallar', 'Материалы', 'Materials'), 0, /^\/(teach\/materials|library|item|audios)/, 'cfab'],
+  ['/admin?tab=users', 'user', T('Foydalanuvchilar', 'Пользователи', 'Users'), 0, p => /^\/admin/.test(p) && /tab=users/.test(location.hash)],
+  ['/settings', 'gear', t('nav.profile'), 0, /^\/(settings|offline|guide|backgrounds)/],
+  ['/teach', 'cap', T('Kurslar', 'Курсы', 'Courses'), 1, /^\/(teach(\/course.*)?$|courses|course|lesson|cert)/, 'sep'],
+  ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 1, /^\/(tests|test|practice)/], ['/library', 'book', t('nav.library'), 1, /^\/library/],
+  ['/rating', 'trophy', t('nav.rating'), 1, /^\/(rating|reports)/],
+  ADM('stats', 'chart', 'Platforma statistikasi', 'Статистика платформы', 'Platform stats'), ADM('analytics', 'chart', 'Tahlil', 'Аналитика', 'Analytics'),
+  ADM('teachers', 'cap', 'O\'qituvchilar', 'Преподаватели', 'Teachers'), ADM('requests', 'bell', 'So\'rovlar', 'Заявки', 'Requests'), ADM('news', 'mega', 'E\'lon va reklama', 'Объявления', 'News & ads'),
+  ADM('billing', 'dollar', 'To\'lovlar', 'Платежи', 'Billing'), ADM('app', 'settings', 'Ilova sozlamalari', 'Настройки', 'App settings'), ADM('video', 'video', 'Video qoidalari', 'Правила видео', 'Video rules'),
+  ADM('storage', 'download', 'Saqlash joyi', 'Хранилище', 'Storage'), ADM('audit', 'shield', 'Audit jurnali', 'Журнал', 'Audit log'), ADM('ai', 'bot', 'AI sozlamalari', 'ИИ', 'AI'),
+  ['/inbox', 'msg', T('Chat', 'Чат', 'Chat'), 1, /^\/inbox/], ['/forum', 'msg', T('Forum', 'Форум', 'Forum'), 1, /^\/forum/],
+];
 const TEACHER_NAV = () => [
   ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/teach', 'cap', T('Kurslarim', 'Мои курсы', 'My courses'), 0, /^\/(teach(\/course.*)?$|courses|course|lesson|cert)/],
   ['/teach/materials', 'plus', T('Materiallar', 'Материалы', 'Materials'), 0, /^\/(teach\/materials|library|item|audios)/, 'cfab'],
@@ -59,18 +75,40 @@ const TEACHER_NAV = () => [
   ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 1, /^\/(tests|test|practice)/], ['/library', 'book', t('nav.library'), 1, /^\/(library|item|audios)/],
   ['/reports/all', 'chart', T('Statistika', 'Статистика', 'Statistics'), 1, /^\/reports/], ['/rating', 'trophy', t('nav.rating'), 1, /^\/rating/],
   ['/inbox', 'msg', T('Chat', 'Чат', 'Chat'), 1, /^\/inbox/], ['/forum', 'msg', T('Forum', 'Форум', 'Forum'), 1, /^\/forum/],
-  ['/settings', 'user', t('nav.profile'), 0, /^\/(settings|admin|offline|guide|teacher-apply|inbox)/],
+  ['/settings', 'user', t('nav.profile'), 0, /^\/(settings|offline|guide|teacher-apply|inbox|backgrounds)/],
 ];
-const NAV = () => isTeacher() ? TEACHER_NAV() : [
+// Profil bo'limlari chap menyuga ko'chirilgan (profil menyusida faqat Profil, Yo'riqnoma, Chiqish qoladi)
+const SETTINGS_ITEMS = () => [
+  ['/settings/profile', 'user', T('Profil ma\'lumotlari', 'Данные профиля', 'Profile details'), 1, /^\/settings\/profile/, 'sep'],
+  ['/settings/look', 'globe', t('settings.look'), 1, /^\/settings\/look/], ['/backgrounds', 'image', T('Fon', 'Фон', 'Background'), 1, /^\/backgrounds/],
+  ['/settings/security', 'lock', t('settings.security'), 1, /^\/settings\/security/], ['/settings/notif', 'bell', t('settings.notif'), 1, /^\/settings\/notif/],
+  ['/settings/contact', 'phone', t('settings.contact'), 1, /^\/settings\/contact/], ['/settings/about', 'help', t('settings.about'), 1, /^\/settings\/about/],
+];
+const NAV = () => state.isAdmin ? [...ADMIN_NAV(), ...SETTINGS_ITEMS()] : isTeacher() ? [...TEACHER_NAV(), ...SETTINGS_ITEMS()] : [
   ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/courses', 'cap', T('Kurslar', 'Курсы', 'Courses'), 0, /^\/(courses|course|lesson|cert)/],
-  ['/library', 'book', t('nav.library'), 1, /^\/(library|item|audios)/], ['/cards', 'layers', T('Kartalar', 'Карточки', 'Cards'), 0, /^\/cards/],
-  ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 0, /^\/(tests|test|practice)/], ['/lab', 'flask', T('Laboratoriya', 'Лаборатория', 'Lab'), 1, /^\/lab/],
-  ['/groups', 'users', t('nav.groups'), 1, /^\/group/], ['/forum', 'msg', T('Forum', 'Форум', 'Forum'), 1, /^\/forum/],
-  ...(state.isAdmin || state.settings?.app?.leaderboard !== false ? [['/rating', 'trophy', t('nav.rating'), 1, /^\/(rating|reports)/]] : []),
+  ['/library', 'book', t('nav.library'), 0, /^\/(library|item|audios)/], ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 0, /^\/(tests|test|practice)/],
+  ['/groups', 'users', t('nav.groups'), 1, /^\/group/], ['/cards', 'layers', T('Kartalar', 'Карточки', 'Cards'), 1, /^\/cards/],
+  ['/lab', 'flask', T('Laboratoriya', 'Лаборатория', 'Lab'), 1, /^\/lab/], ['/forum', 'msg', T('Forum', 'Форум', 'Forum'), 1, /^\/forum/],
+  ...(lbOn() ? [['/rating', 'trophy', t('nav.rating'), 1, /^\/(rating|reports)/]] : []),
   ['/ai', 'bot', T('AI yordamchi', 'ИИ-помощник', 'AI assistant'), 1, /^\/ai/], ['/achievements', 'award', T('Yutuqlar', 'Достижения', 'Achievements'), 1, /^\/achievements/],
-  ...(staffNow() ? [['/teach', 'edit', T('Kabinet', 'Кабинет', 'Studio'), 1, /^\/teach(?!\/materials)/], ['/teach/materials', 'folder', T('Materiallar', 'Материалы', 'Materials'), 1, /^\/teach\/materials/]] : []),
-  ['/settings', 'user', t('nav.profile'), 0, /^\/(settings|admin|offline|guide|teacher-apply)/],
+  ['/inbox', 'msg', T('Xabarlar', 'Сообщения', 'Messages'), 1, /^\/inbox/], ['/offline', 'download', t('off.title'), 1, /^\/offline/],
+  ...(state.profile?.role === 'user' ? [['/teacher-apply', 'cap', T('O\'qituvchi bo\'lish', 'Стать преподавателем', 'Become a teacher'), 1, /^\/teacher-apply/]] : []),
+  ...SETTINGS_ITEMS(),
+  ['/settings', 'user', t('nav.profile'), 0, /^\/(settings$|guide)/],
 ];
+const navOn = (re, path) => typeof re === 'function' ? re(path) : re.test(path);
+// chap menyu (telefon): hamma bo'limlar
+function openDrawer() {
+  document.getElementById('drawer')?.remove();
+  const path = currentPath(), d = document.createElement('div'); d.id = 'drawer'; d.className = 'drawer';
+  const items = NAV().filter(n => n[2]);
+  d.innerHTML = `<div class="dback"></div><aside><div class="dhead"><span class="brandic">🧬</span><b>${esc(CONFIG.APP_NAME)}</b><span class="grow"></span><button class="icon-btn" id="dcl" aria-label="close">${ic('x')}</button></div>
+    <div class="dname"><b>${esc(state.profile?.full_name || '')}</b><small class="muted">${esc(state.user?.email || '')}</small></div>
+    <nav>${items.map(([p, i, l, , re, xc]) => `${xc === 'sep' ? '<hr>' : ''}<a href="#${p}" class="${navOn(re, path) ? 'on' : ''}">${ic(i, 20)}<span>${esc(l)}</span></a>`).join('')}</nav></aside>`;
+  document.body.appendChild(d); requestAnimationFrame(() => d.classList.add('open'));
+  const close = () => { d.classList.remove('open'); setTimeout(() => d.remove(), 200); };
+  d.querySelector('.dback').onclick = close; d.querySelector('#dcl').onclick = close; d.querySelector('nav').onclick = e => { if (e.target.closest('a')) close(); };
+}
 let unread = 0;
 function paintShell(path = currentPath()) {
   const app = document.body.dataset.shell === 'app' && state.user;
@@ -78,26 +116,28 @@ function paintShell(path = currentPath()) {
   if (!app) return;
   const av = state.profile?.avatar_url, ini = initials(state.profile?.full_name);
   const dark = document.documentElement.dataset.theme === 'dark';
-  $('#top').innerHTML = `<button class="icon-btn navtg" id="ntg" title="menu" aria-label="menu">${ic('panel')}</button><a class="brand" href="#/home">🧬 <b>${esc(CONFIG.APP_NAME)}</b></a>
-    <button class="gsearch" id="gs" type="button">${ic('search', 18)}<span>${esc(t('gs.ph'))}</span><kbd>/</kbd></button><span class="grow"></span>${xpChip()}
+  const staff = staffNow();
+  $('#top').innerHTML = `<button class="brandbtn" id="ntg" title="menu" aria-label="menu">🧬</button><a class="brand" href="#/home"><b>${esc(CONFIG.APP_NAME)}</b></a>
+    ${staff ? `<button class="gsearch" id="gs" type="button">${ic('search', 18)}<span>${esc(t('gs.ph'))}</span><kbd>/</kbd></button>` : ''}<span class="grow"></span>${xpChip()}
+    <a class="icon-btn tfon" href="#/backgrounds" title="${esc(T('Fon', 'Фон', 'Background'))}" aria-label="bg">${ic('image')}<span>${esc(T('Fon', 'Фон', 'Background'))}</span></a>
+    ${lbOn() && !staff ? `<a class="icon-btn trate" href="#/rating" title="${esc(t('nav.rating'))}" aria-label="rating">${ic('trophy')}</a>` : ''}
     ${canInstall() ? `<button class="icon-btn" id="tinst" title="${esc(t('land.install'))}">${ic('download')}</button>` : ''}
     <button class="icon-btn" id="tth" title="${esc(t('set.theme'))}" aria-label="theme">${ic(dark ? 'sun' : 'moon')}</button>
     <select class="langsel" id="tlang" aria-label="language">${['uz', 'ru', 'en'].map(l => `<option value="${l}" ${l === state.lang ? 'selected' : ''}>${l.toUpperCase()}</option>`).join('')}</select>
     <a class="icon-btn bell" href="#/inbox" title="${esc(t('nav.inbox'))}" aria-label="${esc(t('nav.inbox'))}">${ic('bell')}${unread ? `<i class="badge">${unread > 9 ? '9+' : unread}</i>` : ''}</a>
     <div class="pmenu"><button class="avatar" id="pav" aria-label="${esc(t('nav.profile'))}" aria-haspopup="menu">${av ? `<img src="${esc(av)}" alt="">` : esc(ini)}</button>
       <div class="pdrop" id="pdrop" hidden role="menu"><div class="pdh"><b>${esc(state.profile?.full_name || '')}</b><small class="muted">${esc(state.user?.email || '')}</small></div>
-        <div class="pmore">${NAV().filter(n => n[3]).map(([p, i, l]) => `<a href="#${p}" role="menuitem">${ic(i, 16)} ${esc(l)}</a>`).join('')}</div>
-        <a href="#/settings" role="menuitem">${ic('user', 16)} ${esc(t('nav.profile'))}</a>${state.isAdmin ? `<a href="#/admin" role="menuitem">${ic('shield', 16)} ${esc(t('nav.admin'))}</a>` : ''}
+        <a href="#/settings" role="menuitem">${ic('user', 16)} ${esc(t('nav.profile'))}</a>
         <a href="#/guide" role="menuitem">${ic('help', 16)} ${esc(t('settings.guide'))}</a><button id="plo" role="menuitem">${ic('logout', 16)} ${esc(t('settings.logout'))}</button></div></div>`;
   $('#tlang').onchange = e => setLang(e.target.value);
   $('#tinst')?.addEventListener('click', installApp);
-  $('#gs').onclick = () => openSearch();
+  if ($('#gs')) $('#gs').onclick = () => openSearch();
   $('#tth').onclick = () => { const cur = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; localStorage.setItem('bio.theme', cur); applyTheme(); paintShell(); };
-  $('#ntg').onclick = () => { const on = !document.body.classList.contains('nav-collapsed'); document.body.classList.toggle('nav-collapsed', on); localStorage.setItem('bio.navc', on ? '1' : ''); };
+  $('#ntg').onclick = () => { if (matchMedia('(max-width: 899px)').matches) return openDrawer(); const on = !document.body.classList.contains('nav-collapsed'); document.body.classList.toggle('nav-collapsed', on); localStorage.setItem('bio.navc', on ? '1' : ''); };
   const pd = $('#pdrop'); $('#pav').onclick = e => { e.stopPropagation(); pd.hidden = !pd.hidden; };
   pd.onclick = e => { if (e.target.closest('a')) pd.hidden = true; };
   $('#plo').onclick = () => { pd.hidden = true; doLogout(true); };
-  $('#tabs').innerHTML = NAV().map(([p, i, l, dk, re, xc]) => `<a href="#${p}" class="${dk ? 'dk' : ''} ${xc || ''} ${re.test(path) ? 'on' : ''}" ${re.test(path) ? 'aria-current="page"' : ''}>${ic(i, xc === 'cfab' ? 28 : 22)}<span>${esc(l)}</span></a>`).join('');
+  $('#tabs').innerHTML = NAV().map(([p, i, l, dk, re, xc]) => `<a href="#${p}" class="${dk ? 'dk' : ''} ${xc || ''} ${navOn(re, path) ? 'on' : ''}" ${navOn(re, path) ? 'aria-current="page"' : ''}>${ic(i, xc === 'cfab' ? 28 : 22)}<span>${esc(l)}</span></a>`).join('');
 }
 setShellHook((path, opts) => { document.body.dataset.shell = opts.auth ? 'app' : 'public'; paintShell(path); });
 document.addEventListener('pwa-can-install', () => paintShell());

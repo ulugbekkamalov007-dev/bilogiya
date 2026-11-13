@@ -217,14 +217,19 @@ function run(el, item, pool, chapters, allQs) {
       <div id="fb"></div></div></div>`;
     const tm = setInterval(() => { if (!$('#tm', el)) return clearInterval(tm); $('#tm', el).textContent = fmtDur((Date.now() - t0) / 1000); }, 1000);
     $('#ex', el).onclick = async () => { if (await confirmDlg(t('tests.exit'), t('yes'))) { timer.stop(); go('/library/' + (item.folder_id || '')); } };
-    $$('.opt', el).forEach(b => b.onclick = () => {
-      if (answered) return; answered = true; const pick = opts[+b.dataset.o], ok = pick === q.correct;
+    // 1) variant tanlanadi, 2) "Tasdiqlash" bosiladi, 3) to'g'ri/xato ko'rsatiladi
+    let sel = -1; const fb = $('#fb', el);
+    const ask = () => { fb.innerHTML = `<button class="btn lg block mt" id="cf" ${sel < 0 ? 'disabled' : ''}>${esc(T('Tasdiqlash', 'Подтвердить', 'Confirm'))}</button>`; $('#cf', el).onclick = confirmPick; };
+    const confirmPick = () => {
+      if (answered || sel < 0) return; answered = true; const pick = opts[sel], ok = pick === q.correct;
       if (ok) { correct++; earned += q.points || 1; } else { wrongIds.push(q.id); wrongInfo.push({ q, pick }); }
-      $$('.opt', el).forEach((x, k) => { x.disabled = true; if (opts[k] === q.correct) x.classList.add('right'); });
-      if (!ok) b.classList.add('wrong'); navigator.vibrate?.(ok ? 20 : [40, 40, 40]);
-      $('#fb', el).innerHTML = `${q.explanation ? `<p class="expl">💡 ${esc(q.explanation)}</p>` : ''}<button class="btn lg block mt" id="nx">${esc(i + 1 === pool.length ? t('tests.finish') : t('tests.next'))}</button>`;
+      $$('.opt', el).forEach((x, k) => { x.disabled = true; x.classList.remove('sel'); if (opts[k] === q.correct) x.classList.add('right'); });
+      if (!ok) $$('.opt', el)[sel].classList.add('wrong'); navigator.vibrate?.(ok ? 20 : [40, 40, 40]);
+      fb.innerHTML = `<div class="verdict ${ok ? 'ok' : 'bad'}">${ok ? '✔ ' + esc(T('To\'g\'ri!', 'Верно!', 'Correct!')) : '✘ ' + esc(T('Noto\'g\'ri', 'Неверно', 'Wrong')) + ' — ' + esc(T('to\'g\'ri javob', 'правильный ответ', 'correct answer')) + ': ' + esc(q.correct)}</div>${q.explanation ? `<p class="expl">💡 ${esc(q.explanation)}</p>` : ''}<button class="btn lg block mt" id="nx">${esc(i + 1 === pool.length ? t('tests.finish') : t('tests.next'))}</button>`;
       $('#nx', el).onclick = async () => { if (i + 1 < pool.length) { i++; draw(); } else if (await confirmDlg(T('Testni topshirasizmi? Natija saqlanadi.', 'Завершить тест? Результат будет сохранён.', 'Submit the test? Your result will be saved.'), T('Topshirish', 'Завершить', 'Submit'))) { i++; finish(); } };
-    });
+    };
+    $$('.opt', el).forEach((b, k) => b.onclick = () => { if (answered) return; sel = k; $$('.opt', el).forEach((x, j) => x.classList.toggle('sel', j === k)); const c = $('#cf', el); if (c) c.disabled = false; });
+    ask();
   };
   async function finish() {
     const dur = Math.round((Date.now() - t0) / 1000), pct = Math.round(correct / pool.length * 1000) / 10;

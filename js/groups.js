@@ -1,4 +1,5 @@
 // Guruhlar: so'rov bilan qo'shilish, chat, vazifalar (alohida bo'lim), a'zolarni boshqarish, xavfsizlik sozlamalari
+import { T } from './ui.js';
 import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, friendlyErr, signedUrl, confirmDlg, btnBusy, fmtDate, fmtTime, fmtDur, spinner } from './core.js';
 import { mountChat } from './chat.js';
 import { testImportModal } from './tests.js';
@@ -41,10 +42,11 @@ addDict({
     'grp.too_big': 'File is larger than 10 MB', 'grp.open': 'Open', 'grp.closed_task': 'Assignment closed', 'grp.close_task': 'Close', 'grp.reopen': 'Reopen', 'grp.new_task_msg': '📌 New assignment: {t}' },
 });
 
+const mgr = () => state.isAdmin || state.profile?.role === 'teacher';
 // ------------------------------------------------------------------ RO'YXAT
 route('/groups', async ({ el, alive }) => {
   const uid = state.user.id; let groups = [], pend = {};
-  if (state.isAdmin) {
+  if (mgr()) {
     const [g, p] = await Promise.all([sb.from('groups').select('*').eq('archived', false).order('created_at', { ascending: false }), sb.from('group_members').select('group_id').eq('status', 'pending')]);
     groups = (g.data || []).map(x => ({ ...x, status: 'approved' })); (p.data || []).forEach(r => pend[r.group_id] = (pend[r.group_id] || 0) + 1);
   } else {
@@ -55,20 +57,21 @@ route('/groups', async ({ el, alive }) => {
   }
   if (!alive()) return;
   const draw = () => {
-    el.innerHTML = `<div class="page"><div class="row between mb"><h1>${esc(t('grp.title'))}</h1>${state.isAdmin ? `<button class="btn" id="new">${ic('plus')} ${esc(t('grp.new'))}</button>` : ''}</div>
+    el.innerHTML = `<div class="page"><div class="row between mb"><h1>${esc(t('grp.title'))}</h1>${mgr() ? `<button class="btn" id="new">${ic('plus')} ${esc(t('grp.new'))}</button>` : ''}</div>
       ${groups.length ? `<div class="cards">${groups.map(g => `<a class="card pad item-row" href="${g.status === 'approved' ? '#/group/' + g.id : '#/groups'}">
         <span class="item-ic users">${ic('users')}</span><div class="grow"><b>${esc(g.name)}</b><small class="muted">${esc(g.description || '')}</small>
         ${g.status === 'pending' ? `<span class="chip warn">${esc(t('grp.pending'))}</span>` : ''}${pend[g.id] ? `<span class="chip warn">${esc(t('grp.pending_n', { n: pend[g.id] }))}</span>` : ''}</div>${g.status === 'approved' ? ic('chev') : ''}</a>`).join('')}</div>` : `<p class="muted">${esc(t('grp.none'))}</p>`}
-      ${state.isAdmin ? '' : `<h3 class="mt">${esc(t('grp.find'))}</h3><input class="input" id="q" placeholder="${esc(t('grp.find_ph'))}"><div id="res" class="cards mt"></div>`}</div>`;
+      ${mgr() ? '' : `<h3 class="mt">${esc(T('Barcha guruhlar', 'Все группы', 'All groups'))}</h3><input class="input" id="q" placeholder="${esc(t('grp.find_ph'))}"><div id="res" class="cards mt"></div>`}</div>`;
     $('#new', el)?.addEventListener('click', createGroup);
-    const q = $('#q', el); if (!q) return; let to;
-    q.oninput = () => { clearTimeout(to); to = setTimeout(async () => {
-      const v = q.value.trim(); if (v.length < 2) { $('#res', el).innerHTML = ''; return; }
-      const { data } = await sb.from('groups_public').select('*').ilike('name', `%${v}%`).limit(15);
-      $('#res', el).innerHTML = (data || []).map(g => { const mine = groups.find(x => x.id === g.id); return `<div class="card pad item-row"><span class="item-ic users">${ic('users')}</span><div class="grow"><b>${esc(g.name)}</b><small class="muted">${esc(g.description || '')}</small></div>
-        ${mine ? `<span class="chip">${esc(t(mine.status === 'pending' ? 'grp.pending' : 'grp.my'))}</span>` : `<button class="btn sm" data-j="${g.id}">${esc(t('grp.join'))}</button>`}</div>`; }).join('');
-      $$('[data-j]', el).forEach(b => b.onclick = async () => { const { error } = await sb.rpc('request_join', { p_group: b.dataset.j }); if (error) return toast(error.message, 'err'); toast(t('grp.sent'), 'ok'); groups.push({ id: b.dataset.j, name: '…', status: 'pending' }); b.outerHTML = `<span class="chip">${esc(t('grp.pending'))}</span>`; });
-    }, 300); };
+    const q = $('#q', el); if (!q) return;
+    const row = g => { const mine = groups.find(x => x.id === g.id); return `<div class="card pad item-row"><span class="item-ic users">${ic('users')}</span><div class="grow"><b>${esc(g.name)}</b><small class="muted">${esc(g.description || '')}${g.members != null ? ' · ' + g.members + ' ' + esc(T('a\'zo', 'уч.', 'members')) : ''}</small></div>
+        ${mine ? `<span class="chip ${mine.status === 'approved' ? 'ok' : 'warn'}">${esc(t(mine.status === 'pending' ? 'grp.pending' : 'grp.my'))}</span>` : `<button class="btn sm" data-j="${g.id}">${esc(T('So\'rov yuborish', 'Подать заявку', 'Request to join'))}</button>`}</div>`; };
+    const show = async () => {
+      const v = q.value.trim(); let qq = sb.from('groups_public').select('*').order('name').limit(100); if (v) qq = qq.ilike('name', `%${v}%`);
+      const { data } = await qq; $('#res', el).innerHTML = (data || []).map(row).join('') || `<p class="muted">${esc(t('grp.none'))}</p>`;
+      $$('[data-j]', el).forEach(b => b.onclick = async () => { const { error } = await sb.rpc('request_join', { p_group: b.dataset.j }); if (error) return toast(error.message, 'err'); toast(t('grp.sent'), 'ok'); groups.push({ id: b.dataset.j, name: '…', status: 'pending' }); show(); });
+    };
+    let to; q.oninput = () => { clearTimeout(to); to = setTimeout(show, 250); }; show();
   };
   draw();
   function createGroup() {
@@ -86,19 +89,19 @@ route('/group/:id', async ({ el, params, alive, q }) => {
   const { data: g } = await sb.from('groups').select('*').eq('id', gid).maybeSingle();
   if (!alive()) return; if (!g) return go('/groups', true);
   document.body.classList.add('fs-read', 'fs-chat'); onLeave(() => document.body.classList.remove('fs-read', 'fs-chat'));
-  const tabs = [['chat', 'grp.tab_chat'], ['tasks', 'grp.tab_tasks'], ...(state.isAdmin ? [['members', 'grp.tab_members'], ['set', 'grp.tab_set']] : [])];
+  const tabs = [['chat', 'grp.tab_chat'], ['tasks', 'grp.tab_tasks'], ...(mgr() ? [['members', 'grp.tab_members'], ['set', 'grp.tab_set']] : [])];
   let tab = q.tab || 'chat', chat = null;
   const paint = async () => {
     chat?.destroy(); chat = null;
     el.innerHTML = `<div class="page chatpage fsg"><div class="row between"><div class="row"><a class="btn ghost sm" href="#/groups">${ic('back')}</a><div><h2 class="mb0">${esc(g.name)}</h2><small class="muted">${esc(g.description || '')}</small></div></div>
-      ${state.isAdmin ? '' : `<a class="btn ghost sm" href="#/inbox?topic=help&ctx=${encodeURIComponent(g.name)}">${ic('help', 16)} ${esc(t('grp.help'))}</a>`}</div>
+      ${mgr() ? '' : `<a class="btn ghost sm" href="#/inbox?topic=help&ctx=${encodeURIComponent(g.name)}">${ic('help', 16)} ${esc(t('grp.help'))}</a>`}</div>
       <div class="tabs">${tabs.map(([k, l]) => `<button class="${k === tab ? 'on' : ''}" data-tab="${k}">${esc(t(l))}</button>`).join('')}</div><div id="body"></div></div>`;
     $$('[data-tab]', el).forEach(b => b.onclick = () => { tab = b.dataset.tab; paint(); });
     const body = $('#body', el);
     if (tab === 'chat') {
       chat = mountChat(body, { table: 'messages', filterCol: 'group_id', filterVal: gid, scope: qq => qq.is('assignment_id', null), accept: m => !m.assignment_id,
-        insertBase: { group_id: gid }, folder: `${gid}/${uid}`, canWrite: state.isAdmin || g.students_can_chat, reply: true,
-        canDelete: m => state.isAdmin || m.user_id === uid, onReport: reportMessage });
+        insertBase: { group_id: gid }, folder: `${gid}/${uid}`, canWrite: mgr() || g.students_can_chat, reply: true,
+        canDelete: m => mgr() || m.user_id === uid, onReport: reportMessage });
       onLeave(() => chat?.destroy());
     } else if (tab === 'tasks') await tasksTab(body); else if (tab === 'members') await membersTab(body); else if (tab === 'set') settingsTab(body);
   };
@@ -109,13 +112,13 @@ route('/group/:id', async ({ el, params, alive, q }) => {
   async function tasksTab(body) {
     const [{ data: as }, { data: mine }] = await Promise.all([sb.from('assignments').select('*').eq('group_id', gid).order('created_at', { ascending: false }), sb.from('submissions').select('assignment_id').eq('group_id', gid).eq('user_id', uid)]);
     const done = new Set((mine || []).map(x => x.assignment_id));
-    const books = state.isAdmin ? ((await sb.from('items').select('id,title,kind').in('kind', ['book', 'pdf', 'presentation']).order('created_at', { ascending: false })).data || []) : [];
-    const tests = state.isAdmin ? ((await sb.from('items').select('id,title').eq('kind', 'test').order('created_at', { ascending: false })).data || []) : [];
-    body.innerHTML = `${state.isAdmin ? `<button class="btn mb" id="nt">${ic('plus')} ${esc(t('grp.new_task'))}</button>` : ''}
+    const books = mgr() ? ((await sb.from('items').select('id,title,kind').in('kind', ['book', 'pdf', 'presentation']).order('created_at', { ascending: false })).data || []) : [];
+    const tests = mgr() ? ((await sb.from('items').select('id,title').eq('kind', 'test').order('created_at', { ascending: false })).data || []) : [];
+    body.innerHTML = `${mgr() ? `<button class="btn mb" id="nt">${ic('plus')} ${esc(t('grp.new_task'))}</button>` : ''}
       ${(as || []).length ? `<div class="cards">${as.map(a => { const od = a.due_at && new Date(a.due_at) < new Date() && !a.closed;
         return `<a class="card pad item-row" href="#/group/${gid}/task/${a.id}"><span class="item-ic book">${ic('test')}</span><div class="grow"><b>${esc(a.title)}</b>
         <small class="muted">${a.due_at ? esc(fmtDate(a.due_at) + ' ' + fmtTime(a.due_at)) : ''}</small>
-        <div class="chips">${a.closed ? `<span class="chip">${esc(t('grp.closed'))}</span>` : ''}${od ? `<span class="chip warn">${esc(t('grp.overdue'))}</span>` : ''}${!state.isAdmin ? `<span class="chip ${done.has(a.id) ? 'ok' : ''}">${esc(t(done.has(a.id) ? 'grp.done' : 'grp.todo'))}</span>` : ''}</div></div>${ic('chev')}</a>`; }).join('')}</div>` : `<p class="muted">${esc(t('grp.no_tasks'))}</p>`}`;
+        <div class="chips">${a.closed ? `<span class="chip">${esc(t('grp.closed'))}</span>` : ''}${od ? `<span class="chip warn">${esc(t('grp.overdue'))}</span>` : ''}${!mgr() ? `<span class="chip ${done.has(a.id) ? 'ok' : ''}">${esc(t(done.has(a.id) ? 'grp.done' : 'grp.todo'))}</span>` : ''}</div></div>${ic('chev')}</a>`; }).join('')}</div>` : `<p class="muted">${esc(t('grp.no_tasks'))}</p>`}`;
     $('#nt', body)?.addEventListener('click', () => {
       const m = modal(`<h3>${esc(t('grp.new_task'))}</h3><form class="form" id="f"><label class="fld"><span>${esc(t('grp.task_title'))}</span><input class="input" id="ti" required></label>
         <label class="fld"><span>${esc(t('grp.task_body'))}</span><textarea class="input" id="bo" rows="4"></textarea></label><label class="fld"><span>${esc(t('grp.f_audio'))}</span><input class="input" id="as" type="number" min="0" max="20" value="5" style="max-width:110px"></label>
@@ -181,21 +184,27 @@ route('/group/:id/task/:aid', async ({ el, params, alive }) => {
   const subHtml = s => `<div class="card pad mb" data-s="${s.id}"><div class="row between"><b>${esc(s.sender_name)}</b><small class="muted">${esc(fmtDate(s.created_at) + ' ' + fmtTime(s.created_at))}</small></div>
     ${s.text ? `<p class="pre">${esc(s.text)}</p>` : ''}${s.file_path || s.media_expired ? mediaHtml({ kind: 'file', media_path: s.file_path, body: s.file_name, media_expired: !s.file_path && s.media_expired }) : ''}
     ${s.voice_path ? mediaHtml({ kind: 'voice', media_path: s.voice_path, media_secs: s.voice_secs }) : ''}
-    ${state.isAdmin ? `<div class="row wrap mt"><input class="input sm" style="max-width:110px" type="number" min="0" max="100" data-g placeholder="${esc(t('grp.grade'))}" value="${s.grade ?? ''}"><input class="input grow" data-f placeholder="${esc(t('grp.feedback'))}" value="${esc(s.feedback || '')}"><button class="btn sm" data-sv="${s.id}">${esc(t('grp.save'))}</button></div>`
+    ${mgr() ? `<div class="row wrap mt"><input class="input sm" style="max-width:110px" type="number" min="0" max="100" data-g placeholder="${esc(t('grp.grade'))}" value="${s.grade ?? ''}"><input class="input grow" data-f placeholder="${esc(t('grp.feedback'))}" value="${esc(s.feedback || '')}"><button class="btn sm" data-sv="${s.id}">${esc(t('grp.save'))}</button></div>`
       : (s.grade !== null || s.feedback ? `<div class="chips mt">${s.grade !== null ? `<span class="chip ok">${s.grade}/100</span>` : ''}${s.feedback ? `<span class="chip">${esc(s.feedback)}</span>` : ''}</div>` : '')}</div>`;
   el.innerHTML = `<div class="page chatpage fst"><div class="row"><a class="btn ghost sm" href="#/group/${gid}?tab=tasks">${ic('back')}</a><h2 class="mb0">${esc(a.title)}</h2></div>
     <div class="card pad mt"><p class="pre">${esc(a.body || '')}</p>${a.due_at ? `<p class="muted small">⏰ ${esc(fmtDate(a.due_at) + ' ' + fmtTime(a.due_at))}</p>` : ''}
       ${a.closed ? `<span class="chip">${esc(t('grp.closed_task'))}</span>` : ''}
-      ${state.isAdmin ? `<div class="row end"><button class="btn sm ghost" id="cl">${esc(a.closed ? t('grp.reopen') : t('grp.close_task'))}</button><button class="btn sm danger" id="dl">${ic('trash', 14)}</button></div>` : ''}</div>
-    ${a.book_item_id || a.book_path ? `<a class="btn lg block mt" href="${a.book_item_id ? '#/item/' + a.book_item_id : '#/taskdoc/' + aid}">${ic('book')} ${esc(t('grp.read_book'))}${a.book_name ? ' — ' + esc(a.book_name.slice(0, 30)) : ''}</a>` : ''}
-    ${!state.isAdmin && a.audio_slots > 0 ? `<div class="card pad mt"><h4>🎤 ${esc(t('grp.audios'))}</h4><div id="slots"></div></div>` : ''}
-    ${!state.isAdmin && !a.closed ? `<div class="card pad mt form"><h4>${esc(t('grp.your_work'))}</h4><textarea class="input" id="tx" rows="3" placeholder="${esc(t('grp.text_ph'))}"></textarea>
+      ${mgr() ? `<div class="row end"><button class="btn sm ghost" id="cl">${esc(a.closed ? t('grp.reopen') : t('grp.close_task'))}</button><button class="btn sm danger" id="dl">${ic('trash', 14)}</button></div>` : ''}</div>
+    <div class="tcards mt">
+      <section class="tcard" id="tc-audio"><button class="tc-h" type="button" id="tca">${ic('mic', 22)}<div class="grow"><b>${esc(T('Audio paket', 'Аудио-пакет', 'Audio pack'))}</b><small class="muted" id="tca-n">${a.audio_slots} ${esc(T('ta audio', 'аудио', 'audios'))}</small></div>${ic('chev', 16)}</button>
+        <div class="tc-b" id="tcab" hidden>${mgr() ? `<div class="row"><label class="fld grow"><span>${esc(t('grp.f_audio'))}</span><input class="input" id="asn" type="number" min="0" max="20" value="${a.audio_slots}"></label><button class="btn sm" id="ass">${esc(t('grp.save'))}</button></div><p class="muted small">${esc(T('Talabalar shuncha audio joyini ko\'radi va + bosib audio yuboradi.', 'Студенты увидят столько мест и добавят аудио кнопкой +.', 'Students see this many slots and add audio with +.'))}</p>` : `<div id="slots"></div>`}</div></section>
+      <section class="tcard" id="tc-book"><div class="tc-h">${ic('book', 22)}<div class="grow"><b>${esc(T('Kitob', 'Книга', 'Book'))}</b><small class="muted">${a.book_item_id || a.book_path ? esc((a.book_name || '').slice(0, 34) || t('grp.read_book')) : esc(T('Biriktirilmagan', 'Не прикреплена', 'Not attached'))}</small></div>
+        ${a.book_item_id || a.book_path ? `<a class="btn sm" href="${a.book_item_id ? '#/item/' + a.book_item_id : '#/taskdoc/' + aid}">${esc(t('grp.read_book'))}</a>` : ''}</div>
+        ${mgr() ? `<div class="tc-b row wrap"><label class="btn ghost sm">${ic('clip', 14)} ${esc(T('Fayl yuklash', 'Загрузить файл', 'Upload file'))}<input type="file" id="bku" accept=".pdf,.doc,.docx,.ppt,.pptx" hidden></label><button class="btn ghost sm" id="bks">${ic('link', 14)} ${esc(T('Tizimdan ulash', 'Выбрать из системы', 'Link from library'))}</button>${a.book_item_id || a.book_path ? `<button class="btn ghost sm" id="bkx">${ic('x', 14)}</button>` : ''}</div>` : ''}</section>
+      <a class="tcard tc-link" id="tc-chat" href="#/group/${gid}/task/${aid}/chat">${ic('msg', 22)}<div class="grow"><b>${esc(T('Muhokama', 'Обсуждение', 'Discussion'))}</b><small class="muted" id="tcc-n">${esc(T('Chatni ochish', 'Открыть чат', 'Open chat'))}</small></div>${ic('chev', 16)}</a>
+      ${a.test_item_id && !mgr() ? `<a class="tcard tc-link" href="#/test/${a.test_item_id}">${ic('test', 22)}<div class="grow"><b>${esc(t('grp.take_test'))}</b></div>${ic('chev', 16)}</a>` : ''}
+    </div>
+    ${!mgr() && !a.closed ? `<div class="card pad mt form"><h4>${esc(t('grp.your_work'))}</h4><textarea class="input" id="tx" rows="3" placeholder="${esc(t('grp.text_ph'))}"></textarea>
       <div class="row wrap"><label class="btn ghost sm">${ic('clip', 16)} <span id="fn">…</span><input type="file" id="fl" hidden></label><button class="btn ghost sm" id="mc" type="button">${ic('mic', 16)} <span id="mt">${esc(t('grp.rec'))}</span></button><span class="grow"></span><button class="btn" id="sb">${esc(t('grp.submit'))}</button></div></div>` : ''}
-    ${a.test_item_id && !state.isAdmin ? `<a class="btn lg block mt" href="#/test/${a.test_item_id}">${ic('test')} ${esc(t('grp.take_test'))}</a>` : ''}${state.isAdmin ? `<div id="ov" class="mt">${spinner()}</div>` : ''}
-    <h3 class="mt">${esc(state.isAdmin ? t('grp.subs') + ' (' + subs.length + ')' : t('grp.your_work'))}</h3><div id="subs">${subs.map(subHtml).join('') || '<p class="muted">—</p>'}</div>
-    <h3 class="mt">${ic('users', 18)} ${esc(t('grp.discuss'))}</h3><div id="thread" class="threadbox"></div></div>`;
+    ${mgr() ? `<div id="ov" class="mt">${spinner()}</div>` : ''}
+    <h3 class="mt">${esc(mgr() ? t('grp.subs') + ' (' + subs.length + ')' : t('grp.your_work'))}</h3><div id="subs">${subs.map(subHtml).join('') || '<p class="muted">—</p>'}</div></div>`;
   fillMedia($('#subs', el));
-  if (state.isAdmin) (async () => {
+  if (mgr()) (async () => {
     const { data, error } = await sb.rpc('assignment_overview', { p_assignment: aid }); const ov = $('#ov', el); if (!ov) return;
     if (error) { ov.innerHTML = ''; return; }
     const rows = (data || []).sort((x, y) => (y.texts + y.voices + y.files) - (x.texts + x.voices + x.files) || String(x.full_name).localeCompare(String(y.full_name)));
@@ -214,9 +223,22 @@ route('/group/:id/task/:aid', async ({ el, params, alive }) => {
       fillMedia($('#ud', m.el)); $$('[data-sv]', m.el).forEach(sv => sv.onclick = async () => { const c = sv.closest('[data-s]'), gr = $('[data-g]', c).value; const { error: e2 } = await sb.from('submissions').update({ grade: gr === '' ? null : +gr, feedback: $('[data-f]', c).value.trim() || null }).eq('id', sv.dataset.sv); toast(e2 ? e2.message : t('grp.save') + ' ✔', e2 ? 'err' : 'ok'); });
     });
   })();
-  const chat = mountChat($('#thread', el), { table: 'messages', filterCol: 'group_id', filterVal: gid, aid, scope: qq => qq.eq('assignment_id', aid), accept: m => m.assignment_id === aid,
-    insertBase: { group_id: gid, assignment_id: aid }, folder: `${gid}/${uid}`, canWrite: true, reply: true, canDelete: m => state.isAdmin || m.user_id === uid });
-  onLeave(() => chat.destroy());
+  // paket (audio) ochilib-yopiladi; muhokama xabarlari soni
+  $('#tca', el).onclick = () => { const b = $('#tcab', el); b.hidden = !b.hidden; $('#tca', el).classList.toggle('open', !b.hidden); };
+  if (!mgr() && a.audio_slots > 0) $('#tcab', el).hidden = false;
+  sb.from('messages').select('id', { count: 'exact', head: true }).eq('assignment_id', aid).then(({ count }) => { const n = $('#tcc-n', el); if (n && count) n.textContent = count + ' ' + T('ta xabar', 'сообщ.', 'messages'); });
+  if (mgr()) {
+    $('#ass', el).onclick = async () => { const n = Math.max(0, Math.min(20, +$('#asn', el).value || 0)); const { error } = await sb.from('assignments').update({ audio_slots: n }).eq('id', aid); toast(error ? error.message : t('grp.save') + ' ✔', error ? 'err' : 'ok'); if (!error) location.reload(); };
+    $('#bku', el).onchange = async e => { const f = e.target.files[0]; if (!f) return; if (f.size > MAX_FILE) return toast(t('grp.too_big'), 'err'); try { const up = await uploadAttachment(`${gid}/${uid}`, f); const { error } = await sb.from('assignments').update({ book_path: up.path, book_name: f.name, book_item_id: null }).eq('id', aid); if (error) throw error; toast(t('grp.save') + ' ✔', 'ok'); location.reload(); } catch (x) { toast(friendlyErr(x.message || String(x)), 'err'); } };
+    $('#bkx', el)?.addEventListener('click', async () => { await sb.from('assignments').update({ book_path: null, book_name: null, book_item_id: null }).eq('id', aid); location.reload(); });
+    $('#bks', el).onclick = async () => {
+      const { data: bk } = await sb.from('items').select('id,title,kind').in('kind', ['book', 'pdf', 'presentation']).order('created_at', { ascending: false }).limit(200);
+      const m = modal(`<h3>${esc(T('Tizimdagi kitobni tanlang', 'Выберите книгу из системы', 'Pick a book from the library'))}</h3><input class="input" id="bq" placeholder="${esc(t('grp.find_ph'))}"><div class="cards mt" id="bl" style="max-height:50vh;overflow:auto"></div>`);
+      const draw2 = v => { $('#bl', m.el).innerHTML = (bk || []).filter(x => !v || tr(x.title).toLowerCase().includes(v)).map(x => `<button class="card pad item-row left" data-b="${x.id}"><span class="item-ic">${ic('book', 18)}</span><b class="grow">${esc(tr(x.title))}</b></button>`).join('') || `<p class="muted">—</p>`;
+        $$('[data-b]', m.el).forEach(b => b.onclick = async () => { const it = (bk || []).find(x => x.id === b.dataset.b); const { error } = await sb.from('assignments').update({ book_item_id: b.dataset.b, book_name: tr(it.title), book_path: null }).eq('id', aid); if (error) return toast(error.message, 'err'); m.close(); location.reload(); }); };
+      $('#bq', m.el).oninput = e => draw2(e.target.value.trim().toLowerCase()); draw2('');
+    };
+  }
   const bindSubs = () => $$('[data-sv]', el).forEach(b => b.onclick = async () => { const c = b.closest('[data-s]'), gr = $('[data-g]', c).value;
     const { error } = await sb.from('submissions').update({ grade: gr === '' ? null : +gr, feedback: $('[data-f]', c).value.trim() || null }).eq('id', b.dataset.sv); toast(error ? error.message : t('grp.save') + ' ✔', error ? 'err' : 'ok'); });
   bindSubs();
@@ -271,6 +293,17 @@ route('/group/:id/task/:aid', async ({ el, params, alive }) => {
       } catch (x) { toast(x.message || String(x), 'err'); btnBusy(sbm, false); }
     };
   }
+}, { auth: true });
+
+route('/group/:id/task/:aid/chat', async ({ el, params, alive }) => {
+  const gid = params.id, aid = params.aid, uid = state.user.id;
+  const { data: a } = await sb.from('assignments').select('id,title').eq('id', aid).maybeSingle();
+  if (!alive()) return; if (!a) return go('/group/' + gid, true);
+  document.body.classList.add('fs-read'); onLeave(() => document.body.classList.remove('fs-read'));
+  el.innerHTML = `<div class="fullchat"><header><a class="btn ghost sm" href="#/group/${gid}/task/${aid}">${ic('back')}</a><div class="grow"><b>${esc(T('Muhokama', 'Обсуждение', 'Discussion'))}</b><small class="muted">${esc(a.title)}</small></div></header><div id="thread" class="fcbody"></div></div>`;
+  const chat = mountChat($('#thread', el), { table: 'messages', filterCol: 'group_id', filterVal: gid, aid, scope: qq => qq.eq('assignment_id', aid), accept: m => m.assignment_id === aid,
+    insertBase: { group_id: gid, assignment_id: aid }, folder: `${gid}/${uid}`, canWrite: true, reply: true, canDelete: m => mgr() || m.user_id === uid });
+  onLeave(() => chat.destroy());
 }, { auth: true });
 
 route('/taskdoc/:aid', async ({ el, params, alive }) => {
