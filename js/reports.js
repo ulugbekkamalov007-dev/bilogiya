@@ -64,7 +64,7 @@ function lineChart(pts) {
   return s + '</svg>';
 }
 
-async function renderReport(el, uid, name, alive) {
+export async function renderReport(el, uid, name, alive, opts = {}) {
   let period = localStorage.getItem('bio.repP') || '7';
   const today = new Date();
   const draw = async () => {
@@ -76,7 +76,7 @@ async function renderReport(el, uid, name, alive) {
       sb.rpc('report_usage_items', { p_user: uid, p_from: from, p_to: to }), sb.rpc('report_usage', { p_user: uid, p_from: wideFrom, p_to: to }),
     ]);
     if (!alive()) return;
-    if (use.error || tst.error || itm.error) { console.warn('report:', (use.error || tst.error || itm.error).message); el.innerHTML = `<div class="page">${name ? `<a class="btn ghost sm" href="#/rating">${ic('back')}</a>` : ''}<p class="muted center pad">${esc(t('rep.unavail'))}</p></div>`; return; }
+    if (use.error || tst.error || itm.error) { console.warn('report:', (use.error || tst.error || itm.error).message); el.innerHTML = `<div class="page">${name && opts.back !== false ? `<a class="btn ghost sm" href="${opts.back || '#/rating'}">${ic('back')}</a>` : ''}<p class="muted center pad">${esc(t('rep.unavail'))}</p></div>`; return; }
     const rows = use.data || [], tests = tst.data || [], items = itm.data || [];
     // kun bo'yicha: {app,video,book,test}
     const byDay = {}; rows.forEach(r => { (byDay[r.day] ||= { app: 0, video: 0, audio: 0, book: 0, test: 0 })[r.kind] += +r.seconds / 60; });
@@ -96,7 +96,7 @@ async function renderReport(el, uid, name, alive) {
     const kmax = Math.max(1, ...kinds.map(k => k[1]));
     const pcts = tests.map(x => +x.percent), avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null;
 
-    el.innerHTML = `<div class="page">${name ? `<a class="btn ghost sm" href="#/rating">${ic('back')}</a>` : ''}<div class="row between wrap"><h1>${esc(name ? t('rep.of', { name }) : t('rep.title'))}</h1>${name && state.isAdmin ? `<a class="btn sm ghost" href="#/inbox/${uid}">${ic('send', 14)}</a>` : ''}
+    el.innerHTML = `<div class="page">${name && opts.back !== false ? `<a class="btn ghost sm" href="${opts.back || '#/rating'}">${ic('back')}</a>` : ''}<div class="row between wrap"><h1>${esc(opts.embed ? T('Faollik hisoboti', 'Отчёт об активности', 'Activity report') : name ? t('rep.of', { name }) : t('rep.title'))}</h1>${name && state.isAdmin ? `<a class="btn sm ghost" href="#/inbox/${uid}">${ic('send', 14)}</a>` : ''}
       <div class="seg sm">${[['7', 'rep.p7'], ['30', 'rep.p30'], ['12w', 'rep.p12w']].map(([v, k]) => `<label><input type="radio" name="pp" value="${v}" ${v === period ? 'checked' : ''}><span>${esc(t(k))}</span></label>`).join('')}</div></div>
       <p class="muted small">${esc(t('rep.hint'))}</p>
       <div class="stats3 mb"><button class="stat card" data-sum="today"><span>${esc(t('rep.today'))}</span><b>${esc(fmtMin(secTot([dayStr(today)])))}</b></button>

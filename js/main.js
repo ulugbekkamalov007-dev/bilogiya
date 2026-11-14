@@ -16,6 +16,9 @@ import './courses.js';
 import './flash.js';
 import './teacher.js';
 import './forum.js';
+import './userview.js';
+import { subscriptionNotice } from './phonegate.js';
+import { hiddenSet, sectionOf } from './sections.js';
 import './practice.js';
 import './lab.js';
 import './ai.js';
@@ -87,7 +90,8 @@ const SETTINGS_ITEMS = () => [
   ['/settings/contact', 'phone', t('settings.contact'), 1, /^\/settings\/contact/], ['/settings/about', 'help', t('settings.about'), 1, /^\/settings\/about/],
   ['/update', 'zap', T('Yangilash', 'Обновление', 'Update'), 1, /^\/update/],
 ];
-const NAV = () => state.isAdmin ? [...ADMIN_NAV(), ...SETTINGS_ITEMS()] : isTeacher() ? [...TEACHER_NAV(), ...SETTINGS_ITEMS()] : [
+const NAV = () => NAV0().filter(n => { const pth = String(n[0]), sc = pth.includes('tab=ai') ? 'ai' : sectionOf(pth.split('?')[0]); return !(sc && hiddenSet().has(sc)); });
+const NAV0 = () => state.isAdmin ? [...ADMIN_NAV(), ...SETTINGS_ITEMS()] : isTeacher() ? [...TEACHER_NAV(), ...SETTINGS_ITEMS()] : [
   ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/courses', 'cap', T('Kurslar', 'Курсы', 'Courses'), 0, /^\/(courses|course|lesson|cert)/],
   ['/library', 'book', t('nav.library'), 0, /^\/(library|item|audios)/], ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 0, /^\/(tests|test|practice)/],
   ['/groups', 'users', t('nav.groups'), 1, /^\/group/], ['/cards', 'layers', T('Kartalar', 'Карточки', 'Cards'), 1, /^\/cards/],
@@ -182,7 +186,7 @@ async function onSignedIn(user) {
   if (!navigator.onLine && offList().length && !currentPath().startsWith('/offline')) go('/offline', true);
   else if (['/', '/login', '/register', '/verify', '/forgot'].includes(currentPath())) go('/home', true); else render();
   if (!window._miniInit) { window._miniInit = 1; initMiniBar(); }
-  watchBlocked(); refreshStats();
+  watchBlocked(); refreshStats(); subscriptionNotice();
   offerQuickLogin();
   setTimeout(() => { try { maybeDevNote(); } catch { /* */ } }, 2500);
 }

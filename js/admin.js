@@ -4,6 +4,7 @@ import { TABS2, analyticsTab, auditTab, teachersTab, aiTab } from './admin2.js';
 import { T } from './ui.js';
 import { sb, state, t, tr, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, modal, confirmDlg, btnBusy, fmtMin, fmtDate, fmtSize, dayStr, addDays, loadSettings, spinner } from './core.js';
 import { composeAnnouncement } from './news.js';
+import { SECTIONS, hiddenSet } from './sections.js';
 
 addDict({
   uz: { 'adm.news_t': 'E\'lon va reklama', 'adm.sections': 'Boshqaruv bo\'limlari', 'nav.admin': 'Admin', 'adm.title': 'Admin paneli', 'adm.users': 'Foydalanuvchilar', 'adm.requests': 'So\'rovlar', 'adm.video': 'Video qoidalari', 'adm.app': 'Ilova', 'adm.stats': 'Platforma', 'adm.storage': 'Saqlash joyi', 'adm.news': 'E\'lonlar',
@@ -68,7 +69,7 @@ async function usersTab(body) {
         <small class="muted">${esc(t('adm.7d'))}: ${esc(fmtMin(u.secs_7d))} · ${esc(t('adm.total'))}: ${esc(fmtMin(u.secs_total))} · ${esc(t('adm.tests'))}: ${u.tests_total}</small></div>
       <button class="icon-btn" data-more="${i}" aria-label="menu">⋮</button></div>`).join('')}</div>`;
     const openMenu = u => { const m = modal(`<h3>${esc(u.full_name || '—')}</h3><small class="muted">${esc(u.email)}</small><div class="cards mt">
-        <a class="btn block" href="#/reports/user/${u.id}">${ic('chart', 16)} ${esc(t('adm.report'))}</a><a class="btn ghost block" href="#/inbox/${u.id}">${ic('send', 16)} ${esc(t('inbox.title') === 'inbox.title' ? 'Xabar' : t('inbox.title'))}</a>
+        <a class="btn block" href="#/user/${u.id}">${ic('user', 16)} ${esc(T('Profilni ko\'rish', 'Открыть профиль', 'View profile'))}</a><a class="btn ghost block" href="#/inbox/${u.id}">${ic('send', 16)} ${esc(t('inbox.title') === 'inbox.title' ? 'Xabar' : t('inbox.title'))}</a>
         ${u.id !== state.user.id ? `<button class="btn ghost block" data-role="${u.id}:${u.role}">${esc(t(u.role === 'admin' ? 'adm.make_user' : 'adm.make_admin'))}</button>${u.role !== 'admin' ? `<button class="btn ghost block" data-setrole="${u.id}:${u.role === 'teacher' ? 'user' : 'teacher'}">${esc(u.role === 'teacher' ? T('Oddiy foydalanuvchi qilish', 'Сделать обычным', 'Make regular user') : T('O\'qituvchi qilish', 'Сделать преподавателем', 'Make teacher'))}</button>` : ''}` : ''}
         ${u.id !== state.user.id && u.role !== 'admin' ? `<button class="btn ghost block" data-blk="${u.id}:${u.blocked ? 0 : 1}">${esc(t(u.blocked ? 'adm.unblock' : 'adm.block'))}</button><button class="btn danger block" data-del="${u.id}">${ic('trash', 16)} ${esc(t('adm.delete'))}</button>` : ''}</div>`);
       m.el.addEventListener('click', e => { if (e.target.closest('a')) m.close(); });
@@ -77,7 +78,7 @@ async function usersTab(body) {
       $$('[data-role]', m.el).forEach(b => b.onclick = async () => { m.close(); const [id, r] = b.dataset.role.split(':'); if (!(await confirmDlg(b.textContent + '?'))) return; const { error: er } = await sb.rpc('admin_set_role', { p_user: id, p_role: r === 'admin' ? 'user' : 'admin' }); if (er) toast(friendlyErr(er.message), 'err'); load($('#s', body).value.trim()); });
       $$('[data-setrole]', m.el).forEach(b => b.onclick = async () => { m.close(); const [id, r] = b.dataset.setrole.split(':'); if (!(await confirmDlg(b.textContent + '?'))) return; const { error: er } = await sb.rpc('admin_set_role', { p_user: id, p_role: r }); if (er) toast(friendlyErr(er.message), 'err'); load($('#s', body).value.trim()); }); };
     const act = async (fn, args, q, ok) => { if (!(await confirmDlg(q, ok))) return; const { error } = await sb.rpc(fn, args); if (error) return toast(friendlyErr(error.message), 'err'); toast(t('adm.done'), 'ok'); load($('#s', body).value.trim()); };
-    $$('.urow2', body).forEach(r => r.onclick = e => { const u = (data || [])[+r.dataset.i]; if (!u) return; if (e.target.closest('[data-more]')) openMenu(u); else location.hash = '#/reports/user/' + u.id; });
+    $$('.urow2', body).forEach(r => r.onclick = e => { const u = (data || [])[+r.dataset.i]; if (!u) return; if (e.target.closest('[data-more]')) openMenu(u); else location.hash = '#/user/' + u.id; });
   };
   $$('.catb', body).forEach(b => b.onclick = () => { cat = b.dataset.c; $$('.catb', body).forEach(x => x.classList.toggle('on', x === b)); load($('#s', body).value.trim()); });
   let to; $('#s', body).oninput = e => { clearTimeout(to); to = setTimeout(() => load(e.target.value.trim()), 300); }; load();
@@ -121,7 +122,11 @@ function appTab(body) {
   body.innerHTML = `<div class="card pad form"><label class="fld"><span>${esc(t('adm.a_pin'))}</span><input class="input" id="pn" type="number" min="3" max="10" value="${a.pin_max_attempts}"></label>
     <label class="fld"><span>${esc(t('adm.a_chat'))}</span><input class="input" id="cd" type="number" min="7" max="365" value="${a.chat_media_days}"></label>
     <label class="fld"><span>${esc(t('adm.a_voice'))}</span><input class="input" id="vs" type="number" min="15" max="300" value="${a.max_voice_seconds}"></label><label class="chk"><input type="checkbox" id="lb" ${a.leaderboard !== false ? 'checked' : ''}> ${esc(t('adm.a_lb'))}</label>
-    <label class="fld"><span>${esc(t('adm.a_lbn'))}</span><select class="input" id="ln"><option value="short" ${a.leaderboard_names !== 'full' ? 'selected' : ''}>${esc(t('adm.a_short'))}</option><option value="full" ${a.leaderboard_names === 'full' ? 'selected' : ''}>${esc(t('adm.a_full'))}</option></select></label><button class="btn lg" id="sv">${esc(t('set.save'))}</button></div>`;
+    <label class="fld"><span>${esc(t('adm.a_lbn'))}</span><select class="input" id="ln"><option value="short" ${a.leaderboard_names !== 'full' ? 'selected' : ''}>${esc(t('adm.a_short'))}</option><option value="full" ${a.leaderboard_names === 'full' ? 'selected' : ''}>${esc(t('adm.a_full'))}</option></select></label><button class="btn lg" id="sv">${esc(t('set.save'))}</button></div>
+    <div class="card pad form mt"><h3>${esc(T('Bo\'limlarni yashirish', 'Скрыть разделы', 'Hide sections'))}</h3><p class="muted small">${esc(T('Belgilangan bo\'limlar hamma uchun (admin ham) menyudan yo\'qoladi. Keyin qaytarish mumkin.', 'Отмеченные разделы скрываются из меню у всех (включая админа). Можно вернуть позже.', 'Ticked sections disappear from the menu for everyone (admin too). You can bring them back later.'))}</p>
+      <div class="stack">${SECTIONS().map(([k, l]) => `<label class="chk"><input type="checkbox" data-hs="${k}" ${hiddenSet().has(k) ? 'checked' : ''}> ${esc(l)}</label>`).join('')}</div>
+      <button class="btn lg" id="hsv">${esc(t('set.save'))}</button></div>`;
+  $('#hsv', body).onclick = () => save('ui', { hidden: $$('[data-hs]:checked', body).map(x => x.dataset.hs) }).then(() => { location.reload(); });
   $('#sv', body).onclick = () => save('app', { ...a, leaderboard: $('#lb', body).checked, leaderboard_names: $('#ln', body).value, pin_max_attempts: +$('#pn', body).value || 5, chat_media_days: +$('#cd', body).value || 60, max_voice_seconds: +$('#vs', body).value || 120 });
 }
 
@@ -141,7 +146,8 @@ async function statsTab(body) {
 async function storageTab(body) {
   const { data } = await sb.rpc('storage_usage'); const rows = data || [], total = rows.reduce((a, r) => a + +r.bytes, 0), GB = 1073741824;
   body.innerHTML = `<div class="card pad mb"><h3>${esc(t('adm.st_used'))}: ${esc(fmtSize(total))} <small class="muted">/ ${esc(t('adm.st_free'))}</small></h3><div class="bar thick"><i style="width:${Math.min(100, total / GB * 100)}%"></i></div>
-    <div class="tbl mt">${rows.map(r => `<div class="trow"><b>${esc(r.bucket)}</b><span class="grow muted">${r.files} files</span><span>${esc(fmtSize(r.bytes))}</span></div>`).join('')}</div></div>
+    <p class="muted small mt">${esc(T('Bu — serverdagi (Supabase) fayl omboringiz: yuklangan video, audio, kitob, rasm va chat fayllari egallagan joy. Bepul rejada 1 GB beriladi; to\'lib qolsa yangi material yuklab bo\'lmaydi — eski chat fayllarini tozalang yoki rejani kengaytiring.', 'Это хранилище файлов на сервере (Supabase): видео, аудио, книги, картинки и файлы чатов. В бесплатном тарифе 1 ГБ; при заполнении новые материалы не загрузятся — очистите старые файлы чатов или расширьте тариф.', 'This is your server (Supabase) file storage: videos, audio, books, images and chat files. The free plan gives 1 GB; when full you cannot upload new material — clean old chat files or upgrade.'))}</p>
+    <div class="tbl mt">${rows.map(r => `<div class="trow"><b>${esc(r.bucket)}</b><span class="grow muted">${r.files} ${esc(T('ta fayl', 'файлов', 'files'))}</span><span>${esc(fmtSize(r.bytes))}</span></div>`).join('')}</div></div>
     <div class="card pad"><h3>${esc(t('adm.cleanup'))}</h3><p class="muted">${esc(t('adm.cleanup_d'))} (${state.settings.app?.chat_media_days || 60})</p><button class="btn" id="cl">${ic('trash', 16)} ${esc(t('adm.cleanup'))}</button></div>`;
   $('#cl', body).onclick = async ev => {
     const b = ev.currentTarget; btnBusy(b, true);

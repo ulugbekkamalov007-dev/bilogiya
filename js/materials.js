@@ -3,7 +3,7 @@ import { sb, state, tr, route, go, esc, ic, $, $$, modal, toast, btnBusy, confir
 import { T, skeleton, empty, errBox, dbErr } from './ui.js';
 import { CONFIG } from './config.js';
 import { probeMedia, mimeOf, ytId } from './library.js';
-import { testImportModal } from './tests.js';
+import { testImportModal, takersModal } from './tests.js';
 
 const staffOnly = () => state.profile?.role === 'teacher' || state.isAdmin;
 // kategoriya -> [kind'lar, ikonka, rang sinfi, qabul qilinadigan kengaytmalar, nomi]
@@ -15,6 +15,8 @@ const CATS = {
   test: { kinds: ['test'], ic: 'test', cls: 'test', acc: '', n: () => T('Test', 'Тест', 'Test'), fm: T('Savollar', 'Вопросы', 'Questions') },
 };
 const catOf = kind => Object.keys(CATS).find(c => CATS[c].kinds.includes(kind)) || null;
+// havola (YouTube) orqali qo'shilgan video ham "Video" kategoriyasida hisoblanadi
+const catOfItem = x => (x.youtube_id || x.source === 'youtube' || (x.url && /youtu|vimeo|\.mp4/i.test(x.url))) ? 'video' : catOf(x.kind);
 
 // ---- fayl turi: kengaytma + HAQIQIY imzo (magic bytes) bo'yicha
 const EXT_KIND = { pptx: 'presentation', ppt: 'presentation', odp: 'presentation', pdf: 'book', epub: 'book', docx: 'book', doc: 'book', txt: 'book',
@@ -42,12 +44,12 @@ const KB_LIMIT = () => CONFIG.MAX_UPLOAD_MB;
 
 route('/teach/materials', async ({ el, q, alive }) => {
   if (!staffOnly()) return go('/home', true);
-  const uid = state.user.id; let fid = q?.f || null, filter = q?.k || '', term = '', trash = false, busyUp = false;
+  const uid = state.user.id; let fid = q?.f || null, filter = q?.k || '', term = '', trash = false, busyUp = false, hideNew = false;
   const folderMenuTitle = f => tr(f.title);
 
   const load = async () => {
-    const fq = sb.from('folders').select('id,parent_id,title,created_at,deleted_at').eq('created_by', uid).order('created_at');
-    const iq = sb.from('items').select('id,folder_id,kind,title,size_bytes,created_at,deleted_at,storage_path,source,youtube_id,url,meta').eq('created_by', uid).order('created_at', { ascending: false }).limit(2000);
+    let fq = sb.from('folders').select('id,parent_id,title,created_at,deleted_at,visible').order('created_at'); if (!state.isAdmin) fq = fq.eq('created_by', uid);
+    let iq = sb.from('items').select('id,folder_id,kind,title,size_bytes,created_at,deleted_at,storage_path,source,youtube_id,url,meta,visible,created_by').order('created_at', { ascending: false }).limit(3000); if (!state.isAdmin) iq = iq.eq('created_by', uid);
     const [f, i, g] = await Promise.all([fq, iq, sb.from('groups').select('id,name').eq('archived', false).order('name')]);
     if (f.error || i.error) throw (f.error || i.error);
     return { folders: f.data || [], items: i.data || [], groups: (state.isAdmin ? g.data : (g.data || [])).filter(Boolean) };
@@ -56,14 +58,14 @@ route('/teach/materials', async ({ el, q, alive }) => {
   const myGroups = async () => { const r = await sb.from('groups').select('id,name,owner_id').eq('archived', false).order('name'); return (r.data || []).filter(x => state.isAdmin || x.owner_id === uid); };
 
   const crumbs = () => { const out = []; let cur = fid; let n = 0; while (cur && n++ < 12) { const f = D.folders.find(x => x.id === cur); if (!f) break; out.unshift(f); cur = f.parent_id; } return out; };
-  const kindIc = k => { const c = catOf(k); return c ? `<span class="item-ic ${CATS[c].cls}">${ic(CATS[c].ic, 18)}</span>` : `<span class="item-ic">${ic('link', 18)}</span>`; };
+  const kindIc = x => { const c = catOfItem(x); return c ? `<span class="item-ic ${CATS[c].cls}">${ic(CATS[c].ic, 18)}</span>` : `<span class="item-ic">${ic('link', 18)}</span>`; };
 
   const paint = () => {
     const live = D.items.filter(x => !x.deleted_at), liveF = D.folders.filter(x => !x.deleted_at);
-    const cnt = c => live.filter(x => CATS[c].kinds.includes(x.kind)).length;
+    const cnt = c => live.filter(x => catOfItem(x) === c).length;
     const subF = liveF.filter(f => (f.parent_id || null) === (fid || null) && (!term || tr(f.title).toLowerCase().includes(term)));
     let its = live.filter(x => (term ? true : (x.folder_id || null) === (fid || null)));
-    if (filter) its = its.filter(x => CATS[filter].kinds.includes(x.kind));
+    if (filter) its = its.filter(x => catOfItem(x) === filter);
     if (term) its = its.filter(x => tr(x.title).toLowerCase().includes(term));
     const tF = D.folders.filter(x => x.deleted_at), tI = D.items.filter(x => x.deleted_at);
     const bc = crumbs();
@@ -77,14 +79,15 @@ route('/teach/materials', async ({ el, q, alive }) => {
         ${Object.keys(CATS).map(c => `<div class="mat-cat ${CATS[c].cls} ${filter === c ? 'on' : ''}" data-c="${c}" data-drop="${c}"><button class="mc-main" data-c="${c}" aria-label="${esc(CATS[c].n())}">
           <span class="item-ic ${CATS[c].cls}">${ic(CATS[c].ic, 22)}</span><b>${esc(CATS[c].n())}</b><small>${cnt(c)} · ${esc(CATS[c].fm)}</small></button><button class="mc-add" data-add="${c}" aria-label="${esc(T('Qo\'shish', 'Добавить', 'Add'))} ${esc(CATS[c].n())}">${ic('plus', 18)}</button></div>`).join('')}</div>`}
       ${trash ? trashHtml(tF, tI) : `
-      <div class="crumbs mt">${[`<a href="#/teach/materials" data-f="">${esc(T('Papkalarim', 'Мои папки', 'My folders'))}</a>`, ...bc.map(f => `<a href="#/teach/materials?f=${f.id}" data-f="${f.id}">${esc(folderMenuTitle(f))}</a>`)].join(' <span class="muted">›</span> ')}</div>
+      <div class="crumbs mt">${[`<a href="#/teach/materials" data-f="">${esc(state.isAdmin ? T('Barcha materiallar', 'Все материалы', 'All materials') : T('Papkalarim', 'Мои папки', 'My folders'))}</a>`, ...bc.map(f => `<a href="#/teach/materials?f=${f.id}" data-f="${f.id}">${esc(folderMenuTitle(f))}</a>`)].join(' <span class="muted">›</span> ')}</div>
+      <label class="chk mt hidenew"><input type="checkbox" id="hn" ${hideNew ? 'checked' : ''}> ${esc(T('Yangi yuklanganlar talabalarga ko\'rinmasin (avval tayyorlab qo\'yaman, keyin ochaman)', 'Новые загрузки скрыть от студентов (подготовлю и открою позже)', 'Hide new uploads from students (prepare now, publish later)'))}</label>
       <div class="drop mt" id="dz"><div>${ic('download', 22)}<b>${esc(T('Fayllarni shu yerga tashlang', 'Перетащите файлы сюда', 'Drop files here'))}</b><small class="muted">${esc(T('yoki yuqoridagi kategoriyadagi + ni bosing. Hajm: ' + KB_LIMIT() + ' MB gacha', 'или нажмите + в категории выше. До ' + KB_LIMIT() + ' МБ', 'or press + on a category above. Up to ' + KB_LIMIT() + ' MB'))}</small></div></div>
       ${subF.length ? `<h4 class="mt">${esc(T('Papkalar', 'Папки', 'Folders'))}</h4><div class="mat-folders">${subF.map(f => { const n = live.filter(x => x.folder_id === f.id).length + liveF.filter(x => x.parent_id === f.id).length;
-        return `<div class="mat-folder" data-ctx="f:${f.id}"><a href="#/teach/materials?f=${f.id}" data-f="${f.id}" class="grow row" style="gap:10px">${ic('folder', 22)}<b>${esc(folderMenuTitle(f))}</b><span class="muted">(${n})</span></a><button class="icon-btn" data-m="f:${f.id}" aria-label="menu">${ic('more')}</button></div>`; }).join('')}</div>` : ''}
+        return `<div class="mat-folder" data-ctx="f:${f.id}"><a href="#/teach/materials?f=${f.id}" data-f="${f.id}" class="grow row" style="gap:10px">${ic('folder', 22)}<b>${esc(folderMenuTitle(f))}</b>${f.visible === false ? ` <span class="tag bad">${esc(T('Yashirin', 'Скрыто', 'Hidden'))}</span>` : ''}<span class="muted">(${n})</span></a><button class="icon-btn" data-m="f:${f.id}" aria-label="menu">${ic('more')}</button></div>`; }).join('')}</div>` : ''}
       <h4 class="mt">${esc(filter ? CATS[filter].n() : T('Materiallar', 'Материалы', 'Materials'))} <span class="muted">(${its.length})</span></h4>
       ${its.length ? `<div class="tblwrap"><table class="tbl2 mat-tbl"><thead><tr><th>${esc(T('Nomi', 'Название', 'Name'))}</th><th class="hide-sm">${esc(T('Turi', 'Тип', 'Type'))}</th><th class="hide-sm">${esc(T('Hajmi', 'Размер', 'Size'))}</th><th class="hide-sm">${esc(T('Sana', 'Дата', 'Date'))}</th><th></th></tr></thead><tbody>
-        ${its.map(x => `<tr data-ctx="i:${x.id}"><td><a class="row" style="gap:10px" href="#/item/${x.id}">${kindIc(x.kind)}<span class="grow"><b>${esc(tr(x.title))}</b><br><small class="muted show-sm">${esc(catOf(x.kind) ? CATS[catOf(x.kind)].n() : x.kind)} · ${x.size_bytes ? esc(fmtSize(x.size_bytes)) + ' · ' : ''}${esc(fmtDate(x.created_at))}</small></span></a></td>
-          <td class="hide-sm">${esc(catOf(x.kind) ? CATS[catOf(x.kind)].n() : x.kind)}</td><td class="hide-sm">${x.size_bytes ? esc(fmtSize(x.size_bytes)) : '—'}</td><td class="hide-sm">${esc(fmtDate(x.created_at))}</td>
+        ${its.map(x => `<tr data-ctx="i:${x.id}"><td><a class="row" style="gap:10px" href="#/item/${x.id}">${kindIc(x)}<span class="grow"><b>${esc(tr(x.title))}</b>${x.visible === false ? ` <span class="tag bad">${esc(T('Yashirin', 'Скрыто', 'Hidden'))}</span>` : ''}<br><small class="muted show-sm">${esc(catOfItem(x) ? CATS[catOfItem(x)].n() : x.kind)} · ${x.size_bytes ? esc(fmtSize(x.size_bytes)) + ' · ' : ''}${esc(fmtDate(x.created_at))}</small></span></a></td>
+          <td class="hide-sm">${esc(catOfItem(x) ? CATS[catOfItem(x)].n() : x.kind)}</td><td class="hide-sm">${x.size_bytes ? esc(fmtSize(x.size_bytes)) : '—'}</td><td class="hide-sm">${esc(fmtDate(x.created_at))}</td>
           <td class="end"><button class="icon-btn" data-m="i:${x.id}" aria-label="menu">${ic('more')}</button></td></tr>`).join('')}</tbody></table></div>` : empty('folder', term || filter ? T('Hech narsa topilmadi', 'Ничего не найдено', 'Nothing found') : T('Bu papka bo\'sh. Yuqoridagi kategoriyadan + ni bosib material qo\'shing.', 'Папка пуста. Нажмите + в категории, чтобы добавить материал.', 'This folder is empty. Press + on a category to add material.'))}`}
     </div>`;
     bind();
@@ -109,7 +112,7 @@ route('/teach/materials', async ({ el, q, alive }) => {
     const [st, mg] = await Promise.all([k === 'i' ? sb.rpc('material_stats', { p_item: id }) : Promise.resolve({ data: null }), sb.from('material_groups').select('group_id,groups(name)').eq(k === 'f' ? 'folder_id' : 'item_id', id)]);
     const s = st.data || {}, gs = (mg.data || []).map(x => x.groups?.name).filter(Boolean);
     const row = (a, b) => `<div class="kv"><span class="muted">${esc(a)}</span><b>${b}</b></div>`;
-    $('#ib', m.el).innerHTML = `${row(T('Nomi', 'Название', 'Name'), esc(tr(o.title)))}${k === 'i' ? row(T('Turi', 'Тип', 'Type'), esc(catOf(o.kind) ? CATS[catOf(o.kind)].n() : o.kind)) + row(T('Hajmi', 'Размер', 'Size'), o.size_bytes ? esc(fmtSize(o.size_bytes)) : '—') : ''}
+    $('#ib', m.el).innerHTML = `${row(T('Nomi', 'Название', 'Name'), esc(tr(o.title)))}${k === 'i' ? row(T('Turi', 'Тип', 'Type'), esc(catOfItem(o) ? CATS[catOfItem(o)].n() : o.kind)) + row(T('Hajmi', 'Размер', 'Size'), o.size_bytes ? esc(fmtSize(o.size_bytes)) : '—') : ''}
       ${row(T('Yuklangan', 'Загружено', 'Uploaded'), esc(fmtDate(o.created_at)))}${row(T('Ko\'rinish', 'Видимость', 'Visibility'), gs.length ? esc(T('Faqat guruhlar: ', 'Только группы: ', 'Groups only: ') + gs.join(', ')) : esc(T('Umumiy', 'Общий', 'Public')))}
       ${k === 'i' ? row(T('Ko\'rganlar', 'Просмотрели', 'Viewers'), s.viewers ?? 0) + row(T('Ochilishlar', 'Открытий', 'Opens'), s.plays ?? 0) + row(T('Sarflangan vaqt', 'Затраченное время', 'Time spent'), Math.round((s.seconds || 0) / 60) + ' ' + T('daq', 'мин', 'min')) + (o.kind === 'test' ? row(T('Urinishlar', 'Попытки', 'Attempts'), (s.attempts ?? 0) + ' · ' + (s.avg_percent ?? 0) + '%') : '') : ''}`;
   };
@@ -135,6 +138,11 @@ route('/teach/materials', async ({ el, q, alive }) => {
       const { error } = await sb.rpc('assign_material_groups', { p_kind: k, p_id: id, p_groups: ids }); if (error) { btnBusy(e.currentTarget, false); return toast(dbErr(error), 'err'); } m.close(); toast(T('Saqlandi', 'Сохранено', 'Saved'), 'ok'); });
   };
 
+  const toggleVis = async ref => {
+    const { k, id, o } = find(ref); const to = o.visible === false;
+    const { error } = await sb.from(k === 'f' ? 'folders' : 'items').update({ visible: to }).eq('id', id); if (error) return toast(dbErr(error), 'err');
+    toast(to ? T('Endi hamma ko\'ra oladi', 'Теперь виден всем', 'Now visible') : T('Talabalarga ko\'rinmaydi', 'Скрыто от студентов', 'Hidden from students'), 'ok'); reload();
+  };
   const toTrash = async ref => {
     const { k, id, o } = find(ref);
     if (!(await confirmDlg(T(`"${tr(o.title)}" o'chirilsinmi? U chiqitdonga tushadi, keyin tiklash mumkin.`, `Удалить «${tr(o.title)}»? Он попадёт в корзину, его можно восстановить.`, `Delete "${tr(o.title)}"? It goes to Trash and can be restored.`), T('O\'chirish', 'Удалить', 'Delete')))) return;
@@ -151,7 +159,7 @@ route('/teach/materials', async ({ el, q, alive }) => {
   const menu = ref => {
     const { k, o } = find(ref); if (!o) return;
     const acts = [['edit', T('Nomini tahrirlash', 'Переименовать', 'Rename'), rename], ['users', T('Guruhga biriktirish', 'Привязать к группе', 'Assign to group'), assign],
-      ['folder', T('Boshqa papkaga ko\'chirish', 'Переместить', 'Move'), move], ['help', T('Fayl ma\'lumoti', 'Информация', 'Info'), info]];
+      ['folder', T('Boshqa papkaga ko\'chirish', 'Переместить', 'Move'), move], ...(k === 'i' && o.kind === 'test' ? [['users', T('Kim yechdi', 'Кто решал', 'Who took it'), r => takersModal(find(r).o)]] : []), [o.visible === false ? 'eye' : 'x', o.visible === false ? T('Ko\'rinadigan qilish', 'Сделать видимым', 'Make visible') : T('Ko\'rinmas qilish (yashirish)', 'Скрыть от студентов', 'Hide from students'), toggleVis], ['help', T('Fayl ma\'lumoti', 'Информация', 'Info'), info]];
     const m = modal(`<h3 class="trunc">${esc(tr(o.title))}</h3><div class="stack actmenu">${k === 'i' ? `<a class="btn ghost block left" href="#/item/${o.id}" id="op">${ic('eye', 16)} ${esc(T('Ochish', 'Открыть', 'Open'))}</a>` : ''}
       ${acts.map(([i, l], n) => `<button class="btn ghost block left" data-a="${n}">${ic(i, 16)} ${esc(l)}</button>`).join('')}<button class="btn ghost block left dg" data-a="del">${ic('trash', 16)} ${esc(T('O\'chirish', 'Удалить', 'Delete'))}</button></div>`);
     $('#op', m.el)?.addEventListener('click', () => m.close());
@@ -192,7 +200,7 @@ route('/teach/materials', async ({ el, q, alive }) => {
         const meta = {}; if (k2 === 'video' || k2 === 'audio') { const pr = await probeMedia(f, k2); if (!pr.ok) throw new Error(T('Brauzer bu faylni ocha olmaydi. MP4/MP3 ga o\'tkazing', 'Браузер не может открыть файл. Конвертируйте в MP4/MP3', 'The browser cannot open this file. Convert to MP4/MP3')); meta.duration = pr.d; if (k2 === 'video') { meta.width = pr.w; meta.height = pr.h; } }
         st(i, T('yuklanmoqda…', 'загрузка…', 'uploading…'));
         const id = crypto.randomUUID(), path = `${id}/${safeName(f.name)}`; await upload('content', path, f, { contentType: mimeOf(f) });
-        const { error } = await sb.from('items').insert({ id, folder_id: target, kind: k2, title: await i18nField(f.name.replace(/\.[^.]+$/, ''), state.lang), description: {}, visible: true, source: 'storage', storage_path: path, size_bytes: f.size, meta, created_by: uid });
+        const { error } = await sb.from('items').insert({ id, folder_id: target, kind: k2, title: await i18nField(f.name.replace(/\.[^.]+$/, ''), state.lang), description: {}, visible: !hideNew, source: 'storage', storage_path: path, size_bytes: f.size, meta, created_by: uid });
         if (error) { await sb.storage.from('content').remove([path]).catch(() => { }); throw error; }
         st(i, '✓', 'ok');
       } catch (err) { st(i, '✗ ' + (err?.message || String(err)).slice(0, 90), 'err'); }
@@ -207,10 +215,11 @@ route('/teach/materials', async ({ el, q, alive }) => {
       <form class="form" id="yf"><label class="fld"><span>${esc(T('yoki YouTube havolasi', 'или ссылка YouTube', 'or YouTube link'))}</span><input class="input" id="yu" placeholder="https://youtu.be/…"></label><button class="btn ghost block">${esc(T('Havolani qo\'shish', 'Добавить ссылку', 'Add link'))}</button></form></div>`);
     $('#f1', m.el).onclick = () => { m.close(); go2(); };
     $('#yf', m.el).onsubmit = async e => { e.preventDefault(); const y = ytId($('#yu', m.el).value); if (!y) return toast(T('YouTube havolasi noto\'g\'ri', 'Неверная ссылка YouTube', 'Invalid YouTube link'), 'err');
-      try { const f = await ensureFolder(); const { error } = await sb.from('items').insert({ folder_id: f, kind: 'video', title: await i18nField('YouTube ' + y, state.lang), description: {}, visible: true, source: 'youtube', youtube_id: y, created_by: uid }); if (error) throw error; m.close(); reload(); } catch (x) { toast(dbErr(x), 'err'); } };
+      try { const f = await ensureFolder(); const { error } = await sb.from('items').insert({ folder_id: f, kind: 'video', title: await i18nField('YouTube ' + y, state.lang), description: {}, visible: !hideNew, source: 'youtube', youtube_id: y, created_by: uid }); if (error) throw error; m.close(); reload(); } catch (x) { toast(dbErr(x), 'err'); } };
   };
 
   const bind = () => {
+    const hn = $('#hn', el); if (hn) hn.onchange = () => { hideNew = hn.checked; };
     $('#nf', el).onclick = newFolder; $('#tr', el).onclick = () => { trash = !trash; paint(); };
     const qs = $('#qs', el); qs.oninput = () => { term = qs.value.trim().toLowerCase(); clearTimeout(qs._t); qs._t = setTimeout(() => { paint(); const n = $('#qs', el); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 180); };
     $$('.mc-main,.mat-cat.all', el).forEach(b => b.onclick = () => { filter = filter === b.dataset.c ? '' : (b.dataset.c || ''); paint(); });

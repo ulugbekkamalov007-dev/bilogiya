@@ -155,7 +155,10 @@ export function fmtMin(sec) {
 export const dayStr = (d = new Date()) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 export const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 export function fmtDate(ts) {
-  const d = new Date(ts); return d.toLocaleDateString(state.lang === 'uz' ? 'uz-UZ' : state.lang === 'ru' ? 'ru-RU' : 'en-GB', { day: '2-digit', month: 'short' });
+  const d = new Date(ts); if (isNaN(d)) return '—';
+  // Hamma tilda bir xil: kun.oy.yil (masalan 14.11.2026), Toshkent vaqti bo'yicha
+  const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Tashkent', day: '2-digit', month: '2-digit', year: 'numeric' }).formatToParts(d).reduce((a, x) => (a[x.type] = x.value, a), {});
+  return `${p.day}.${p.month}.${p.year}`;
 }
 export function fmtTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 export const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
@@ -276,6 +279,8 @@ let lastAct = Date.now();
 ['pointerdown', 'keydown', 'touchstart', 'scroll', 'wheel'].forEach(e => addEventListener(e, () => { lastAct = Date.now(); }, { passive: true, capture: true }));
 const IDLE_MS = 240000;
 export function trackTime(kind, itemId, isActive = () => true) {
+  // admin va o'qituvchining faolligi hisoblanmaydi (faqat talabalar uchun)
+  if (state.profile && state.profile.role && state.profile.role !== 'user') return { stop() {}, flush() {} };
   let acc = 0, last = Date.now(), stopped = false, wasOn = false, flushing = false;
   const media = kind === 'video' || kind === 'audio';
   // server bir chaqiriqda ko'pi bilan 60 soniya qabul qiladi — katta qiymatni bo'laklab yuboramiz
@@ -316,6 +321,7 @@ export const onLeave = fn => leaveFns.push(fn);
 export const go = (path, replace) => { if (replace) location.replace('#' + path); else location.hash = path; };
 export const currentPath = () => (location.hash.slice(1) || '/').split('?')[0];
 let shellHook = () => {};
+let gateFn = null; export const setGate = fn => { gateFn = fn; };
 export const setShellHook = fn => { shellHook = fn; };
 
 // Tez ochilish: avval ko'rilgan sahifa darhol (xira holda) ko'rsatiladi, yangi ma'lumot kelgach almashadi
@@ -336,6 +342,8 @@ export async function render() {
     el.scrollTop = 0; window.scrollTo(0, 0);
     shellHook(path, r.opts);
     try {
+      if (r.opts.auth && gateFn && await gateFn()) return;
+      if (my !== tok) return;
       await r.handler({ params, q, el, alive: () => my === tok });
       if (my === tok) { el.classList.remove('stale'); if (state.user && SNAPPABLE.test(path)) { SNAP.set(raw, el.innerHTML); if (SNAP.size > 14) SNAP.delete(SNAP.keys().next().value); } }
     }
@@ -379,3 +387,20 @@ export function passScore(p) {
   if (p.length < 8) issue = 'len'; else if (COMMON.includes(p.toLowerCase()) || /^(.)\1+$/.test(p) || /^\d+$/.test(p)) { issue = 'weak'; sc = Math.min(sc, 1); }
   return { score: Math.min(4, sc), issue };
 }
+
+
+// Brauzerning "Выбрать файл / Choose file" yozuvi o'rniga ilova tilidagi tugma (hamma `.fld` ichidagi fayl maydonlari uchun)
+(function localizeFileInputs() {
+  const L = { uz: ['Fayl tanlash', 'Fayl tanlanmagan'], ru: ['Выбрать файл', 'Файл не выбран'], en: ['Choose file', 'No file chosen'] };
+  const fix = inp => {
+    if (inp.dataset.fl || inp.hidden || !inp.closest('.fld')) return; inp.dataset.fl = '1';
+    const [b, n] = L[state.lang] || L.uz;
+    const w = document.createElement('div'); w.className = 'filepick';
+    w.innerHTML = `<button type="button" class="btn ghost sm">${b}</button><span class="muted small fname">${n}</span>`;
+    inp.classList.add('fi-hid'); inp.after(w);
+    w.querySelector('button').onclick = () => inp.click();
+    inp.addEventListener('change', () => { const f = [...(inp.files || [])]; w.querySelector('.fname').textContent = f.length ? (f.length > 1 ? f.length + ' ta fayl' : f[0].name) : n; });
+  };
+  const scan = root => (root.querySelectorAll ? root.querySelectorAll('input[type=file]') : []).forEach(fix);
+  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) { if (n.matches?.('input[type=file]')) fix(n); else scan(n); } }))).observe(document.documentElement, { childList: true, subtree: true });
+})();

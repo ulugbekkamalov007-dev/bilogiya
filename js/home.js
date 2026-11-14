@@ -1,7 +1,7 @@
 // Bosh sahifa: salomlashish, reklama banneri, qisqa statistika, davom ettirish, e'lonlar
 import { sb, state, t, tr, addDict, route, esc, ic, $, $$, fmtMin, dayStr, addDays, rand, publicUrl, fmtDate, spinner } from './core.js';
 import { openAnnouncement, annCard } from './news.js';
-import { donut, bars, CCOL } from './charts.js';
+import { donut, bars, line, hbars, CCOL } from './charts.js';
 import { learnSummary, learnBlock, KINDS } from './learn.js';
 import { T, skeleton, empty } from './ui.js';
 import { fmtSize } from './core.js';
@@ -38,7 +38,7 @@ route('/home', async ({ el, alive }) => {
   ]);
   if (!alive()) return;
   const isTeacher = !state.isAdmin && state.profile?.role === 'teacher', isStudent = !state.isAdmin && !isTeacher;
-  if (isTeacher) return teacherHome(el, alive, anns.data || []);
+  if (isTeacher || state.isAdmin) return staffHome(el, alive, anns.data || [], isTeacher);
   let ls = null, hc = {}, grp = '';
   if (isStudent) {
     const [a, h, g] = await Promise.all([learnSummary(), sb.rpc('item_history', { p_kinds: ['video', 'audio', 'book', 'pdf', 'presentation'] }), sb.from('group_members').select('groups(name)').eq('user_id', uid).eq('status', 'approved')]);
@@ -146,5 +146,46 @@ async function teacherHome(el, alive, anns) {
     ${(pend.data || []).length ? `<div class="card pad mt"><div class="row between"><h3 class="mb0">${esc(T('Guruhga qo\'shilish so\'rovlari', 'Заявки в группы', 'Group join requests'))}</h3><a href="#/groups">${esc(T('Ko\'rish', 'Открыть', 'Open'))}</a></div><div class="stack mt">${pend.data.map(p => `<div class="row" style="gap:10px"><span class="item-ic">${ic('user', 16)}</span><span class="grow"><b>${esc(p.profiles?.full_name || '')}</b><br><small class="muted">${esc(p.groups?.name || '')}</small></span></div>`).join('')}</div></div>` : ''}
     <div class="row between mt"><h3>${esc(t('home.news'))}</h3><a href="#/news">${esc(t('home.all_news'))}</a></div><div class="cards">${anns.filter(a => a.kind === 'news').slice(0, 3).map(annCard).join('') || `<p class="muted">${esc(t('home.no_news'))}</p>`}</div></div>`;
   el.querySelector('.thero')?.insertAdjacentHTML('afterend', `<div class="mt">${statTile()}</div>`);
+  $$('[data-ann]', el).forEach(c => c.onclick = () => openAnnouncement(anns.find(a => a.id === c.dataset.ann)));
+}
+
+
+// ---- Admin va o'qituvchi uchun boshqaruv paneli (kompyuterda keng, telefonda ustma-ust)
+async function staffHome(el, alive, anns, isTeacher) {
+  const uid = state.user.id, to = dayStr(), from7 = dayStr(addDays(new Date(), -6)), from14 = dayStr(addDays(new Date(), -13));
+  const cnt = (tb, f) => { let q = sb.from(tb).select('*', { count: 'exact', head: true }); return (f ? f(q) : q).then(r => r.count || 0, () => 0); };
+  const [ps, ps14, lb, ov, rec, news, payN, appN, joinN] = await Promise.all([
+    sb.rpc('platform_stats', { p_from: from7, p_to: to }), sb.rpc('platform_stats', { p_from: from14, p_to: to }), sb.rpc('leaderboard', { p_from: from7, p_to: to }),
+    isTeacher ? sb.rpc('teacher_overview') : Promise.resolve({ data: null }),
+    sb.from('items').select('id,kind,title,size_bytes,created_at,visible').is('deleted_at', null).order('created_at', { ascending: false }).limit(5),
+    Promise.resolve(anns.filter(a => a.kind === 'news').slice(0, 3)),
+    state.isAdmin ? cnt('payment_requests', q => q.eq('status', 'pending')) : 0, state.isAdmin ? cnt('teacher_applications', q => q.eq('status', 'pending')) : 0,
+    cnt('group_members', q => q.eq('status', 'pending'))]);
+  if (!alive()) return; const s = ps.data || {}, o = ov.data || {};
+  const dm = new Map(((ps14.data || {}).daily || []).map(x => [String(x.d).slice(0, 10), x])), series = [];
+  for (let i = 13; i >= 0; i--) { const k = dayStr(addDays(new Date(), -i)), x = dm.get(k); series.push({ label: k.slice(8) + '.' + k.slice(5, 7), value: x ? +x.users : 0, title: fmtDate(k) }); }
+  const top = [...(lb.data || [])].sort((a, b) => b.total - a.total).slice(0, 5), bk = s.by_kind || {};
+  const KN = { video: 'Video', audio: 'Audio', book: T('Kitob', 'Книги', 'Books'), test: T('Test', 'Тесты', 'Tests') };
+  const parts = Object.keys(KN).map(k => ({ label: KN[k], value: +bk[k] || 0, color: CCOL[k], tip: fmtMin(+bk[k] || 0) }));
+  const ini = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const kpi = (n, l, i, c, href) => `<a class="card kpi" href="${href}" style="--c:${c}"><span class="item-ic">${ic(i, 22)}</span><div><b>${n ?? 0}</b><small class="muted">${esc(l)}</small></div></a>`;
+  const pend = [[T('Guruhga qo\'shilish so\'rovlari', 'Заявки в группы', 'Group join requests'), joinN, '#/groups', 'users'], ...(state.isAdmin ? [[T('To\'lov so\'rovlari', 'Заявки на оплату', 'Payment requests'), payN, '#/admin?tab=billing', 'dollar'], [T('O\'qituvchi arizalari', 'Заявки преподавателей', 'Teacher applications'), appN, '#/admin?tab=teachers', 'cap']] : [])];
+  const first = (state.profile.full_name || '').split(' ')[0] || (isTeacher ? T('O\'qituvchi', 'Преподаватель', 'Teacher') : 'Admin');
+  const actions = [['#/teach/materials', 'plus', T('Material yuklash', 'Загрузить материал', 'Upload material'), true], ['#/teach', 'cap', T('Yangi kurs', 'Новый курс', 'New course')], ['#/tests', 'test', T('Yangi test', 'Новый тест', 'New test')], ['#/groups', 'users', T('Guruhlar', 'Группы', 'Groups')], ...(state.isAdmin ? [['#/admin?tab=users', 'user', T('Foydalanuvchilar', 'Пользователи', 'Users')], ['#/stats/report?d=30', 'file', T('Hisobot', 'Отчёт', 'Report')]] : [])];
+  el.innerHTML = `<div class="page wide dash"><div class="dhero card pad"><div><small class="muted">${esc(T('Assalomu alaykum,', 'Здравствуйте,', 'Hello,'))}</small><h1 class="mb0">${esc(first)}!</h1>
+      <small class="muted">${esc(fmtDate(Date.now()))} · ${esc(isTeacher ? T('O\'qituvchi kabineti', 'Кабинет преподавателя', 'Teacher workspace') : T('Boshqaruv paneli', 'Панель управления', 'Admin dashboard'))}</small></div>
+      <div class="dact">${actions.map(([h, i, l, pr]) => `<a class="btn ${pr ? '' : 'ghost'}" href="${h}">${ic(i, 16)} ${esc(l)}</a>`).join('')}</div></div>
+    <div class="kpis mt">${kpi(s.users, T('Foydalanuvchilar', 'Пользователи', 'Users'), 'users', '#2563eb', '#/stats')}${kpi(s.active, T('Faol (7 kun)', 'Активные (7 дн.)', 'Active (7 days)'), 'zap', '#f59e0b', '#/stats')}
+      ${kpi(fmtMin(s.seconds), T('O\'qish vaqti (7 kun)', 'Время (7 дн.)', 'Study time (7 days)'), 'clock', '#8b5cf6', '#/stats')}${kpi((s.tests?.n || 0) + (s.tests?.n ? ' · ' + Math.round(s.tests.avg) + '%' : ''), T('Testlar (7 kun)', 'Тесты (7 дн.)', 'Tests (7 days)'), 'test', '#087C50', '#/stats')}
+      ${kpi(s.groups, T('Guruhlar', 'Группы', 'Groups'), 'users', '#ec4899', '#/groups')}${kpi(s.materials, T('Materiallar', 'Материалы', 'Materials'), 'folder', '#d97706', '#/teach/materials')}</div>
+    <div class="dgrid mt"><div class="dmain"><div class="card pad chartcard"><div class="row between"><h3 class="mb0">${esc(T('Faol foydalanuvchilar (14 kun)', 'Активные пользователи (14 дней)', 'Active users (14 days)'))}</h3><a href="#/stats">${esc(T('Statistika', 'Статистика', 'Statistics'))} ›</a></div>${line(series, '#087C50', ' ' + T('kishi', 'чел.', 'users'))}</div>
+      <div class="dtwo mt"><div class="card pad chartcard"><h3>${esc(T('Vaqt turlari (7 kun)', 'По типам (7 дней)', 'By type (7 days)'))}</h3><div class="row" style="gap:14px;align-items:center;flex-wrap:wrap">${donut(parts, fmtMin(parts.reduce((a, p) => a + p.value, 0)), T('jami', 'всего', 'total'))}<div class="stack grow">${parts.map(p => `<div class="row between"><span><i class="ldot" style="background:${p.color}"></i> ${esc(p.label)}</span><b>${esc(fmtMin(p.value))}</b></div>`).join('')}</div></div></div>
+        <div class="card pad"><div class="row between"><h3 class="mb0">${esc(T('So\'nggi materiallar', 'Последние материалы', 'Recent materials'))}</h3><a href="#/teach/materials">${esc(T('Barchasi', 'Все', 'All'))}</a></div>
+          ${(rec.data || []).length ? `<div class="stack mt">${rec.data.map(x => { const k = x.kind === 'pdf' ? 'book' : x.kind; return `<a class="row mrec" style="gap:10px" href="#/item/${x.id}"><span class="item-ic ${k}">${ic(KINDS[k]?.ic || 'link', 18)}</span><span class="grow"><b class="clamp2">${esc(tr(x.title))}</b>${x.visible === false ? ` <span class="tag bad">${esc(T('Yashirin', 'Скрыто', 'Hidden'))}</span>` : ''}<br><small class="muted">${esc(fmtDate(x.created_at))}${x.size_bytes ? ' · ' + esc(fmtSize(x.size_bytes)) : ''}</small></span></a>`; }).join('')}</div>` : `<p class="muted mt">${esc(T('Hali material yo\'q', 'Материалов пока нет', 'No materials yet'))}</p>`}</div></div></div>
+      <aside class="dside"><div class="card pad"><div class="row between"><h3 class="mb0">${esc(T('Eng faol talabalar', 'Самые активные студенты', 'Most active students'))}</h3><a href="#/rating">${esc(T('Reyting', 'Рейтинг', 'Rating'))} ›</a></div>
+          ${top.length ? `<div class="plist mt">${top.map((r, i) => `<a class="prow" href="#/user/${r.user_id}"><b class="rk">${i + 1}</b><span class="avatar sm">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.name))}</span><div class="grow"><b class="clamp1">${esc(r.name)}</b></div><b>${esc(fmtMin(r.total))}</b></a>`).join('')}</div>` : `<p class="muted mt">${esc(T('Hali faollik yo\'q', 'Активности пока нет', 'No activity yet'))}</p>`}</div>
+        <div class="card pad mt"><h3>${esc(T('Kutilayotgan ishlar', 'Ожидают решения', 'Needs attention'))}</h3><div class="stack">${pend.map(([l, n, h, i]) => `<a class="row between pendrow ${n ? 'has' : ''}" href="${h}"><span class="row" style="gap:8px">${ic(i, 16)} ${esc(l)}</span><b class="pcount">${n}</b></a>`).join('')}</div></div>
+        ${isTeacher ? `<div class="card pad mt"><h3>${esc(T('Mening kabinetim', 'Мой кабинет', 'My workspace'))}</h3><div class="row between"><span>${esc(T('Kurslarim', 'Курсы', 'Courses'))}</span><b>${o.courses ?? 0}</b></div><div class="row between"><span>${esc(T('Talabalar', 'Студенты', 'Students'))}</span><b>${o.students ?? 0}</b></div></div>` : ''}
+        <div class="card pad mt"><div class="row between"><h3 class="mb0">${esc(t('home.news'))}</h3><a href="#/news">${esc(t('home.all_news'))}</a></div><div class="cards mt">${news.map(annCard).join('') || `<p class="muted">${esc(t('home.no_news'))}</p>`}</div></div></aside></div></div>`;
   $$('[data-ann]', el).forEach(c => c.onclick = () => openAnnouncement(anns.find(a => a.id === c.dataset.ann)));
 }

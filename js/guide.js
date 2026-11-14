@@ -175,6 +175,27 @@ G.en.push(
 ['users', 'Groups, assignments and discussion', `<ul><li>All groups are listed — send a join request and the teacher accepts. An assignment has an <b>audio pack</b> (+ buttons), a <b>book</b> and a full-screen <b>discussion</b>. Teachers can press 📢 to announce a message to every member.</li></ul>`],
 ['zap', 'Updates', `<p>The app checks for updates on its own and shows an “Update available” banner (even with notifications off). Tap Update or reopen the app. Manual check: menu → Update.</p>`],
 );
+G.uz.push(
+['user', 'Foydalanuvchi profili (admin va o\'qituvchi)', `<p>«Foydalanuvchilar» ro'yxatida istalgan odamni bossangiz uning profili ochiladi: rasm, ism, telefon, guruhlar, faollik va hisobot. Bu <b>faqat ko'rish rejimi</b>: hech narsani o'zgartirib bo'lmaydi va siz ko'rib turgan vaqt o'sha foydalanuvchiga yozilmaydi.</p>`],
+['phone', 'Telefon raqami majburiy', `<p>Talaba va o'qituvchi telefon raqamini kiritmaguncha ilovadan foydalana olmaydi. Sabab: parol, to'lov yoki akkaunt muammosi bo'lsa administrator bog'lanishi uchun. Raqamni keyin <b>Profil ma'lumotlari</b> bo'limida o'zgartirish mumkin.</p>`],
+['send', 'Administratorga yozish', `<p><b>Profil → Aloqa</b> bo'limida administrator kartasi (rasmi bilan) turadi. Bossangiz ilova ichidagi chat ochiladi.</p>`],
+['cap', 'Kurs yo\'li va mavzu qulfi', `<ul><li>Kurs sahifasida mavzular ilon izi shaklida joylashadi, har bir mavzuning bajarilgan foizi ko'rinadi.</li><li>Keyingi mavzu ochilishi uchun oldingisining kamida <b>60%</b> bajarilishi kerak (o'qituvchi kurs sozlamasida foizni o'zgartira oladi).</li><li>Pullik kurslar to'lov va administrator tasdig'idan keyin 1 oyga ochiladi; muddat tugashiga 5 kun qolganda ilova xabar beradi.</li></ul>`],
+['folder', 'Materiallar: kategoriya, yashirish, havolali video', `<ul><li>Admin hamma materiallarni ko'radi, kategoriya (Kitob, Video, Audio, Taqdimot, Test) bo'yicha jami sonlar chiqadi; YouTube havolasi bilan qo'shilgan video ham Video'da hisoblanadi.</li><li>Material yoki papkani <b>⋮ → Ko'rinmas qilish</b> bilan talabalardan yashirish mumkin; yuklashda «ko'rinmasin» belgisini qo'ysangiz oldindan tayyorlab, keyin ochasiz.</li><li>Testning <b>Kim yechdi</b> tugmasi natijalar ro'yxatini ko'rsatadi.</li></ul>`],
+['chart', 'Statistika, Tahlil va Hisobot', `<ul><li>Statistikada kartani bossangiz tafsilot ochiladi; grafik ustiga olib borsangiz aniq son ko'rinadi.</li><li>«Hisobot tayyorlash» tugmasi chop etish/PDF va CSV hisobot yaratadi.</li><li>Admin va o'qituvchining faolligi hisoblanmaydi.</li></ul>`],
+['gear', 'Bo\'limlarni yashirish', `<p>Admin: <b>Ilova sozlamalari → Bo'limlarni yashirish</b>. Hozircha AI yordamchi va Laboratoriya yashirilgan; kerak bo'lsa belgini olib tashlang.</p>`],
+);
+G.ru.push(
+['user', 'Профиль пользователя (админ и преподаватель)', `<p>Нажмите на человека в списке «Пользователи» — откроется профиль: фото, имя, телефон, группы, активность и отчёт. Режим <b>только чтения</b>: ничего изменить нельзя, ваше время просмотра ему не засчитывается.</p>`],
+['phone', 'Телефон обязателен', `<p>Студент и преподаватель не смогут пользоваться приложением, пока не укажут телефон: чтобы администратор мог связаться при проблемах с паролем, оплатой или аккаунтом.</p>`],
+['cap', 'Путь курса и блокировка тем', `<p>Темы расположены «змейкой» с процентом выполнения. Следующая тема открывается, когда предыдущая пройдена минимум на <b>60%</b>. Платные курсы открываются на 1 месяц после оплаты и подтверждения админом.</p>`],
+['chart', 'Статистика, аналитика и отчёт', `<p>Нажмите на карточку — подробности; наведите на график — точное число; кнопка «Подготовить отчёт» создаёт печатный отчёт и CSV. Активность админа и преподавателя не учитывается.</p>`],
+);
+G.en.push(
+['user', 'User profile (admin & teacher)', `<p>Tap anyone in the Users list to open their profile: photo, name, phone, groups, activity and report. It is <b>view-only</b>: nothing can be changed and your viewing time is not recorded for that user.</p>`],
+['phone', 'Phone number required', `<p>Students and teachers must enter a phone number before using the app, so the administrator can reach them about password, payment or account problems.</p>`],
+['cap', 'Course path & topic lock', `<p>Topics are laid out as a winding path with a completion percentage. The next topic unlocks when the previous one is at least <b>60%</b> done. Paid courses open for 1 month after payment and admin approval.</p>`],
+['chart', 'Statistics, analytics & report', `<p>Tap a card for details; hover a chart for exact values; “Create report” makes a printable report and CSV. Admin and teacher activity is not tracked.</p>`],
+);
 
 // ---- "Ilova haqida": imkoniyatlar (qanday ishlatish emas, nimalar bor)
 const A = {

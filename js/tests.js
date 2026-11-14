@@ -187,14 +187,29 @@ route('/test/:id', async ({ el, params, alive }) => {
   intro(el, item, qs);
 }, { auth: true });
 
+// Shu testni kimlar yechgani (admin va test egasi uchun)
+export async function takersModal(item) {
+  const { modal: md, fmtDate: fd, spinner: sp, esc: e2 } = await import('./core.js');
+  const m = md(`<h3>${e2(T('Kim yechdi', 'Кто решал', 'Who took it'))}</h3><p class="muted small">${e2(tr(item.title))}</p><div id="tkb">${sp()}</div>`);
+  const { data, error } = await sb.rpc('test_takers', { p_item: item.id });
+  const box = m.el.querySelector('#tkb'); if (!box) return;
+  if (error) { box.innerHTML = `<p class="muted center pad">${e2(error.message)}</p>`; return; }
+  const ini = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  box.innerHTML = (data || []).length ? `<p class="muted small">${data.length} ${e2(T('kishi yechgan', 'чел. решали', 'people took it'))}</p><div class="plist">${data.map(r => `<a class="prow" href="#/user/${r.user_id}"><span class="avatar sm">${r.avatar_url ? `<img src="${e2(r.avatar_url)}" alt="">` : e2(ini(r.name))}</span>
+    <div class="grow"><b>${e2(r.name || '—')}</b><br><small class="muted">${r.attempts} ${e2(T('urinish', 'попыт.', 'attempts'))} · ${e2(fd(r.last_at))}</small></div><div class="end"><b>${Math.round(r.last_percent)}%</b><br><small class="muted">${e2(T('eng yaxshi ', 'лучший ', 'best '))}${Math.round(r.best)}%</small></div></a>`).join('')}</div>`
+    : `<p class="muted center pad">${e2(T('Hali hech kim yechmagan', 'Пока никто не решал', 'Nobody has taken it yet'))}</p>`;
+  m.el.addEventListener('click', ev => { if (ev.target.closest('a')) m.close(); });
+}
+
 function intro(el, item, qs) {
   const chs = {}; qs.forEach(q => { const k = q.chapter || ''; chs[k] = (chs[k] || 0) + 1; });
   const names = Object.keys(chs).sort();
   el.innerHTML = `<div class="page narrow"><a class="btn ghost sm" href="#/library/${item.folder_id || ''}">${ic('back')}</a>
-    <div class="card pad mt"><div class="row between"><h2>${esc(tr(item.title))}</h2>${state.isAdmin || item.created_by === state.user.id ? `<a class="btn ghost sm" href="#/test/${item.id}/edit">${ic('edit', 14)} ${esc(T('Savollar', 'Вопросы', 'Questions'))}</a>` : ''}</div><p class="muted">${esc(t('tests.q_count', { n: qs.length }))}</p>
+    <div class="card pad mt"><div class="row between"><h2>${esc(tr(item.title))}</h2>${state.isAdmin || item.created_by === state.user.id ? `<div class="row" style="gap:6px"><button class="btn ghost sm" id="tk">${ic('users', 14)} ${esc(T('Kim yechdi', 'Кто решал', 'Who took it'))}</button><a class="btn ghost sm" href="#/test/${item.id}/edit">${ic('edit', 14)} ${esc(T('Savollar', 'Вопросы', 'Questions'))}</a></div>` : ''}</div><p class="muted">${esc(t('tests.q_count', { n: qs.length }))}</p>
     ${names.length > 1 || names[0] ? `<h4>${esc(t('tests.chapters'))}</h4><div class="chlist">${names.map(n => `<label class="chk"><input type="checkbox" data-ch="${esc(n)}" checked> ${esc(n || t('tests.no_ch'))} <small class="muted">(${chs[n]})</small></label>`).join('')}</div>` : ''}
     <h4>${esc(t('tests.how_many'))}</h4><div class="chips" id="cnt">${[10, 20, 30, 50].filter(n => n < qs.length).map(n => `<button class="chip btnchip" data-n="${n}">${n}</button>`).join('')}<button class="chip btnchip on" data-n="0">${esc(t('tests.all'))}</button></div>
     <button class="btn lg block mt" id="go">${ic('play')} ${esc(t('tests.start'))}</button></div></div>`;
+  $('#tk', el)?.addEventListener('click', () => takersModal(item));
   let n = 0;
   $$('#cnt .btnchip', el).forEach(b => b.onclick = () => { $$('#cnt .btnchip', el).forEach(x => x.classList.remove('on')); b.classList.add('on'); n = +b.dataset.n; });
   $('#go', el).onclick = () => {

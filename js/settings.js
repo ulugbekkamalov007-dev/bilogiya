@@ -3,6 +3,7 @@ import { T } from './ui.js';
 import { nameOk, initials } from './core.js';
 import { sb, state, t, addDict, friendlyErr, route, go, esc, ic, $, $$, toast, btnBusy, compressImage, upload, publicUrl, setLang, confirmDlg, passScore } from './core.js';
 import { contactCards, bindContact } from './contact.js';
+import { normPhone } from './phonegate.js';
 import { aboutHtml } from './guide.js';
 import { strengthBar, bindStrength } from './auth.js';
 import { lockEnabled, bioEnabled, lockInfo, pinSetup, removeLock, removeBiometric, registerBiometric, biometricSupported, setAutoLock, doLogout } from './lock.js';
@@ -72,6 +73,7 @@ route('/settings/:s', async ({ el, params }) => {
   if (s === 'profile') body = `<div class="card pad form mt"><div class="row"><span class="avatar lg" id="av">${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="">` : esc(initials(p.full_name))}</span>
       <label class="btn ghost sm">${esc(t('set.change_photo'))}<input type="file" id="ph" accept="image/*" hidden></label></div>
       <label class="fld"><span>${esc(t('set.name'))}</span><input class="input" id="nm" value="${esc(p.full_name)}"></label>
+      ${state.isAdmin ? '' : `<label class="fld"><span>${esc(T('Telefon raqami', 'Номер телефона', 'Phone number'))}</span><input class="input" id="phn" type="tel" inputmode="tel" value="${esc(p.phone || '')}" placeholder="+998 90 123 45 67"></label>`}
       <div class="fld"><span>${esc(t('set.gender'))}</span><div class="seg"><label><input type="radio" name="g" value="m" ${p.gender === 'm' ? 'checked' : ''}><span>${esc(t('auth.male'))}</span></label><label><input type="radio" name="g" value="f" ${p.gender === 'f' ? 'checked' : ''}><span>${esc(t('auth.female'))}</span></label></div></div>
       <label class="fld"><span>${esc(t('set.email'))}</span><input class="input" value="${esc(state.user.email)}" disabled></label><button class="btn" id="sv">${esc(t('set.save'))}</button></div>`;
   if (s === 'look') body = `<div class="card pad form mt"><div class="fld"><span>${esc(t('set.lang'))}</span><div class="seg">${['uz', 'ru', 'en'].map(l => `<label><input type="radio" name="l" value="${l}" ${state.lang === l ? 'checked' : ''}><span>${({ uz: 'O\'zbekcha', ru: 'Русский', en: 'English' })[l]}</span></label>`).join('')}</div></div>
@@ -97,7 +99,7 @@ route('/settings/:s', async ({ el, params }) => {
   if (s === 'notif') { const pr = p.prefs || {}; const perm = 'Notification' in window ? Notification.permission : 'denied';
     body = `<div class="card pad form mt">${[['notif_news', 'set.n_news'], ['notif_chat', 'set.n_chat'], ['notif_task', 'set.n_task']].map(([k, l]) => `<label class="chk"><input type="checkbox" data-n="${k}" ${pr[k] === false ? '' : 'checked'}> ${esc(t(l))}</label>`).join('')}
       ${'Notification' in window ? `<button class="btn ${perm === 'granted' ? 'ghost' : ''}" id="perm" ${perm === 'granted' ? 'disabled' : ''}>${esc(t('set.n_perm'))}${perm === 'granted' ? ' ✔' : ''}</button>` : ''}<p class="muted small">${esc(t('set.n_note'))}</p></div>`; }
-  if (s === 'contact') body = `<p class="muted mt">${esc(t('ct.sub'))}</p>${contactCards()}`;
+  if (s === 'contact') body = `${state.isAdmin ? '' : `<h3 class="mt">${esc(T('Administratorga yozish', 'Написать администратору', 'Message the administrator'))}</h3><div id="supc" class="mt"></div>`}<p class="muted mt">${esc(t('ct.sub'))}</p>${contactCards()}`;
   if (s === 'about') body = `<div class="card pad mt center"><div class="lock-logo">🧬</div><h3>${esc(CONFIG.APP_NAME)}</h3><p class="muted">${esc(t('set.version'))} 2.0 · ${esc(t(state.isAdmin ? 'set.admin' : 'set.user'))}</p>
       ${isStandalone() ? `<p class="ok">${esc(t('set.installed'))}</p>` : canInstall() ? `<button class="btn lg" id="ins">${ic('download')} ${esc(t('set.install'))}</button>` : ''}</div>${aboutHtml()}`;
   el.innerHTML = `<div class="page narrow">${head}${body}</div>`;
@@ -106,7 +108,9 @@ route('/settings/:s', async ({ el, params }) => {
   $('#ph', el)?.addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return;
     try { const blob = await compressImage(f, { max: 320, quality: 0.8 }); const path = `${state.user.id}/avatar-${Date.now()}.webp`; await upload('avatars', path, blob);
       const url = publicUrl('avatars', path); if (await saveProfile({ avatar_url: url })) $('#av', el).innerHTML = `<img src="${esc(url)}" alt="">`; } catch (x) { toast(x.message, 'err'); } });
-  $('#sv', el)?.addEventListener('click', () => { const nn = $('#nm', el).value.trim() || p.full_name; if (!nameOk(nn)) return toast(t('err.fake_name'), 'err'); saveProfile({ full_name: nn, gender: $('input[name=g]:checked', el)?.value || null }); });
+  $('#sv', el)?.addEventListener('click', () => { const nn = $('#nm', el).value.trim() || p.full_name; if (!nameOk(nn)) return toast(t('err.fake_name'), 'err'); 
+    const phEl = $('#phn', el); if (phEl) { const v = normPhone(phEl.value); if (!/^\+?[0-9]{9,15}$/.test(v)) return toast(T('Telefon raqami noto\'g\'ri. Masalan: +998 90 123 45 67', 'Неверный номер. Например: +998 90 123 45 67', 'Invalid number. Example: +998 90 123 45 67'), 'err'); sb.rpc('set_my_phone', { p_phone: v }).then(({ error }) => { if (error) return toast(friendlyErr(error.message), 'err'); state.profile.phone = v; }); }
+    saveProfile({ full_name: nn, gender: $('input[name=g]:checked', el)?.value || null }); });
   $$('input[name=l]', el).forEach(r => r.onchange = () => setLang(r.value));
   $$('input[name=th]', el).forEach(r => r.onchange = () => { localStorage.setItem('bio.theme', r.value); applyTheme(); });
   $$('input[name=fs]', el).forEach(r => r.onchange = () => { localStorage.setItem('bio.fs', r.value); applyTheme(); });
@@ -134,7 +138,14 @@ route('/settings/:s', async ({ el, params }) => {
       toast(t('rec.done'), 'ok'); go('/settings/security', true);
     };
   }
-  if (s === 'contact') bindContact(el);
+  if (s === 'contact') {
+    bindContact(el);
+    const sc = $('#supc', el);
+    if (sc) sb.rpc('support_contact').then(({ data }) => { const a = Array.isArray(data) ? data[0] : data; if (!sc.isConnected) return;
+      sc.innerHTML = a ? `<a class="card pad item-row supcard" href="#/inbox?topic=help"><span class="avatar lg">${a.avatar_url ? `<img src="${esc(a.avatar_url)}" alt="">` : esc(initials(a.full_name))}</span>
+        <div class="grow"><b>${esc(a.full_name || 'Admin')}</b><br><small class="muted">${esc(T('Administrator · ilova ichida yozing', 'Администратор · напишите в приложении', 'Administrator · message in the app'))}</small></div><span class="btn sm">${ic('send', 14)} ${esc(T('Yozish', 'Написать', 'Write'))}</span></a>`
+        : `<p class="muted small">${esc(T('Administrator hozircha topilmadi', 'Администратор не найден', 'Administrator not found'))}</p>`; });
+  }
   $('#pin', el)?.addEventListener('click', () => pinSetup({ skippable: false, onDone: () => go('/settings/security', true) }));
   $('#bio', el)?.addEventListener('change', async e => { if (e.target.checked) { try { await registerBiometric(); } catch { e.target.checked = false; toast(t('lock.bio_fail')); } } else removeBiometric(); });
   $('#al', el)?.addEventListener('change', e => setAutoLock(+e.target.value));

@@ -1,5 +1,6 @@
 // E'lonlar va reklamalar: ko'rish, admin tomonidan yaratish (hammaga / guruhlarga / shaxslarga)
 import { sb, state, t, tr, addDict, friendlyErr, route, esc, ic, $, $$, modal, toast, confirmDlg, fmtDate, publicUrl, compressImage, upload, uid8, i18nField, btnBusy, spinner } from './core.js';
+import { T } from './ui.js';
 
 addDict({
   uz: { 'news.title': 'E\'lonlar', 'news.new': 'Yangi e\'lon', 'news.kind': 'Turi', 'news.k_news': 'E\'lon', 'news.k_ad': 'Reklama (banner)',
@@ -58,7 +59,7 @@ export function composeAnnouncement(onDone, preset = {}) {
     <div class="fld"><span>${esc(t('news.target'))}</span>
       <div class="seg"><label><input type="radio" name="tg" value="all" checked><span>${esc(t('news.t_all'))}</span></label><label><input type="radio" name="tg" value="groups"><span>${esc(t('news.t_groups'))}</span></label><label><input type="radio" name="tg" value="users"><span>${esc(t('news.t_users'))}</span></label></div></div>
     <div id="pick"></div>
-    <label class="fld"><span>${esc(t('news.f_end'))}</span><input class="input" id="en" type="date"></label>
+    <label class="fld"><span>${esc(t('news.f_end'))}</span><input class="input" id="en" inputmode="numeric" maxlength="10" placeholder="${esc(fmtDate(Date.now()))}" autocomplete="off"></label>
     <label class="chk"><input type="checkbox" id="pi"> ${esc(t('news.f_pin'))}</label>
     <label class="chk"><input type="checkbox" id="tr" checked> ${esc(t('news.f_tr'))}</label>
     <div class="err" id="err"></div>
@@ -102,7 +103,10 @@ export function composeAnnouncement(onDone, preset = {}) {
       const [ti, bo] = await Promise.all([i18nField(title, state.lang, auto), i18nField(body, state.lang, auto)]);
       let image_path = null; const f = $('#im', el).files[0];
       if (f) { const blob = await compressImage(f, { max: 1200, quality: 0.75 }); image_path = await upload('media', `ann/${uid8()}-${Date.now()}.${blob.type === 'image/webp' ? 'webp' : 'jpg'}`, blob); }
-      const end = $('#en', el).value;
+      // sana: kun.oy.yil (masalan 14.11.2026)
+      const em = $('#en', el).value.trim().match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+      if ($('#en', el).value.trim() && !em) return toast(T('Sanani 14.11.2026 ko\'rinishida yozing', 'Введите дату как 14.11.2026', 'Enter the date like 14.11.2026'), 'err');
+      const end = em ? `${em[3]}-${em[2].padStart(2, '0')}-${em[1].padStart(2, '0')}` : '';
       const { error } = await sb.from('announcements').insert({
         kind: $('input[name=k]:checked', el).value, title: ti, body: bo, image_path, link: $('#li', el).value.trim() || null,
         target: tg, group_ids: tg === 'groups' ? [...selG] : [], user_ids: tg === 'users' ? [...selU.keys()] : [],
