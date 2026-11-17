@@ -275,3 +275,15 @@ button.tc-h { border: 0; background: transparent; font: inherit; color: inherit;
 @media print { .noprint, .topbar, #tabs, .sidebar, .botbar, #updbar, nav, header { display: none !important; } body { background: #fff !important; } .page { max-width: none !important; padding: 0 !important; } .repdoc { border: 0 !important; box-shadow: none !important; } }
 .sn .nd { position: relative; z-index: 2; } .sn .lb { z-index: 1; width: 108px; }
 .stile:not([style*="--c"]) .item-ic { color: var(--brand); background: var(--brand-l); }
+
+/* Kurs: slayd va kartochkalar */
+.sld-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+.sld-dots { display: flex; gap: 5px; } .sld-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line, #d8dde6); } .sld-dots i.seen { background: color-mix(in srgb, var(--brand) 45%, transparent); } .sld-dots i.on { background: var(--brand); transform: scale(1.3); }
+.sld-card { background: var(--card, #fff); border: 1px solid var(--line, #e3e7ee); border-radius: 18px; padding: clamp(1.1rem, 4vw, 2.2rem); min-height: 320px; }
+.sld-ic { font-size: 3rem; line-height: 1; } .sld-card h2 { font-family: var(--font-h); margin: .5rem 0 .8rem; font-size: clamp(1.3rem, 4vw, 1.9rem); }
+.sld-card ul { padding-left: 1.2rem; font-size: clamp(1.05rem, 3.2vw, 1.25rem); line-height: 1.7; } .sld-card li { margin: .35rem 0; }
+.sld-q { margin-top: 1.2rem; padding: .9rem 1rem; border-radius: 14px; background: color-mix(in srgb, var(--brand) 9%, transparent); } .sld-a { margin: .6rem 0 0; font-weight: 600; }
+.crd { max-width: 640px; margin: 0 auto; } .crd .bar { height: 8px; margin-bottom: .4rem; }
+.crd-face { border-radius: 16px; padding: 1.1rem 1.2rem; margin-top: .8rem; border: 1px solid var(--line, #e3e7ee); background: var(--card, #fff); } .crd-face.top { border-color: var(--brand); } .crd-face small { color: var(--muted, #6b7280); text-transform: uppercase; letter-spacing: .04em; font-size: .72rem; } .crd-face h3, .crd-face p { margin: .3rem 0 0; font-size: 1.2rem; }
+.crd-btns { gap: .6rem; margin-top: .6rem; } .crd-btns .btn { flex: 1; justify-content: center; } .center { text-align: center; margin-top: 1rem; }
+.crd-fb { margin-top: .8rem; padding: .7rem 1rem; border-radius: 12px; } .crd-fb.good { background: #e7f7ec; color: #14532d; } .crd-fb.bad { background: #fdecec; color: #7f1d1d; } .crd-end { text-align: center; max-width: 520px; margin: 0 auto; }

@@ -6,7 +6,7 @@ import { hiddenSet } from './sections.js';
 import { hasAccess } from './billing.js';
 
 const LV = () => ({ basic: T('Boshlang\'ich', 'Начальный', 'Basic'), medium: T('O\'rta', 'Средний', 'Intermediate'), advanced: T('Yuqori', 'Продвинутый', 'Advanced') });
-const KI = { text: 'book', video: 'video', audio: 'audio', document: 'file', test: 'test' };
+const KI = { text: 'book', video: 'video', audio: 'audio', document: 'file', test: 'test', slides: 'layers', cards: 'list' };
 export const cover = c => `<div class="cover">${c.cover_url ? `<img src="${esc(c.cover_url)}" alt="" loading="lazy">` : ic('cap', 44)}</div>`;
 
 async function myProgress() {
@@ -100,7 +100,7 @@ route('/course/:id', async ({ el, params, alive }) => {
 
 route('/lesson/:cid/:lid', async ({ el, params, alive }) => {
   const { cid, lid } = params; el.innerHTML = `<div class="page">${skeleton(3, 120)}</div>`;
-  const [{ data: c }, { data: ls }, { data: lp }, { data: l, error }] = await Promise.all([sb.from('courses').select('id,title').eq('id', cid).maybeSingle(), sb.from('lessons').select('id,title,kind,position,section_id').eq('course_id', cid).order('position'),
+  const [{ data: c }, { data: ls }, { data: lp }, { data: l, error }] = await Promise.all([sb.from('courses').select('id,title,unlock_pct').eq('id', cid).maybeSingle(), sb.from('lessons').select('id,title,kind,position,section_id').eq('course_id', cid).order('position'),
     sb.from('lesson_progress').select('lesson_id').eq('course_id', cid), sb.from('lessons').select('*').eq('id', lid).maybeSingle()]);
   if (!alive()) return; if (error || !l || !c) return go('/course/' + cid, true);
   { const { data: lk } = await sb.rpc('section_locked', { p_lesson: lid }); if (lk === true) { toast(T('Bu mavzu hali yopiq: oldingi mavzuni yetarlicha bajaring', 'Тема закрыта: сначала пройдите предыдущую', 'Topic locked: finish the previous topic first'), 'err'); return go('/course/' + cid, true); } }
@@ -113,14 +113,19 @@ route('/lesson/:cid/:lid', async ({ el, params, alive }) => {
   const aiQ = encodeURIComponent(`${tr(c.title)} — ${tr(l.title)}`);
   el.innerHTML = `<div class="page" style="max-width:1400px"><div class="row"><a class="btn ghost sm" href="#/course/${cid}">${ic('back')}</a><div class="grow"><small class="muted">${esc(tr(c.title))}</small><h2 class="mb0">${esc(tr(l.title))}</h2></div><button class="btn ghost sm tocbtn" id="tb" style="display:none">${ic('list', 16)}</button></div>
     <div class="lesson mt"><nav class="toc card pad"><h4>${esc(T('Mundarija', 'Содержание', 'Contents'))}</h4>${tocHtml}</nav>
-      <article>${media}<div class="lbody card pad mt">${md(body) || `<p class="muted">${esc(T('Matn yo\'q', 'Нет текста', 'No text'))}</p>`}${linked}</div>
+      <article>${media}${l.kind === 'slides' || l.kind === 'cards' ? '<div class="mt" id="vx"></div>' : `<div class="lbody card pad mt">${md(body) || (l.kind === 'test' ? '<p class="muted">' + esc(T('Testni kamida ' + (c.unlock_pct ?? 60) + '% natija bilan topshiring, so\'ng dars tugallanadi.', 'Сдайте тест минимум на ' + (c.unlock_pct ?? 60) + '%, и урок засчитается.', 'Pass the test with at least ' + (c.unlock_pct ?? 60) + '% to complete the lesson.')) + '</p>' : `<p class="muted">${esc(T('Matn yo\'q', 'Нет текста', 'No text'))}</p>`)}${linked}</div>`}
         <div class="lnav">${prev ? `<a class="btn ghost" href="#/lesson/${cid}/${prev.id}">${ic('back', 16)} ${esc(T('Oldingi', 'Назад', 'Previous'))}</a>` : ''}<button class="btn" id="fin">${done.has(lid) ? ic('check', 16) + ' ' + esc(T('Tugatilgan', 'Завершён', 'Completed')) : esc(T('Darsni tugatdim', 'Урок пройден', 'Mark complete'))} (+${l.xp} XP)</button>${next ? `<a class="btn ghost" href="#/lesson/${cid}/${next.id}">${esc(T('Keyingi', 'Далее', 'Next'))} ${ic('chev', 16)}</a>` : ''}</div></article>
       <aside class="side"><div class="card pad"><h4>${esc(T('Lug\'at', 'Словарь', 'Glossary'))}</h4>${gl.length ? gl.map(([a, b]) => `<p><b>${esc(a)}</b><br><small class="muted">${esc(b)}</small></p>`).join('') : `<p class="muted small">${esc(T('Bu darsda atamalar yo\'q (matnda [[atama|izoh]] yoziladi)', 'В уроке нет терминов', 'No terms in this lesson'))}</p>`}</div>
         <div class="card pad mt"><h4>${esc(T('Eslatmalar', 'Заметки', 'Notes'))}</h4><textarea class="input" id="nt" rows="6" placeholder="${esc(T('Shaxsiy eslatma (shu qurilmada saqlanadi)', 'Личная заметка (на этом устройстве)', 'Personal note (saved on this device)'))}"></textarea></div>
         ${hiddenSet().has('ai') ? '' : `<a class="btn block mt" href="#/ai?q=${aiQ}">${ic('bot', 16)} ${esc(T('AI yordamchidan so\'rash', 'Спросить ИИ', 'Ask the AI'))}</a>`}</aside></div></div>`;
+  const fin = $('#fin', el); const lock = msg => { fin.disabled = true; fin.title = msg; }; const unlockFin = () => { fin.disabled = false; fin.title = ''; };
+  if (!done.has(lid)) {
+    if (l.kind === 'slides' || l.kind === 'cards') { lock(T('Avval darsni oxirigacha ko\'ring', 'Сначала пройдите урок до конца', 'Finish the lesson first')); try { const lx = await import('./lessonx.js'); const data = JSON.parse(l.body || '[]'); (l.kind === 'slides' ? lx.renderSlides : lx.renderCards)($('#vx', el), data, unlockFin); } catch (e) { $('#vx', el).innerHTML = '<p class="muted">Xatolik: ' + esc(e.message) + '</p>'; unlockFin(); } }
+    else if (l.kind === 'test' && l.item_id) { const { data: at } = await sb.from('test_attempts').select('percent').eq('item_id', l.item_id).eq('user_id', state.user.id).order('percent', { ascending: false }).limit(1); if (!alive()) return; if ((at?.[0]?.percent ?? -1) < (c.unlock_pct ?? 60)) lock(T('Avval testdan kamida ' + (c.unlock_pct ?? 60) + '% oling', 'Сначала наберите в тесте минимум ' + (c.unlock_pct ?? 60) + '%', 'Score at least ' + (c.unlock_pct ?? 60) + '% in the test first')); }
+  } else if (l.kind === 'slides' || l.kind === 'cards') { const lx = await import('./lessonx.js'); try { (l.kind === 'slides' ? lx.renderSlides : lx.renderCards)($('#vx', el), JSON.parse(l.body || '[]')); } catch { /* */ } }
   const nt = $('#nt', el); try { nt.value = localStorage.getItem(noteKey) || ''; } catch { /* */ } nt.oninput = () => { try { localStorage.setItem(noteKey, nt.value); } catch { /* */ } };
   const tb = $('#tb', el); if (window.matchMedia('(max-width:1099px)').matches) tb.style.display = ''; tb.onclick = async () => { const { modal } = await import('./core.js'); const m = modal(`<h3>${esc(T('Mundarija', 'Содержание', 'Contents'))}</h3>${tocHtml}`); m.el.addEventListener('click', e => { if (e.target.closest('a')) m.close(); }); };
-  $('#fin', el).onclick = async e => { if (done.has(lid)) return next ? go(`/lesson/${cid}/${next.id}`) : go('/course/' + cid); btnBusy(e.currentTarget, true);
+  fin.onclick = async e => { if (done.has(lid)) return next ? go(`/lesson/${cid}/${next.id}`) : go('/course/' + cid); btnBusy(e.currentTarget, true);
     const { data, error: er } = await sb.rpc('complete_lesson', { p_lesson: lid }); if (er) { btnBusy($('#fin', el), false); return toast(dbErr(er), 'err'); }
     if (data.xp) toast(`+${data.xp} XP`, 'ok'); announceAchievements(data.achievements); refreshStats();
     if (data.finished) { toast('🎓 ' + T('Kurs tugatildi!', 'Курс завершён!', 'Course completed!'), 'ok'); go('/cert/' + data.cert); } else if (next) go(`/lesson/${cid}/${next.id}`); else go('/course/' + cid); };
