@@ -59,16 +59,16 @@ route('/course/:id', async ({ el, params, alive }) => {
   if (error || !c) { el.innerHTML = `<div class="page">${empty('cap', T('Kurs topilmadi yoki yopiq', 'Курс не найден или закрыт', 'Course not found or not available'))}<p class="center"><a href="#/courses">${esc(T('Kurslarga qaytish', 'К курсам', 'Back to courses'))}</a></p></div>`; return; }
   const done = new Set((lp || []).map(x => x.lesson_id)), total = (ls || []).length, p = pct(done.size, total);
   const avg = (rv || []).length ? ((rv.reduce((a, r) => a + r.rating, 0)) / rv.length).toFixed(1) : null;
-  const unlock = c.unlock_pct ?? 60;
+  const unlock = c.unlock_pct ?? 60, staff = state.isAdmin || state.profile?.role === 'teacher';
   // mavzular: har bir bo'lim = mavzu; oldingi mavzu kamida `unlock`% bajarilmasa keyingisi qulflanadi
   const topics = (secs || []).map(s => ({ s, l: (ls || []).filter(x => x.section_id === s.id) })).filter(t => t.l.length);
   const loose = (ls || []).filter(x => !secs?.some(s => s.id === x.section_id));
   if (loose.length) topics.unshift({ s: null, l: loose });
   topics.forEach((tp, i) => { tp.n = i + 1; tp.done = tp.l.filter(x => done.has(x.id)).length; tp.pct = pct(tp.done, tp.l.length); });
-  topics.forEach((tp, i) => { if (tp.s) { const pv = topics.slice(0, i).reverse().find(x => x.s) || null; tp.locked = pv ? pv.pct < unlock : false; tp.prev = pv; } });
+  topics.forEach((tp, i) => { if (tp.s) { const pv = topics.slice(0, i).reverse().find(x => x.s) || null; tp.locked = !staff && pv ? pv.pct < unlock : false; tp.prev = pv; } });
   const firstOpen = (topics.filter(t => !t.locked).flatMap(t => t.l)).find(l => !done.has(l.id)) || (topics.flatMap(t => t.l))[0];
   const next = firstOpen;
-  const isOwn = state.isAdmin || c.author_id === state.user.id, free = !c.is_premium || isOwn || await paidNow(), firstId = (ls || [])[0]?.id;
+  const isOwn = staff || c.author_id === state.user.id, free = !c.is_premium || isOwn || await paidNow(), firstId = (ls || [])[0]?.id;
   const snake = (tp) => {
     const n = tp.l.length, W = 340, STEP = 96, H = n * STEP + 20, cx = W / 2, amp = 78;
     const pts = tp.l.map((l, i) => [cx + Math.sin(i * 1.25) * amp, 56 + i * STEP]);
@@ -129,7 +129,7 @@ route('/lesson/:cid/:lid', async ({ el, params, alive }) => {
         <div class="card pad mt"><h4>${esc(T('Eslatmalar', 'Заметки', 'Notes'))}</h4><textarea class="input" id="nt" rows="6" placeholder="${esc(T('Shaxsiy eslatma (shu qurilmada saqlanadi)', 'Личная заметка (на этом устройстве)', 'Personal note (saved on this device)'))}"></textarea></div>
         ${hiddenSet().has('ai') ? '' : `<a class="btn block mt" href="#/ai?q=${aiQ}">${ic('bot', 16)} ${esc(T('AI yordamchidan so\'rash', 'Спросить ИИ', 'Ask the AI'))}</a>`}</aside></div></div>`;
   const fin = $('#fin', el); const lock = msg => { fin.disabled = true; fin.title = msg; }; const unlockFin = () => { fin.disabled = false; fin.title = ''; };
-  if (!done.has(lid)) {
+  if (!done.has(lid) && !(state.isAdmin || state.profile?.role === 'teacher')) {
     if (l.kind === 'slides' || l.kind === 'cards') { lock(T('Avval darsni oxirigacha ko\'ring', 'Сначала пройдите урок до конца', 'Finish the lesson first')); try { const lx = await import('./lessonx.js'); const data = JSON.parse(l.body || '[]'); (l.kind === 'slides' ? lx.renderSlides : lx.renderCards)($('#vx', el), data, unlockFin); } catch (e) { $('#vx', el).innerHTML = '<p class="muted">Xatolik: ' + esc(e.message) + '</p>'; unlockFin(); } }
     else if (l.kind === 'test' && l.item_id) { const { data: at } = await sb.from('test_attempts').select('percent').eq('item_id', l.item_id).eq('user_id', state.user.id).order('percent', { ascending: false }).limit(1); if (!alive()) return; if ((at?.[0]?.percent ?? -1) < (c.unlock_pct ?? 60)) lock(T('Avval testdan kamida ' + (c.unlock_pct ?? 60) + '% oling', 'Сначала наберите в тесте минимум ' + (c.unlock_pct ?? 60) + '%', 'Score at least ' + (c.unlock_pct ?? 60) + '% in the test first')); }
   } else if (l.kind === 'slides' || l.kind === 'cards') { const lx = await import('./lessonx.js'); try { (l.kind === 'slides' ? lx.renderSlides : lx.renderCards)($('#vx', el), JSON.parse(l.body || '[]')); } catch { /* */ } }

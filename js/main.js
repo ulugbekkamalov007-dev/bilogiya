@@ -183,7 +183,7 @@ async function onSignedIn(user) {
   }).subscribe();
   document.body.dataset.shell = 'app';
   if (navigator.onLine) refreshUnread();
-  else if (['/', '/login', '/register', '/verify', '/forgot'].includes(currentPath())) go('/home', true); else render();
+  if (['/', '/login', '/register', '/verify', '/forgot'].includes(currentPath())) go('/home', true); else render();
   if (!window._miniInit) { window._miniInit = 1; initMiniBar(); }
   watchBlocked(); refreshStats(); subscriptionNotice();
   offerQuickLogin();

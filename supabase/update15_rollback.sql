@@ -1,0 +1,1 @@
+-- Asl holatga: update13.sql / update11.sql dagi shu funksiya bloklarini qayta ishga tushiring.
