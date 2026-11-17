@@ -183,9 +183,11 @@ route('/teach/materials', async ({ el, q, alive }) => {
     const { data, error } = await sb.from('folders').insert({ parent_id: null, title: await i18nField(T('Umumiy', 'Общее', 'General'), state.lang), description: {}, visible: true, price: 0, created_by: uid }).select('id').single();
     if (error) throw error; fid = data.id; return fid;
   };
+  // fayl nomi "8-sinf 46-mavzu 2-qism" (yoki 8_sinf_46_2_qism) bo'lsa: sarlavha "8-sinf 46-mavzu", izoh "2-qism"
+  const partInfo = n => { const x = /(\d+)\D{0,3}sinf\D{0,6}(\d+)(?:\D{0,8}mavzu)?\D{0,4}(\d+)\D{0,3}qism/i.exec(n); return x ? { s: +x[1], m: +x[2], q: +x[3] } : null; };
   const uploadFiles = async (files, forced) => {
     if (busyUp) return toast(T('Oldingi yuklash tugashini kuting', 'Дождитесь окончания загрузки', 'Wait for the current upload'), 'err');
-    const list = [...files]; if (!list.length) return; busyUp = true;
+    const list = [...files].sort((a, b) => { const x = partInfo(a.name), y = partInfo(b.name); return x && y ? (x.s - y.s) || (x.m - y.m) || (x.q - y.q) : 0; }); if (!list.length) return; busyUp = true;
     const m = modal(`<h3>${esc(T('Yuklanmoqda', 'Загрузка', 'Uploading'))}</h3><div class="stack" id="ul">${list.map((f, i) => `<div class="uprow" data-u="${i}"><span class="grow trunc">${esc(f.name)}</span><small class="muted">${esc(fmtSize(f.size))}</small><span class="us muted">…</span></div>`).join('')}</div><div class="row end mt"><button class="btn" id="ud" hidden>${esc(T('Tayyor', 'Готово', 'Done'))}</button></div>`, { onClose: () => { busyUp = false; reload(); } });
     const st = (i, txt, cls) => { const r = $(`[data-u="${i}"] .us`, m.el); if (r) { r.textContent = txt; r.className = 'us ' + (cls || 'muted'); } };
     let target; try { target = await ensureFolder(); } catch (e) { m.close(); busyUp = false; return toast(dbErr(e), 'err'); }
@@ -201,8 +203,8 @@ route('/teach/materials', async ({ el, q, alive }) => {
         const bad = (forced === 'audio' && !EXT_KIND[e]) ? '' : await sniff(f); if (bad && !(forced === 'audio' || kind === 'audio')) throw new Error(T('Fayl ichidagi tur kengaytmaga mos emas (buzilgan yoki soxta fayl)', 'Содержимое не соответствует расширению (повреждён или подделан)', 'File content does not match its extension (corrupt or fake)'));
         const meta = {}; if (k2 === 'video' || k2 === 'audio') { const pr = await probeMedia(f, k2); if (!pr.ok && k2 === 'audio') meta.noplay = true; else if (!pr.ok) throw new Error(T('Brauzer bu faylni ocha olmaydi. MP4/MP3 ga o\'tkazing', 'Браузер не может открыть файл. Конвертируйте в MP4/MP3', 'The browser cannot open this file. Convert to MP4/MP3')); if (pr.ok) meta.duration = pr.d; if (k2 === 'video') { meta.width = pr.w; meta.height = pr.h; } }
         st(i, T('yuklanmoqda…', 'загрузка…', 'uploading…'));
-        const id = crypto.randomUUID(), path = `${id}/${safeName(f.name)}`; await upload('content', path, f, { contentType: mimeOf(f) });
-        const { error } = await sb.from('items').insert({ id, folder_id: target, kind: k2, title: await i18nField(f.name.replace(/\.[^.]+$/, ''), state.lang), description: {}, visible: !hideNew, source: 'storage', storage_path: path, size_bytes: f.size, meta, created_by: uid });
+        const pi = partInfo(f.name), id = crypto.randomUUID(), path = `${id}/${safeName(f.name)}`; await upload('content', path, f, { contentType: mimeOf(f) });
+        const { error } = await sb.from('items').insert({ id, folder_id: target, kind: k2, title: await i18nField(pi ? `${pi.s}-sinf ${pi.m}-mavzu` : f.name.replace(/\.[^.]+$/, ''), state.lang), description: pi ? await i18nField(`${pi.q}-qism`, state.lang) : {}, visible: !hideNew, source: 'storage', storage_path: path, size_bytes: f.size, meta, created_by: uid });
         if (error) { await sb.storage.from('content').remove([path]).catch(() => { }); throw error; }
         st(i, '✓', 'ok');
       } catch (err) { st(i, '✗ ' + (err?.message || String(err)).slice(0, 90), 'err'); }

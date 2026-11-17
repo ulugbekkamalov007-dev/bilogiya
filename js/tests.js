@@ -201,24 +201,58 @@ export async function takersModal(item) {
   m.el.addEventListener('click', ev => { if (ev.target.closest('a')) m.close(); });
 }
 
+const backTo = item => item.back || '/library/' + (item.folder_id || '');
 function intro(el, item, qs) {
   const chs = {}; qs.forEach(q => { const k = q.chapter || ''; chs[k] = (chs[k] || 0) + 1; });
   const names = Object.keys(chs).sort();
-  el.innerHTML = `<div class="page narrow"><a class="btn ghost sm" href="#/library/${item.folder_id || ''}">${ic('back')}</a>
-    <div class="card pad mt"><div class="row between"><h2>${esc(tr(item.title))}</h2>${state.isAdmin || item.created_by === state.user.id ? `<div class="row" style="gap:6px"><button class="btn ghost sm" id="tk">${ic('users', 14)} ${esc(T('Kim yechdi', 'Кто решал', 'Who took it'))}</button><a class="btn ghost sm" href="#/test/${item.id}/edit">${ic('edit', 14)} ${esc(T('Savollar', 'Вопросы', 'Questions'))}</a></div>` : ''}</div><p class="muted">${esc(t('tests.q_count', { n: qs.length }))}</p>
-    ${names.length > 1 || names[0] ? `<h4>${esc(t('tests.chapters'))}</h4><div class="chlist">${names.map(n => `<label class="chk"><input type="checkbox" data-ch="${esc(n)}" checked> ${esc(n || t('tests.no_ch'))} <small class="muted">(${chs[n]})</small></label>`).join('')}</div>` : ''}
-    <h4>${esc(t('tests.how_many'))}</h4><div class="chips" id="cnt">${[10, 20, 30, 50].filter(n => n < qs.length).map(n => `<button class="chip btnchip" data-n="${n}">${n}</button>`).join('')}<button class="chip btnchip on" data-n="0">${esc(t('tests.all'))}</button></div>
+  el.innerHTML = `<div class="page narrow"><a class="btn ghost sm" href="#${backTo(item)}">${ic('back')}</a>
+    <div class="card pad mt"><div class="row between"><h2>${esc(tr(item.title))}</h2>${!item.multi && (state.isAdmin || item.created_by === state.user.id) ? `<div class="row" style="gap:6px"><button class="btn ghost sm" id="tk">${ic('users', 14)} ${esc(T('Kim yechdi', 'Кто решал', 'Who took it'))}</button><a class="btn ghost sm" href="#/test/${item.id}/edit">${ic('edit', 14)} ${esc(T('Savollar', 'Вопросы', 'Questions'))}</a></div>` : ''}</div><p class="muted">${esc(t('tests.q_count', { n: qs.length }))}</p>
+    ${names.length > 1 || names[0] ? `<h4>${esc(item.multi ? T('Testlar', 'Тесты', 'Tests') : t('tests.chapters'))}</h4><div class="row wrap" style="gap:8px;margin-bottom:6px"><button class="btn ghost sm" id="ca">${esc(T('Hammasini belgilash', 'Выбрать все', 'Select all'))}</button><button class="btn ghost sm" id="cn0">${esc(T('Belgini olish', 'Снять выбор', 'Clear'))}</button></div><div class="chlist">${names.map(n => `<label class="chk"><input type="checkbox" data-ch="${esc(n)}" checked> ${esc(n || t('tests.no_ch'))} <small class="muted">(${chs[n]})</small></label>`).join('')}</div>` : ''}
+    <p class="muted mt" id="tot"></p>
+    <h4>${esc(t('tests.how_many'))}</h4><div class="chips" id="cnt"></div>
+    <label class="fld mt"><span>${esc(T('Yoki o\'zingiz yozing (necha ta savol)', 'Или введите своё число вопросов', 'Or type your own number of questions'))}</span><input class="input" id="cu" type="number" min="1" inputmode="numeric" placeholder="${esc(T('masalan: 25', 'например: 25', 'e.g. 25'))}"></label>
     <button class="btn lg block mt" id="go">${ic('play')} ${esc(t('tests.start'))}</button></div></div>`;
   $('#tk', el)?.addEventListener('click', () => takersModal(item));
   let n = 0;
-  $$('#cnt .btnchip', el).forEach(b => b.onclick = () => { $$('#cnt .btnchip', el).forEach(x => x.classList.remove('on')); b.classList.add('on'); n = +b.dataset.n; });
+  const selNames = () => names.length > 1 || names[0] ? $$('[data-ch]:checked', el).map(c => c.dataset.ch) : names;
+  const poolSize = () => { const sel = selNames(); return qs.filter(q => sel.includes(q.chapter || '')).length; };
+  const paint = () => {
+    const size = poolSize(); if (n > size) n = 0;
+    $('#tot', el).textContent = T(`Tanlangan: ${size} ta savol`, `Выбрано вопросов: ${size}`, `Selected: ${size} questions`);
+    const cu = $('#cu', el); cu.max = size || 1;
+    $('#cnt', el).innerHTML = [10, 20, 30, 50, 100].filter(x => x < size).map(x => `<button class="chip btnchip ${n === x ? 'on' : ''}" data-n="${x}">${x}</button>`).join('') + `<button class="chip btnchip ${n === 0 ? 'on' : ''}" data-n="0">${esc(t('tests.all'))} (${size})</button>`;
+    $$('#cnt .btnchip', el).forEach(b => b.onclick = () => { n = +b.dataset.n; cu.value = ''; paint(); });
+    $('#go', el).disabled = !size;
+  };
+  $('#cu', el).oninput = e => { const v = Math.floor(+e.target.value); n = v > 0 ? Math.min(v, poolSize()) : 0; if (v > poolSize()) e.target.value = poolSize(); $$('#cnt .btnchip', el).forEach(b => b.classList.toggle('on', n === 0 ? (!e.target.value && b.dataset.n === '0') : false)); const size = poolSize(); $('#tot', el).textContent = T(`Tanlangan: ${size} ta savol`, `Выбрано вопросов: ${size}`, `Selected: ${size} questions`) + (n ? ' · ' + T(`yechiladi: ${n} ta`, `будет: ${n}`, `will take: ${n}`) : ''); };
+  $$('[data-ch]', el).forEach(c => c.onchange = () => { $('#cu', el).value = ''; paint(); });
+  $('#ca', el)?.addEventListener('click', () => { $$('[data-ch]', el).forEach(c => c.checked = true); paint(); });
+  $('#cn0', el)?.addEventListener('click', () => { $$('[data-ch]', el).forEach(c => c.checked = false); n = 0; paint(); });
+  paint();
   $('#go', el).onclick = () => {
-    const sel = names.length > 1 || names[0] ? $$('[data-ch]:checked', el).map(c => c.dataset.ch) : names;
+    const sel = selNames();
     let pool = qs.filter(q => sel.includes(q.chapter || '')); if (!pool.length) return;
     pool = shuffle(pool); if (n) pool = pool.slice(0, n);
     run(el, item, pool, sel, qs);
   };
 }
+
+// Barcha testlar: tanlangan testlardan aralash savollar
+route('/tests/all', async ({ el, alive }) => {
+  el.innerHTML = `<div class="page narrow">${spinner()}</div>`;
+  const { data: its } = await sb.from('items').select('id,title,folder_id').eq('kind', 'test').order('created_at', { ascending: false }).limit(300);
+  if (!alive()) return;
+  const ids = (its || []).map(i => i.id), qs = [];
+  for (let from = 0; ids.length && from < 20000; from += 1000) {   // server bir so'rovda 1000 tadan ko'p qaytarmaydi — bo'laklab olamiz
+    const { data } = await sb.from('questions').select('id,item_id,chapter,question,correct,wrong,explanation,image_path,difficulty,points').in('item_id', ids).order('item_id').order('position').range(from, from + 999);
+    if (!data?.length) break; qs.push(...data); if (data.length < 1000) break;
+  }
+  if (!alive()) return;
+  if (!qs.length) { el.innerHTML = `<div class="page narrow"><a class="btn ghost sm" href="#/tests">${ic('back')}</a><div class="card pad center mt">${esc(t('tests.empty'))}</div></div>`; return; }
+  const name = Object.fromEntries((its || []).map(i => [i.id, tr(i.title)]));
+  const grouped = qs.map(q => ({ ...q, chapter: name[q.item_id] || '—' }));
+  intro(el, { id: ids[0], title: { uz: T('Barcha testlar (aralash)', 'Все тесты (вперемешку)', 'All tests (mixed)'), ru: T('Barcha testlar (aralash)', 'Все тесты (вперемешку)', 'All tests (mixed)'), en: T('Barcha testlar (aralash)', 'Все тесты (вперемешку)', 'All tests (mixed)') }, folder_id: '', back: '/tests', multi: true, created_by: null }, grouped);
+}, { auth: true });
 
 function run(el, item, pool, chapters, allQs) {
   let i = 0, correct = 0, earned = 0, answered = false; const maxPts = pool.reduce((a, x) => a + (x.points || 1), 0); const wrongIds = [], wrongInfo = []; const t0 = Date.now();
@@ -231,7 +265,7 @@ function run(el, item, pool, chapters, allQs) {
       <div class="opts">${opts.map((o, k) => `<button class="opt" data-o="${k}"><span class="ltr">${'ABCDEFGH'[k]}</span><span>${esc(o)}</span></button>`).join('')}</div>
       <div id="fb"></div></div></div>`;
     const tm = setInterval(() => { if (!$('#tm', el)) return clearInterval(tm); $('#tm', el).textContent = fmtDur((Date.now() - t0) / 1000); }, 1000);
-    $('#ex', el).onclick = async () => { if (await confirmDlg(t('tests.exit'), t('yes'))) { timer.stop(); go('/library/' + (item.folder_id || '')); } };
+    $('#ex', el).onclick = async () => { if (await confirmDlg(t('tests.exit'), t('yes'))) { timer.stop(); go(backTo(item)); } };
     // 1) variant tanlanadi, 2) "Tasdiqlash" bosiladi, 3) to'g'ri/xato ko'rsatiladi
     let sel = -1; const fb = $('#fb', el);
     const ask = () => { fb.innerHTML = `<button class="btn lg block mt" id="cf" ${sel < 0 ? 'disabled' : ''}>${esc(T('Tasdiqlash', 'Подтвердить', 'Confirm'))}</button>`; $('#cf', el).onclick = confirmPick; };
@@ -249,13 +283,13 @@ function run(el, item, pool, chapters, allQs) {
   async function finish() {
     const dur = Math.round((Date.now() - t0) / 1000), pct = Math.round(correct / pool.length * 1000) / 10;
     timer.stop();
-    sb.from('test_attempts').insert({ user_id: state.user.id, item_id: item.id, total: pool.length, correct, percent: pct, duration_s: dur, chapters, wrong_ids: wrongIds }).select('id').single().then(async ({ data: at }) => { if (!at) return; const { data: x } = await sb.rpc('claim_test_xp', { p_attempt: at.id }); if (x?.xp) { toast('+' + x.xp + ' XP', 'ok'); import('./xp.js').then(m => m.refreshStats()); } });
+    sb.from('test_attempts').insert({ user_id: state.user.id, item_id: item.multi ? (new Set(pool.map(x => x.item_id)).size === 1 ? pool[0].item_id : null) : item.id, total: pool.length, correct, percent: pct, duration_s: dur, chapters, wrong_ids: wrongIds }).select('id').single().then(async ({ data: at }) => { if (!at) return; const { data: x } = await sb.rpc('claim_test_xp', { p_attempt: at.id }); if (x?.xp) { toast('+' + x.xp + ' XP', 'ok'); import('./xp.js').then(m => m.refreshStats()); } });
     const r = 52, C = 2 * Math.PI * r;
     el.innerHTML = `<div class="page narrow"><div class="card pad center result">
       <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${r}" class="rbg"/><circle cx="60" cy="60" r="${r}" class="rfg" id="rfg" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg><b>${Math.round(pct)}%</b></div>
       <h2 class="motiv">${esc(motivation(pct))}</h2>${maxPts !== pool.length ? `<p class="muted">${esc(T('Ball', 'Баллы', 'Score'))}: <b>${earned} / ${maxPts}</b></p>` : ''}
       <div class="stats3"><div class="stat"><span>${esc(t('tests.correct'))}</span><b class="ok">${correct}/${pool.length}</b></div><div class="stat"><span>${esc(t('tests.wrong'))}</span><b class="bad">${pool.length - correct}</b></div><div class="stat"><span>${esc(t('tests.time'))}</span><b>${fmtDur(dur)}</b></div></div>
-      <div class="row wrap center mt"><button class="btn" id="rt">${ic('rewind')} ${esc(t('tests.retry'))}</button>${wrongInfo.length ? `<button class="btn soft" id="rw">${esc(t('tests.retry_wrong'))}</button>` : ''}<a class="btn ghost" href="#/library/${item.folder_id || ''}">${esc(t('tests.back'))}</a></div></div>
+      <div class="row wrap center mt"><button class="btn" id="rt">${ic('rewind')} ${esc(t('tests.retry'))}</button>${wrongInfo.length ? `<button class="btn soft" id="rw">${esc(t('tests.retry_wrong'))}</button>` : ''}<a class="btn ghost" href="#${backTo(item)}">${esc(t('tests.back'))}</a></div></div>
       ${wrongInfo.length ? `<h3 class="mt">${esc(t('tests.review'))}</h3>${wrongInfo.map(w => `<div class="card pad mb"><b>${esc(w.q.question)}</b><div class="bad">✗ ${esc(t('tests.your'))}: ${esc(w.pick)}</div><div class="ok">✔ ${esc(t('tests.right'))}: ${esc(w.q.correct)}</div>${w.q.explanation ? `<p class="expl">💡 ${esc(w.q.explanation)}</p>` : ''}</div>`).join('')}` : ''}</div>`;
     requestAnimationFrame(() => { const f = $('#rfg', el); if (f) f.style.strokeDashoffset = C * (1 - pct / 100); });
     celebrate(pct);
