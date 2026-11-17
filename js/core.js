@@ -165,9 +165,9 @@ export const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Mat
 
 // ---------- UI: toast / modal / confirm ----------
 // Texnik xatolarni (masalan "Could not find the function...") foydalanuvchiga ko'rsatmaymiz — o'z tilida tushunarli xabar
-addDict({ uz: { 'err.generic': 'Xatolik yuz berdi. Qayta urinib ko\'ring.', 'err.audio_db': 'Audio qo\'shish hali yoqilmagan. Administrator bazani yangilashi kerak (supabase/update3.sql).', 'err.big': 'Fayl juda katta. Kichikroq fayl tanlang yoki havola (URL) orqali qo\'shing.', 'err.banned': 'Hisobingiz bloklangan. Dasturchi bilan bog\'laning.', 'err.perm': 'Bu amal uchun ruxsat yo\'q', 'err.unavail': 'Ma\'lumotlar mavjud emas yoki xizmat hozircha tayyor emas', 'err.net': 'Internet bilan aloqa yo\'q' },
-  ru: { 'err.generic': 'Произошла ошибка. Попробуйте ещё раз.', 'err.audio_db': 'Добавление аудио ещё не включено. Администратору нужно обновить базу (supabase/update3.sql).', 'err.big': 'Файл слишком большой. Выберите меньший файл или добавьте по ссылке (URL).', 'err.banned': 'Ваш аккаунт заблокирован. Свяжитесь с разработчиком.', 'err.perm': 'Нет прав на это действие', 'err.unavail': 'Данные недоступны или сервис пока не готов', 'err.net': 'Нет связи с интернетом' },
-  en: { 'err.generic': 'Something went wrong. Please try again.', 'err.audio_db': 'Audio is not enabled yet. The administrator must update the database (supabase/update3.sql).', 'err.big': 'The file is too large. Pick a smaller file or add it by link (URL).', 'err.banned': 'Your account is blocked. Contact the developer.', 'err.perm': 'You are not allowed to do this', 'err.unavail': 'No data available or the service is not ready yet', 'err.net': 'No internet connection' } });
+addDict({ uz: { 'err.generic': 'Xatolik yuz berdi. Qayta urinib ko\'ring.', 'err.audio_db': 'Audio qo\'shish hali yoqilmagan. Administrator bazani yangilashi kerak (supabase/update3.sql).', 'err.big': 'Fayl juda katta. Kichikroq fayl tanlang yoki havola (URL) orqali qo\'shing.', 'err.banned': 'Hisobingiz bloklangan. Dasturchi bilan bog\'laning.', 'err.perm': 'Bu amal uchun ruxsat yo\'q', 'err.unavail': 'Ma\'lumotlar mavjud emas yoki xizmat hozircha tayyor emas', 'err.net': 'Server bilan aloqa o\'rnatilmadi. Qayta urinib ko\'ring.', 'err.upl': 'Fayl yuklanmadi. Aloqa uzilgan yoki fayl juda katta (50 MB gacha) bo\'lishi mumkin. Qayta urinib ko\'ring yoki havola (URL) orqali qo\'shing.' },
+  ru: { 'err.generic': 'Произошла ошибка. Попробуйте ещё раз.', 'err.audio_db': 'Добавление аудио ещё не включено. Администратору нужно обновить базу (supabase/update3.sql).', 'err.big': 'Файл слишком большой. Выберите меньший файл или добавьте по ссылке (URL).', 'err.banned': 'Ваш аккаунт заблокирован. Свяжитесь с разработчиком.', 'err.perm': 'Нет прав на это действие', 'err.unavail': 'Данные недоступны или сервис пока не готов', 'err.net': 'Не удалось связаться с сервером. Повторите попытку.', 'err.upl': 'Файл не загружен. Связь прервалась или файл слишком большой (до 50 МБ). Повторите или добавьте по ссылке (URL).' },
+  en: { 'err.generic': 'Something went wrong. Please try again.', 'err.audio_db': 'Audio is not enabled yet. The administrator must update the database (supabase/update3.sql).', 'err.big': 'The file is too large. Pick a smaller file or add it by link (URL).', 'err.banned': 'Your account is blocked. Contact the developer.', 'err.perm': 'You are not allowed to do this', 'err.unavail': 'No data available or the service is not ready yet', 'err.net': 'Could not reach the server. Please try again.', 'err.upl': 'Upload failed. The connection dropped or the file is too large (50 MB max). Try again or add it by link (URL).' } });
 export function friendlyErr(msg) {
   const m = String(msg || '');
   if (/items_kind_check/i.test(m)) return t('err.audio_db');
@@ -231,8 +231,18 @@ export async function compressImage(file, { max = 1280, quality = 0.72 } = {}) {
 export const uid8 = () => crypto.randomUUID().slice(0, 8);
 export function safeName(n) { return String(n).normalize('NFKD').replace(/[^\w.\-]+/g, '_').slice(-80); }
 export async function upload(bucket, path, blob, opts = {}) {
-  const { error } = await sb.storage.from(bucket).upload(path, blob, { upsert: false, cacheControl: '3600', contentType: blob.type || undefined, ...opts });
-  if (error) throw error; return path;
+  const netErr = e => /failed to fetch|networkerror|load failed|network request|aborted/i.test(String(e?.message || e));
+  let last;
+  for (let i = 0; i < 3; i++) {   // aloqa uzilsa 3 martagacha avtomatik qayta uriniladi
+    try {
+      const { error } = await sb.storage.from(bucket).upload(path, blob, { upsert: i > 0, cacheControl: '3600', contentType: blob.type || undefined, ...opts });
+      if (!error) return path;
+      if (!netErr(error)) throw error;
+      last = error;
+    } catch (e) { if (!netErr(e)) throw e; last = e; }
+    await new Promise(r => setTimeout(r, 1200 * (i + 1)));
+  }
+  console.warn('[yuklash]', last); throw new Error(t('err.upl'));
 }
 const urlCache = new Map();
 export async function signedUrl(bucket, path, ttl = 3600) {
