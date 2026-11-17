@@ -3,7 +3,7 @@ import { sb, state, tr, route, go, esc, ic, $, $$, toast, btnBusy, spinner, fmtD
 import { T, skeleton, empty, errBox, pct, bar, md, dbErr, announceAchievements } from './ui.js';
 import { refreshStats } from './xp.js';
 import { hiddenSet } from './sections.js';
-import { hasAccess } from './billing.js';
+import { hasAccess, paidNow, payScreen } from './billing.js';
 
 const LV = () => ({ basic: T('Boshlang\'ich', 'Начальный', 'Basic'), medium: T('O\'rta', 'Средний', 'Intermediate'), advanced: T('Yuqori', 'Продвинутый', 'Advanced') });
 const KI = { text: 'book', video: 'video', audio: 'audio', document: 'file', test: 'test', slides: 'layers', cards: 'list' };
@@ -27,7 +27,7 @@ route('/courses', async ({ el, alive }) => {
     <div id="cl">${skeleton(3, 200)}</div></div>`;
   let courses = [], pg, cnt = {};
   const load = async () => {
-    const [{ data, error }, p, { data: ec }] = await Promise.all([sb.from('courses').select('*, lessons(count)').eq('status', 'published').order('created_at', { ascending: false }), myProgress(), sb.from('enrollments').select('course_id')]);
+    const [{ data, error }, p, { data: ec }] = await Promise.all([(state.isAdmin ? sb.from('courses').select('*, lessons(count)') : sb.from('courses').select('*, lessons(count)').eq('status', 'published')).order('created_at', { ascending: false }), myProgress(), sb.from('enrollments').select('course_id')]);
     if (error) { $('#cl', el).innerHTML = errBox(dbErr(error), 'rt'); $('#rt', el).onclick = load; return; }
     courses = data || []; pg = p; (ec || []).forEach(x => cnt[x.course_id] = (cnt[x.course_id] || 0) + 1); paint();
   };
@@ -35,11 +35,13 @@ route('/courses', async ({ el, alive }) => {
     let l = courses.filter(c => (!f.q || tr(c.title).toLowerCase().includes(f.q)) && (!f.grade || c.grade === +f.grade) && (!f.level || c.level === f.level) && (!f.price || (f.price === 'prem') === c.is_premium) && (!f.mine || pg.enrolled[c.id]));
     l.sort((a, b) => f.sort === 'az' ? tr(a.title).localeCompare(tr(b.title)) : f.sort === 'pop' ? (cnt[b.id] || 0) - (cnt[a.id] || 0) : 0);
     $('#cl', el).innerHTML = l.length ? `<div class="cgrid">${l.map(c => { const total = c.lessons?.[0]?.count || 0, d = pg.done[c.id] || 0, en = pg.enrolled[c.id];
-      return `<a class="ccard" href="#/course/${c.id}">${cover(c)}<div class="cb"><div class="tagrow">${c.grade ? `<span class="tg">${c.grade}-${esc(T('sinf', 'класс', 'grade'))}</span>` : ''}<span class="tg">${esc(LV()[c.level])}</span>${c.is_premium ? '<span class="tg pr">Premium</span>' : `<span class="tg">${esc(T('Bepul', 'Бесплатно', 'Free'))}</span>`}</div>
-        <h3>${esc(tr(c.title))}</h3><small class="muted">${total} ${esc(T('dars', 'уроков', 'lessons'))} · ${cnt[c.id] || 0} ${esc(T('o\'quvchi', 'учеников', 'students'))}</small>
+      return `<a class="ccard" href="#/course/${c.id}">${cover(c)}<div class="cb"><div class="tagrow">${c.status !== 'published' ? `<span class="tg pr">${esc(T('Yashirin', 'Скрыт', 'Hidden'))}</span>` : ''}${c.grade ? `<span class="tg">${c.grade}-${esc(T('sinf', 'класс', 'grade'))}</span>` : ''}<span class="tg">${esc(LV()[c.level])}</span>${c.is_premium ? '<span class="tg pr">Premium</span>' : `<span class="tg">${esc(T('Bepul', 'Бесплатно', 'Free'))}</span>`}</div>
+        <h3>${esc(tr(c.title))}</h3>${state.isAdmin ? `<button class="btn sm ghost" data-vis="${c.id}">${ic('eye', 14)} ${esc(c.status === 'published' ? T('Yashirish', 'Скрыть', 'Hide') : T('Ko\'rsatish', 'Показать', 'Show'))}</button>` : ''}<small class="muted">${total} ${esc(T('dars', 'уроков', 'lessons'))} · ${cnt[c.id] || 0} ${esc(T('o\'quvchi', 'учеников', 'students'))}</small>
         ${en ? `${bar(pct(d, total))}<small class="muted">${en.completed_at ? '✔ ' + esc(T('Tugatilgan', 'Завершён', 'Completed')) : pct(d, total) + '%'}</small>` : ''}</div></a>`; }).join('')}</div>`
       : empty('cap', courses.length ? T('Filtrga mos kurs topilmadi', 'Нет курсов по фильтру', 'No courses match the filters') : T('Hozircha kurslar yo\'q', 'Курсов пока нет', 'No courses yet'));
   };
+  el.addEventListener('click', async e => { const b = e.target.closest('[data-vis]'); if (!b) return; e.preventDefault(); e.stopPropagation(); const c = courses.find(x => x.id === b.dataset.vis); if (!c) return;
+    const st = c.status === 'published' ? 'draft' : 'published'; const { error } = await sb.from('courses').update({ status: st }).eq('id', c.id); if (error) return toast(dbErr(error), 'err'); c.status = st; toast(st === 'published' ? T('Kurs hammaga ko\'rinadi', 'Курс виден всем', 'Course is visible to everyone') : T('Kurs yashirildi', 'Курс скрыт', 'Course hidden'), 'ok'); paint(); });
   $('#q', el).oninput = e => { clearTimeout(pg2); pg2 = setTimeout(() => { f.q = e.target.value.trim().toLowerCase(); if (courses.length) paint(); }, 150); }; let pg2;
   [['g', 'grade'], ['l', 'level'], ['p', 'price'], ['s', 'sort']].forEach(([id, k]) => $('#' + id, el).onchange = e => { f[k] = e.target.value; paint(); });
   $('#m', el).onchange = e => { f.mine = e.target.checked; paint(); };
@@ -66,7 +68,7 @@ route('/course/:id', async ({ el, params, alive }) => {
   topics.forEach((tp, i) => { if (tp.s) { const pv = topics.slice(0, i).reverse().find(x => x.s) || null; tp.locked = pv ? pv.pct < unlock : false; tp.prev = pv; } });
   const firstOpen = (topics.filter(t => !t.locked).flatMap(t => t.l)).find(l => !done.has(l.id)) || (topics.flatMap(t => t.l))[0];
   const next = firstOpen;
-  const free = !c.is_premium || await hasAccess();
+  const isOwn = state.isAdmin || c.author_id === state.user.id, free = !c.is_premium || isOwn || await paidNow(), firstId = (ls || [])[0]?.id;
   const snake = (tp) => {
     const n = tp.l.length, W = 340, STEP = 96, H = n * STEP + 20, cx = W / 2, amp = 78;
     const pts = tp.l.map((l, i) => [cx + Math.sin(i * 1.25) * amp, 56 + i * STEP]);
@@ -74,8 +76,8 @@ route('/course/:id', async ({ el, params, alive }) => {
     const firstUndone = tp.l.findIndex(x => !done.has(x.id));
     return `<div class="snake" style="height:${H}px;max-width:${W}px"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" class="snpath" aria-hidden="true"><path d="${path}" fill="none" stroke="var(--line)" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 12"/></svg>
       ${tp.l.map((l, i) => { const [x, y] = pts[i], isDone = done.has(l.id), cur = !tp.locked && i === firstUndone, left = x > cx;
-        return `<a class="sn ${isDone ? 'done' : ''} ${cur ? 'cur' : ''} ${tp.locked ? 'lock' : ''} ${left ? 'lft' : ''}" style="left:${x / W * 100}%;top:${y}px" href="#/lesson/${id}/${l.id}" ${tp.locked ? `data-lock="${tp.n}"` : ''} title="${esc(tr(l.title))}">
-          <span class="nd">${tp.locked ? ic('lock', 20) : isDone ? ic('check', 22) : ic(KI[l.kind] || 'book', 22)}</span><span class="lb">${esc(tr(l.title))}<small>${l.xp ? '+' + l.xp + ' XP' : ''}</small></span></a>`; }).join('')}</div>`;
+        return `<a class="sn ${isDone ? 'done' : ''} ${cur ? 'cur' : ''} ${tp.locked || (!free && l.id !== firstId) ? 'lock' : ''} ${left ? 'lft' : ''}" style="left:${x / W * 100}%;top:${y}px" href="#/lesson/${id}/${l.id}" ${tp.locked ? `data-lock="${tp.n}"` : ''} title="${esc(tr(l.title))}">
+          <span class="nd">${tp.locked || (!free && l.id !== firstId) ? ic('lock', 20) : isDone ? ic('check', 22) : ic(KI[l.kind] || 'book', 22)}</span><span class="lb">${esc(tr(l.title))}<small>${l.xp ? '+' + l.xp + ' XP' : ''}</small></span></a>`; }).join('')}</div>`;
   };
   const topicHtml = tp => `<section class="topic ${tp.locked ? 'locked' : ''}"><div class="thead"><span class="tnum">${tp.s ? tp.n : '★'}</span><div class="grow"><h4>${tp.s ? esc(tr(tp.s.title)) : esc(T('Umumiy darslar', 'Общие уроки', 'General lessons'))}</h4>
       <div class="tbar"><i style="width:${tp.pct}%"></i></div><small class="muted">${tp.done}/${tp.l.length} ${esc(T('dars', 'уроков', 'lessons'))} · ${tp.pct}%</small></div>
@@ -86,7 +88,7 @@ route('/course/:id', async ({ el, params, alive }) => {
     ${cover(c)}<h1 class="mt">${esc(tr(c.title))}</h1><div class="tagrow">${c.grade ? `<span class="tg">${c.grade}-${esc(T('sinf', 'класс', 'grade'))}</span>` : ''}<span class="tg">${esc(LV()[c.level])}</span>${c.is_premium ? '<span class="tg pr">Premium</span>' : ''}${avg ? `<span class="tg">★ ${avg} (${rv.length})</span>` : ''}</div>
     <div class="lbody mt" style="font-size:1rem">${md(tr(c.description))}</div>
     ${(c.goals || []).length ? `<h3>${esc(T('O\'quv maqsadlari', 'Цели обучения', 'Learning goals'))}</h3><ul>${c.goals.map(g => `<li>${esc(g)}</li>`).join('')}</ul>` : ''}
-    <h3>${esc(T('O\'quv yo\'li', 'Путь обучения', 'Learning path'))}</h3>${!free ? `<div class="card pad mb paynote"><b>${ic('lock', 16)} ${esc(T('Bu kurs pullik', 'Курс платный', 'This course is paid'))}</b><p class="muted small mb0">${esc(T('To\'lov qiling — administrator tasdiqlagach 1 oy davomida barcha mavzular ochiladi. Muddat tugasa ilova sizga xabar beradi.', 'Оплатите — после подтверждения администратором все темы откроются на 1 месяц. По окончании срока приложение уведомит вас.', 'Pay — after the admin confirms, all topics unlock for 1 month. The app notifies you when it expires.'))}</p><a class="btn mt" href="#/inbox?topic=help">${esc(T('To\'lov uchun bog\'lanish', 'Связаться для оплаты', 'Contact to pay'))}</a></div>` : ''}${total ? `<p class="muted small">${esc(T(`Keyingi mavzu ochilishi uchun oldingisining kamida ${unlock}% bajarilishi kerak.`, `Следующая тема откроется, когда предыдущая пройдена минимум на ${unlock}%.`, `The next topic unlocks when ${unlock}% of the previous one is done.`))}</p>${topics.map(topicHtml).join('')}` : `<p class="muted">${esc(T('Darslar hali qo\'shilmagan', 'Уроки ещё не добавлены', 'No lessons yet'))}</p>`}
+    <h3>${esc(T('O\'quv yo\'li', 'Путь обучения', 'Learning path'))}</h3>${!free ? `<div class="card pad mb paynote"><b>${ic('lock', 16)} ${esc(T('Bu kurs pullik', 'Курс платный', 'This course is paid'))}</b><p class="muted small mb0">${esc(T('Faqat 1-dars bepul. Keyingi darslar uchun to\'lov qiling va chekni adminga yuboring — administrator tasdiqlagach 1 oy davomida barcha mavzular ochiladi. Muddat tugasa ilova sizga xabar beradi.', 'Оплатите — после подтверждения администратором все темы откроются на 1 месяц. По окончании срока приложение уведомит вас.', 'Pay — after the admin confirms, all topics unlock for 1 month. The app notifies you when it expires.'))}</p><a class="btn mt" href="#/pay/${id}">${esc(T('To\'lov qilish', 'Оплатить', 'Pay'))}</a></div>` : ''}${total ? `<p class="muted small">${esc(T(`Keyingi mavzu ochilishi uchun oldingisining kamida ${unlock}% bajarilishi kerak.`, `Следующая тема откроется, когда предыдущая пройдена минимум на ${unlock}%.`, `The next topic unlocks when ${unlock}% of the previous one is done.`))}</p>${topics.map(topicHtml).join('')}` : `<p class="muted">${esc(T('Darslar hali qo\'shilmagan', 'Уроки ещё не добавлены', 'No lessons yet'))}</p>`}
     <h3>${esc(T('Izohlar va baholar', 'Отзывы и оценки', 'Reviews'))}</h3>
     ${en && !mine ? `<div class="card pad form mb"><label class="fld"><span>${esc(T('Bahongiz', 'Оценка', 'Rating'))}</span><select class="input" id="rr">${[5, 4, 3, 2, 1].map(v => `<option value="${v}">${'★'.repeat(v)}</option>`).join('')}</select></label><textarea class="input" id="rc" rows="2" maxlength="600" placeholder="${esc(T('Izoh (ixtiyoriy)', 'Комментарий (необязательно)', 'Comment (optional)'))}"></textarea><button class="btn" id="rs">${esc(T('Yuborish', 'Отправить', 'Submit'))}</button></div>` : ''}
     ${(rv || []).length ? (rv).map(r => `<div class="card pad mb"><div class="row between"><b>${esc(r.author_name || '')}</b><span class="muted">${'★'.repeat(r.rating)}</span></div>${r.comment ? `<p class="pre">${esc(r.comment)}</p>` : ''}<small class="muted">${esc(fmtDate(r.created_at))}</small></div>`).join('') : `<p class="muted">${esc(T('Hali izoh yo\'q', 'Отзывов пока нет', 'No reviews yet'))}</p>`}
@@ -98,11 +100,19 @@ route('/course/:id', async ({ el, params, alive }) => {
   $('#rs', el)?.addEventListener('click', async e => { btnBusy(e.target, true); const { error: er } = await sb.from('course_reviews').insert({ user_id: state.user.id, course_id: id, rating: +$('#rr', el).value, comment: $('#rc', el).value.trim() || null }); if (er) { btnBusy(e.target, false); return toast(dbErr(er), 'err'); } location.reload(); });
 }, { auth: true });
 
+route('/pay/:cid', async ({ el, params }) => {
+  const { data: c } = await sb.from('courses').select('id,title').eq('id', params.cid).maybeSingle();
+  await payScreen(el, { courseId: params.cid, back: '#/course/' + params.cid, title: T('Davom etish uchun to\'lov qiling', 'Оплатите, чтобы продолжить', 'Pay to continue'),
+    text: T('«' + tr(c?.title) + '» kursining 1-darsi bepul edi. Qolgan darslarni ochish uchun to\'lov qiling, chekni adminga yuboring — administrator tasdiqlagach darhol ochiladi.', 'Первый урок бесплатный. Оплатите, отправьте чек админу — после подтверждения всё откроется.', 'The first lesson was free. Pay and send the receipt to the admin — everything unlocks once approved.') });
+}, { auth: true });
+
 route('/lesson/:cid/:lid', async ({ el, params, alive }) => {
   const { cid, lid } = params; el.innerHTML = `<div class="page">${skeleton(3, 120)}</div>`;
   const [{ data: c }, { data: ls }, { data: lp }, { data: l, error }] = await Promise.all([sb.from('courses').select('id,title,unlock_pct').eq('id', cid).maybeSingle(), sb.from('lessons').select('id,title,kind,position,section_id').eq('course_id', cid).order('position'),
-    sb.from('lesson_progress').select('lesson_id').eq('course_id', cid), sb.from('lessons').select('*').eq('id', lid).maybeSingle()]);
+    sb.from('lesson_progress').select('lesson_id').eq('course_id', cid), sb.from('lessons').select('id,course_id,section_id,title,kind,item_id,xp,position').eq('id', lid).maybeSingle()]);
   if (!alive()) return; if (error || !l || !c) return go('/course/' + cid, true);
+  { const { data: cc, error: ce } = await sb.rpc('lesson_content', { p_lesson: lid }); if (!alive()) return;
+    if (ce) { if (/PAID_REQUIRED/.test(ce.message || '')) return go('/pay/' + cid, true); toast(dbErr(ce), 'err'); return go('/course/' + cid, true); } l.body = cc?.body || ''; l.youtube_id = cc?.youtube_id || null; }
   { const { data: lk } = await sb.rpc('section_locked', { p_lesson: lid }); if (lk === true) { toast(T('Bu mavzu hali yopiq: oldingi mavzuni yetarlicha bajaring', 'Тема закрыта: сначала пройдите предыдущую', 'Topic locked: finish the previous topic first'), 'err'); return go('/course/' + cid, true); } }
   const done = new Set((lp || []).map(x => x.lesson_id)), i = ls.findIndex(x => x.id === lid), prev = ls[i - 1], next = ls[i + 1];
   const gl = []; const body = (l.body || '').replace(/\[\[(.+?)\|(.+?)\]\]/g, (_, a, b) => { gl.push([a, b]); return a; });

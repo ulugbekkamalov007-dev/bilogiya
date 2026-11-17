@@ -1,6 +1,6 @@
 // Bosh sahifa: salomlashish, reklama banneri, qisqa statistika, davom ettirish, e'lonlar
 import { sb, state, t, tr, addDict, route, esc, ic, $, $$, fmtMin, dayStr, addDays, rand, publicUrl, fmtDate, spinner } from './core.js';
-import { openAnnouncement, annCard } from './news.js';
+import { openAnnouncement, annCard, annStrip } from './news.js';
 import { donut, bars, line, hbars, CCOL } from './charts.js';
 import { learnSummary, learnBlock, KINDS } from './learn.js';
 import { T, skeleton, empty } from './ui.js';
@@ -99,6 +99,7 @@ route('/home', async ({ el, alive }) => {
         ${a.image_path ? `<img src="${esc(publicUrl('media', a.image_path))}" alt="" loading="lazy">` : '<div class="slide-bg"></div>'}
         <div class="slide-t"><span class="tag">AD</span><b>${esc(tr(a.title))}</b><small>${esc(tr(a.body).slice(0, 90))}</small></div></a>`).join('')}
         <div class="dots2">${ads.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div></div>` : ''}
+    ${annStrip(all)}
     ${adminBox}
     ${isStudent ? learnBlock(ls, hc) : `    <div class="stats3 mb">
       <a class="stat card" href="#/reports"><span>${esc(t('home.today'))}</span><b>${esc(fmtMin(secToday))}</b></a>
@@ -109,8 +110,6 @@ route('/home', async ({ el, alive }) => {
     ${cont.length ? `<h3>${esc(t('home.cont'))}</h3><div class="cards mb">${cont.map(p => `<a class="card pad item-row" href="#/item/${p.item_id}">
       <span class="item-ic video">${ic('video')}</span><div class="grow"><b>${esc(tr(p.items.title))}</b>
       <div class="bar"><i style="width:${Math.min(100, Math.round(p.last_pos / p.duration * 100))}%"></i></div></div>${ic('play')}</a>`).join('')}</div>` : ''}
-    <div class="row between"><h3>${esc(t('home.news'))}</h3><a href="#/news">${esc(t('home.all_news'))}</a></div>
-    <div class="cards">${news.length ? news.slice(0, 5).map(annCard).join('') : `<p class="muted">${esc(t('home.no_news'))}</p>`}</div>
     <div class="center mt"><a class="btn" href="#/library">${ic('book')} ${esc(t('home.to_lib'))}</a></div>
   </div>`;
 
@@ -145,7 +144,7 @@ async function teacherHome(el, alive, anns) {
         <a class="btn ghost block" href="#/teach">${ic('cap', 16)} ${esc(T('Yangi kurs', 'Новый курс', 'New course'))}</a><a class="btn ghost block" href="#/tests">${ic('test', 16)} ${esc(T('Yangi test', 'Новый тест', 'New test'))}</a><a class="btn ghost block" href="#/groups">${ic('users', 16)} ${esc(T('Yangi guruh', 'Новая группа', 'New group'))}</a></div></div></div>
     ${(pend.data || []).length ? `<div class="card pad mt"><div class="row between"><h3 class="mb0">${esc(T('Guruhga qo\'shilish so\'rovlari', 'Заявки в группы', 'Group join requests'))}</h3><a href="#/groups">${esc(T('Ko\'rish', 'Открыть', 'Open'))}</a></div><div class="stack mt">${pend.data.map(p => `<div class="row" style="gap:10px"><span class="item-ic">${ic('user', 16)}</span><span class="grow"><b>${esc(p.profiles?.full_name || '')}</b><br><small class="muted">${esc(p.groups?.name || '')}</small></span></div>`).join('')}</div></div>` : ''}
     <div class="row between mt"><h3>${esc(t('home.news'))}</h3><a href="#/news">${esc(t('home.all_news'))}</a></div><div class="cards">${anns.filter(a => a.kind === 'news').slice(0, 3).map(annCard).join('') || `<p class="muted">${esc(t('home.no_news'))}</p>`}</div></div>`;
-  el.querySelector('.thero')?.insertAdjacentHTML('afterend', `<div class="mt">${statTile()}</div>`);
+  el.querySelector('.thero')?.insertAdjacentHTML('afterend', `${annStrip(anns)}<div class="mt">${statTile()}</div>`);
   $$('[data-ann]', el).forEach(c => c.onclick = () => openAnnouncement(anns.find(a => a.id === c.dataset.ann)));
 }
 
@@ -187,5 +186,6 @@ async function staffHome(el, alive, anns, isTeacher) {
         <div class="card pad mt"><h3>${esc(T('Kutilayotgan ishlar', 'Ожидают решения', 'Needs attention'))}</h3><div class="stack">${pend.map(([l, n, h, i]) => `<a class="row between pendrow ${n ? 'has' : ''}" href="${h}"><span class="row" style="gap:8px">${ic(i, 16)} ${esc(l)}</span><b class="pcount">${n}</b></a>`).join('')}</div></div>
         ${isTeacher ? `<div class="card pad mt"><h3>${esc(T('Mening kabinetim', 'Мой кабинет', 'My workspace'))}</h3><div class="row between"><span>${esc(T('Kurslarim', 'Курсы', 'Courses'))}</span><b>${o.courses ?? 0}</b></div><div class="row between"><span>${esc(T('Talabalar', 'Студенты', 'Students'))}</span><b>${o.students ?? 0}</b></div></div>` : ''}
         <div class="card pad mt"><div class="row between"><h3 class="mb0">${esc(t('home.news'))}</h3><a href="#/news">${esc(t('home.all_news'))}</a></div><div class="cards mt">${news.map(annCard).join('') || `<p class="muted">${esc(t('home.no_news'))}</p>`}</div></div></aside></div></div>`;
+  el.querySelector('.kpis')?.insertAdjacentHTML('beforebegin', annStrip(anns));
   $$('[data-ann]', el).forEach(c => c.onclick = () => openAnnouncement(anns.find(a => a.id === c.dataset.ann)));
 }

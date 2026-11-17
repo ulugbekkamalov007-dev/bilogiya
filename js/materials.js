@@ -1,5 +1,5 @@
 // O'qituvchi (va admin) materiallar markazi: papkalar, 5 ta kategoriya, yuklash (tanlash + drag&drop), amallar menyusi, guruhga biriktirish, chiqitdon
-import { sb, state, tr, route, go, esc, ic, $, $$, modal, toast, btnBusy, confirmDlg, spinner, fmtDate, fmtSize, i18nField, upload, safeName } from './core.js';
+import { sb, state, tr, route, go, esc, ic, $, $$, modal, toast, btnBusy, confirmDlg, spinner, fmtDate, fmtSize, i18nField, upload, safeName, itemCmp } from './core.js';
 import { T, skeleton, empty, errBox, dbErr } from './ui.js';
 import { CONFIG } from './config.js';
 import { probeMedia, mimeOf, ytId } from './library.js';
@@ -50,7 +50,7 @@ route('/teach/materials', async ({ el, q, alive }) => {
 
   const load = async () => {
     let fq = sb.from('folders').select('id,parent_id,title,created_at,deleted_at,visible').order('created_at'); if (!state.isAdmin) fq = fq.eq('created_by', uid);
-    let iq = sb.from('items').select('id,folder_id,kind,title,size_bytes,created_at,deleted_at,storage_path,source,youtube_id,url,meta,visible,created_by').order('created_at', { ascending: false }).limit(3000); if (!state.isAdmin) iq = iq.eq('created_by', uid);
+    let iq = sb.from('items').select('id,folder_id,kind,title,description,size_bytes,created_at,deleted_at,storage_path,source,youtube_id,url,meta,visible,created_by').order('created_at', { ascending: false }).limit(3000); if (!state.isAdmin) iq = iq.eq('created_by', uid);
     const [f, i, g] = await Promise.all([fq, iq, sb.from('groups').select('id,name').eq('archived', false).order('name')]);
     if (f.error || i.error) throw (f.error || i.error);
     return { folders: f.data || [], items: i.data || [], groups: (state.isAdmin ? g.data : (g.data || [])).filter(Boolean) };
@@ -68,6 +68,7 @@ route('/teach/materials', async ({ el, q, alive }) => {
     let its = live.filter(x => (term ? true : (x.folder_id || null) === (fid || null)));
     if (filter) its = its.filter(x => catOfItem(x) === filter);
     if (term) its = its.filter(x => tr(x.title).toLowerCase().includes(term));
+    its = its.slice().sort(itemCmp);
     const tF = D.folders.filter(x => x.deleted_at), tI = D.items.filter(x => x.deleted_at);
     const bc = crumbs();
     el.innerHTML = `<div class="page mat">
@@ -87,7 +88,7 @@ route('/teach/materials', async ({ el, q, alive }) => {
         return `<div class="mat-folder" data-ctx="f:${f.id}"><a href="#/teach/materials?f=${f.id}" data-f="${f.id}" class="grow row" style="gap:10px">${ic('folder', 22)}<b>${esc(folderMenuTitle(f))}</b>${f.visible === false ? ` <span class="tag bad">${esc(T('Yashirin', 'Скрыто', 'Hidden'))}</span>` : ''}<span class="muted">(${n})</span></a><button class="icon-btn" data-m="f:${f.id}" aria-label="menu">${ic('more')}</button></div>`; }).join('')}</div>` : ''}
       <h4 class="mt">${esc(filter ? CATS[filter].n() : T('Materiallar', 'Материалы', 'Materials'))} <span class="muted">(${its.length})</span></h4>
       ${its.length ? `<div class="tblwrap"><table class="tbl2 mat-tbl"><thead><tr><th>${esc(T('Nomi', 'Название', 'Name'))}</th><th class="hide-sm">${esc(T('Turi', 'Тип', 'Type'))}</th><th class="hide-sm">${esc(T('Hajmi', 'Размер', 'Size'))}</th><th class="hide-sm">${esc(T('Sana', 'Дата', 'Date'))}</th><th></th></tr></thead><tbody>
-        ${its.map(x => `<tr data-ctx="i:${x.id}"><td><a class="row" style="gap:10px" href="#/item/${x.id}">${kindIc(x)}<span class="grow"><b>${esc(tr(x.title))}</b>${x.visible === false ? ` <span class="tag bad">${esc(T('Yashirin', 'Скрыто', 'Hidden'))}</span>` : ''}<br><small class="muted show-sm">${esc(catOfItem(x) ? CATS[catOfItem(x)].n() : x.kind)} · ${x.size_bytes ? esc(fmtSize(x.size_bytes)) + ' · ' : ''}${esc(fmtDate(x.created_at))}</small></span></a></td>
+        ${its.map(x => `<tr data-ctx="i:${x.id}"><td><a class="row" style="gap:10px" href="#/item/${x.id}">${kindIc(x)}<span class="grow"><b>${esc(tr(x.title))}</b>${tr(x.description) ? ` <span class="tag soft">${esc(tr(x.description))}</span>` : ''}${x.visible === false ? ` <span class="tag bad">${esc(T('Yashirin', 'Скрыто', 'Hidden'))}</span>` : ''}<br><small class="muted show-sm">${esc(catOfItem(x) ? CATS[catOfItem(x)].n() : x.kind)} · ${x.size_bytes ? esc(fmtSize(x.size_bytes)) + ' · ' : ''}${esc(fmtDate(x.created_at))}</small></span></a></td>
           <td class="hide-sm">${esc(catOfItem(x) ? CATS[catOfItem(x)].n() : x.kind)}</td><td class="hide-sm">${x.size_bytes ? esc(fmtSize(x.size_bytes)) : '—'}</td><td class="hide-sm">${esc(fmtDate(x.created_at))}</td>
           <td class="end"><button class="icon-btn" data-m="i:${x.id}" aria-label="menu">${ic('more')}</button></td></tr>`).join('')}</tbody></table></div>` : empty('folder', term || filter ? T('Hech narsa topilmadi', 'Ничего не найдено', 'Nothing found') : T('Bu papka bo\'sh. Yuqoridagi kategoriyadan + ni bosib material qo\'shing.', 'Папка пуста. Нажмите + в категории, чтобы добавить материал.', 'This folder is empty. Press + on a category to add material.'))}`}
     </div>`;
@@ -103,9 +104,9 @@ route('/teach/materials', async ({ el, q, alive }) => {
   const reload = async () => { try { D = await load(); if (alive()) paint(); } catch (e) { el.innerHTML = `<div class="page">${errBox(dbErr(e))}</div>`; } };
 
   const rename = async ref => {
-    const { k, id, o } = find(ref); const m = modal(`<h3>${esc(T('Nomini o\'zgartirish', 'Переименовать', 'Rename'))}</h3><form class="form" id="f"><input class="input" id="n" required maxlength="140" value="${esc(tr(o.title))}"><button class="btn lg block">${esc(T('Saqlash', 'Сохранить', 'Save'))}</button></form>`);
+    const { k, id, o } = find(ref); const m = modal(`<h3>${esc(T('Nomini o\'zgartirish', 'Переименовать', 'Rename'))}</h3><form class="form" id="f"><label class="fld"><span>${esc(T('Nomi', 'Название', 'Title'))}</span><input class="input" id="n" required maxlength="140" value="${esc(tr(o.title))}"></label>${k === 'i' ? `<label class="fld"><span>${esc(T('Izoh (masalan: 1-qism)', 'Описание (например: часть 1)', 'Note (e.g. part 1)'))}</span><input class="input" id="dn" maxlength="140" value="${esc(tr(o.description))}"></label>` : ''}<button class="btn lg block">${esc(T('Saqlash', 'Сохранить', 'Save'))}</button></form>`);
     $('#n', m.el).select(); $('#f', m.el).onsubmit = async e => { e.preventDefault(); const b = $('button', m.el); btnBusy(b, true); const v = $('#n', m.el).value.trim(); if (!v) return btnBusy(b, false);
-      const { error } = await sb.from(k === 'f' ? 'folders' : 'items').update({ title: await i18nField(v, state.lang) }).eq('id', id); if (error) { btnBusy(b, false); return toast(dbErr(error), 'err'); } m.close(); toast(T('Saqlandi', 'Сохранено', 'Saved'), 'ok'); reload(); };
+      const { error } = await sb.from(k === 'f' ? 'folders' : 'items').update({ title: await i18nField(v, state.lang), ...(k === 'i' ? { description: await i18nField($('#dn', m.el).value.trim(), state.lang) } : {}) }).eq('id', id); if (error) { btnBusy(b, false); return toast(dbErr(error), 'err'); } m.close(); toast(T('Saqlandi', 'Сохранено', 'Saved'), 'ok'); reload(); };
   };
 
   const info = async ref => {
@@ -159,7 +160,7 @@ route('/teach/materials', async ({ el, q, alive }) => {
 
   const menu = ref => {
     const { k, o } = find(ref); if (!o) return;
-    const acts = [['edit', T('Nomini tahrirlash', 'Переименовать', 'Rename'), rename], ['users', T('Guruhga biriktirish', 'Привязать к группе', 'Assign to group'), assign],
+    const acts = [['edit', T('Nomi va izohni tahrirlash', 'Название и описание', 'Edit name & note'), rename], ['users', T('Guruhga biriktirish', 'Привязать к группе', 'Assign to group'), assign],
       ['folder', T('Boshqa papkaga ko\'chirish', 'Переместить', 'Move'), move], ...(k === 'i' && o.kind === 'test' ? [['users', T('Kim yechdi', 'Кто решал', 'Who took it'), r => takersModal(find(r).o)]] : []), [o.visible === false ? 'eye' : 'x', o.visible === false ? T('Ko\'rinadigan qilish', 'Сделать видимым', 'Make visible') : T('Ko\'rinmas qilish (yashirish)', 'Скрыть от студентов', 'Hide from students'), toggleVis], ['help', T('Fayl ma\'lumoti', 'Информация', 'Info'), info]];
     const m = modal(`<h3 class="trunc">${esc(tr(o.title))}</h3><div class="stack actmenu">${k === 'i' ? `<a class="btn ghost block left" href="#/item/${o.id}" id="op">${ic('eye', 16)} ${esc(T('Ochish', 'Открыть', 'Open'))}</a>` : ''}
       ${acts.map(([i, l], n) => `<button class="btn ghost block left" data-a="${n}">${ic(i, 16)} ${esc(l)}</button>`).join('')}<button class="btn ghost block left dg" data-a="del">${ic('trash', 16)} ${esc(T('O\'chirish', 'Удалить', 'Delete'))}</button></div>`);

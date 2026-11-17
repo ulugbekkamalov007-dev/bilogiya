@@ -1,5 +1,6 @@
 // Kutubxona: Drive kabi papkalar, materiallar (video/PDF/taqdimot/kitob/test/havola), pullik to'plamlar, admin boshqaruvi
-import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, confirmDlg, btnBusy, i18nField, upload, signedUrl, safeName, fmtSize, fmtDur, trackTime, spinner, memo, memoClear, friendlyErr } from './core.js';
+import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, confirmDlg, btnBusy, i18nField, upload, signedUrl, safeName, fmtSize, fmtDur, trackTime, spinner, memo, memoClear, friendlyErr, itemCmp } from './core.js';
+import { T } from './ui.js';
 import { mountPlayer } from './player.js';
 import { offlineBox, offList } from './offline.js';
 import { testImportModal } from './tests.js';
@@ -74,7 +75,7 @@ const browse = async ({ el, params, alive }) => {
   const isLocked = fo => !state.isAdmin && fo.price > 0 && !owned.has(fo.id);
   // joriy papka yoki ota-papkalaridan biri qulflimi?
   const lockedAnc = state.isAdmin ? null : path.find(p => p.price > 0 && !owned.has(p.id));
-  const folders = f.data || [], items = lockedAnc ? [] : (i.data || []);
+  const folders = f.data || [], items = lockedAnc ? [] : (i.data || []).slice().sort(itemCmp);
 
   let prog = {};
   const vids = items.filter(x => x.kind === 'video' || x.kind === 'audio').map(x => x.id);
@@ -93,7 +94,7 @@ const browse = async ({ el, params, alive }) => {
       <small class="muted">${fo.price > 0 ? `<span class="chip paid">${esc(t('lib.paid'))} · ${esc(fmtPrice(fo))}</span>` : ''}${fo.visible ? '' : `<span class="chip warn">${esc(t('lib.hidden'))}</span>`}</small>
       ${adm('folder', fo.id, fo.visible, fo.created_by)}</div>`).join('')}</div>` : ''}
     ${items.length ? `<div class="cards mt">${items.map(it => { const p = prog[it.id]; return `<div class="card pad item-row ${it.visible ? '' : 'dim'}" data-item="${it.id}" data-kind="${it.kind}">
-      <span class="item-ic ${it.kind}">${ic(KIND_IC[it.kind])}</span><div class="grow"><b>${esc(tr(it.title))}</b>
+      <span class="item-ic ${it.kind}">${ic(KIND_IC[it.kind])}</span><div class="grow"><b>${esc(tr(it.title))}</b>${tr(it.description) ? ` <span class="chip">${esc(tr(it.description))}</span>` : ''}
       <small class="muted">${esc(t('lib.k_' + it.kind))}${it.visible ? '' : ' · ' + esc(t('lib.hidden'))}${p?.completed ? ' · ✔ ' + esc(t('lib.watched')) : ''}</small>
       ${p && p.duration && !p.completed ? `<div class="bar"><i style="width:${Math.min(100, p.last_pos / p.duration * 100)}%"></i></div>` : ''}</div>${adm('item', it.id, it.visible, it.created_by)}${ic('chev')}</div>`; }).join('')}</div>` : ''}
     ${!folders.length && !items.length ? `<div class="card pad center mt muted">${esc(t('lib.empty'))}</div>` : ''}`}</div>`;
@@ -250,13 +251,14 @@ function addDialog(type, fid, done) {
 function editDialog(type, row, done) {
   const m = modal(`<h3>${esc(t('lib.edit'))}</h3><form id="f" class="form">
     ${['uz', 'ru', 'en'].map(l => `<label class="fld"><span>${esc(t('lib.title_f'))} (${l.toUpperCase()})</span><input class="input" data-l="${l}" value="${esc(row.title?.[l] || '')}"></label>`).join('')}
+    ${type === 'item' ? `<label class="fld"><span>${esc(T('Izoh (masalan: 1-qism)', 'Описание (например: часть 1)', 'Note (e.g. part 1)'))}</span><input class="input" id="dsc" maxlength="140" value="${esc(tr(row.description))}"></label>` : ''}
     ${type === 'folder' ? `<label class="fld"><span>${esc(t('lib.price'))}</span><input class="input" id="pr" type="number" min="0" value="${row.price}"></label>` : ''}
     ${type === 'item' && row.kind === 'test' ? `<button type="button" class="btn soft" id="aq">${esc(t('lib.add_q'))}</button>` : ''}
     <button class="btn lg block" id="go">${esc(t('save'))}</button></form>`);
   $('#aq', m.el)?.addEventListener('click', () => { m.close(); testImportModal({ itemId: row.id, onDone: done }); });
   $('#f', m.el).onsubmit = async e => {
     e.preventDefault(); const title = {}; $$('[data-l]', m.el).forEach(i => title[i.dataset.l] = i.value.trim());
-    const patch = { title }; if (type === 'folder') patch.price = +$('#pr', m.el).value || 0;
+    const patch = { title }; if (type === 'item') { const dv = $('#dsc', m.el).value.trim(); patch.description = { uz: dv, ru: dv, en: dv }; } if (type === 'folder') patch.price = +$('#pr', m.el).value || 0;
     const { error } = await sb.from(type === 'folder' ? 'folders' : 'items').update(patch).eq('id', row.id);
     if (error) return toast(error.message, 'err'); toast(t('lib.saved'), 'ok'); m.close(); done();
   };

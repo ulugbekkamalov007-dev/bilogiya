@@ -419,3 +419,13 @@ export function passScore(p) {
   const scan = root => (root.querySelectorAll ? root.querySelectorAll('input[type=file]') : []).forEach(fix);
   new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) { if (n.matches?.('input[type=file]')) fix(n); else scan(n); } }))).observe(document.documentElement, { childList: true, subtree: true });
 })();
+
+// Materiallarni "8-sinf 1-mavzu 2-qism" tartibida (yuklangan vaqtidan qat'i nazar) joylash
+const numsOf = o => ((tr(o.title) || '').match(/\d+/g) || []).map(Number).concat([+(((tr(o.description) || '').match(/\d+/) || [0])[0])]);
+export function itemCmp(a, b) {
+  if ((a.sort || 0) !== (b.sort || 0)) return (a.sort || 0) - (b.sort || 0);
+  const x = numsOf(a), y = numsOf(b), hasA = x.length > 1, hasB = y.length > 1;
+  if (hasA && hasB) { for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; }
+  if (hasA !== hasB) return hasA ? -1 : 1;
+  return tr(a.title).localeCompare(tr(b.title), undefined, { numeric: true }) || String(a.created_at).localeCompare(String(b.created_at));
+}

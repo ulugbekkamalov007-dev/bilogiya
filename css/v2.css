@@ -287,3 +287,14 @@ button.tc-h { border: 0; background: transparent; font: inherit; color: inherit;
 .crd-face { border-radius: 16px; padding: 1.1rem 1.2rem; margin-top: .8rem; border: 1px solid var(--line, #e3e7ee); background: var(--card, #fff); } .crd-face.top { border-color: var(--brand); } .crd-face small { color: var(--muted, #6b7280); text-transform: uppercase; letter-spacing: .04em; font-size: .72rem; } .crd-face h3, .crd-face p { margin: .3rem 0 0; font-size: 1.2rem; }
 .crd-btns { gap: .6rem; margin-top: .6rem; } .crd-btns .btn { flex: 1; justify-content: center; } .center { text-align: center; margin-top: 1rem; }
 .crd-fb { margin-top: .8rem; padding: .7rem 1rem; border-radius: 12px; } .crd-fb.good { background: #e7f7ec; color: #14532d; } .crd-fb.bad { background: #fdecec; color: #7f1d1d; } .crd-end { text-align: center; max-width: 520px; margin: 0 auto; }
+
+/* Ekranga moslash: grid/flex bolalari kengayib ketmasin, keng bloklar o'z ichida suriladi */
+.page > *, .cdetail > *, .lesson > *, .form > *, .fld, .card, .row > .grow, .lrow > .grow { min-width: 0; }
+.cdetail { grid-template-columns: minmax(0, 1fr) !important; } @media (min-width: 1024px) { .cdetail { grid-template-columns: minmax(0, 1fr) 320px !important; } .cdetail[style*="1fr"] { grid-template-columns: minmax(0, 1fr) !important; } }
+.input, select.input, textarea.input, .fld input, .fld select, .fld textarea { max-width: 100%; box-sizing: border-box; }
+.lrow { flex-wrap: nowrap; } .lrow .grow { overflow-wrap: anywhere; } .lrow .icon-btn, .lrow .li { flex: none; }
+.card.form, form.card { overflow-x: auto; overscroll-behavior-x: contain; }
+.lbody { overflow-wrap: anywhere; } .lbody table, .lbody pre { display: block; max-width: 100%; overflow-x: auto; }
+.tblwrap { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+.lesson article, .sld, .crd { max-width: 100%; } .lnav { flex-wrap: wrap; } .lnav .btn { flex: 1 1 auto; justify-content: center; }
+@media (max-width: 480px) { .lnav .btn { font-size: .92rem; padding-inline: 10px; } }

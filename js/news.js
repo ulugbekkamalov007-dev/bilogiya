@@ -29,21 +29,36 @@ addDict({
     'news.to_groups': '{n} groups', 'news.to_users': '{n} people', 'news.to_all': 'Everyone', 'news.translating': 'Translating…' },
 });
 
-export function annCard(a) {
+export function annCard(a, views = null) {
   return `<div class="card pad ann ${a.pinned ? 'pin' : ''}" data-ann="${a.id}">
     ${a.image_path ? `<img class="ann-img" src="${esc(publicUrl('media', a.image_path))}" alt="" loading="lazy">` : ''}
     <div class="grow"><div class="row between"><b>${a.pinned ? '📌 ' : ''}${esc(tr(a.title))}</b><small class="muted">${esc(fmtDate(a.created_at))}</small></div>
     <p class="muted clamp2">${esc(tr(a.body))}</p>
-    ${state.isAdmin ? `<div class="chips"><span class="chip">${a.kind === 'ad' ? 'AD' : 'NEWS'}</span><span class="chip">${a.target === 'all' ? esc(t('news.to_all')) : a.target === 'groups' ? esc(t('news.to_groups', { n: a.group_ids.length })) : esc(t('news.to_users', { n: a.user_ids.length }))}</span>${a.visible ? '' : `<span class="chip warn">${esc(t('news.hidden'))}</span>`}</div>` : ''}
+    ${state.isAdmin ? `<div class="chips"><span class="chip">${a.kind === 'ad' ? 'AD' : 'NEWS'}</span>${views !== null ? `<span class="chip">👁 ${views}</span>` : ''}<span class="chip">${a.target === 'all' ? esc(t('news.to_all')) : a.target === 'groups' ? esc(t('news.to_groups', { n: a.group_ids.length })) : esc(t('news.to_users', { n: a.user_ids.length }))}</span>${a.visible ? '' : `<span class="chip warn">${esc(t('news.hidden'))}</span>`}</div>` : ''}
     </div></div>`;
+}
+
+const pad2 = n => String(n).padStart(2, '0');
+export const fmtDT = ts => { const d = new Date(ts); return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+
+// Admin: e'lonni kimlar va qachon ko'rgan
+async function viewersModal(a) {
+  const m = modal(`<h3>${ic('eye')} ${esc(T('Kimlar ko\'rgan', 'Кто смотрел', 'Who viewed'))}</h3><p class="muted small">${esc(tr(a.title))}</p><div id="vw">${spinner()}</div>`, { cls: 'wide' });
+  const { data, error } = await sb.rpc('ann_viewers', { p_ann: a.id });
+  $('#vw', m.el).innerHTML = error ? `<p class="err">${esc(friendlyErr(error.message))}</p>` : (data || []).length
+    ? `<p class="muted small">${esc(T('Jami', 'Всего', 'Total'))}: <b>${data.length}</b></p><div class="tblwrap"><table class="tbl2"><thead><tr><th>${esc(T('Ism', 'Имя', 'Name'))}</th><th>${esc(T('Birinchi', 'Первый раз', 'First'))}</th><th>${esc(T('Oxirgi', 'Последний', 'Last'))}</th><th>${esc(T('Marta', 'Раз', 'Times'))}</th></tr></thead><tbody>${data.map(v => `<tr><td><a href="#/user/${v.user_id}"><b>${esc(v.full_name || '—')}</b></a><br><small class="muted">${esc(v.email || '')}</small></td><td>${esc(fmtDT(v.first_seen))}</td><td>${esc(fmtDT(v.last_seen))}</td><td>${v.views}</td></tr>`).join('')}</tbody></table></div>`
+    : `<p class="muted">${esc(T('Hali hech kim ko\'rmagan', 'Пока никто не смотрел', 'Nobody has viewed it yet'))}</p>`;
+  $('#vw', m.el).addEventListener('click', e => { if (e.target.closest('a')) m.close(); });
 }
 
 export function openAnnouncement(a) {
   if (!a) return;
+  if (!state.isAdmin) sb.rpc('ann_seen', { p_ann: a.id }).then(() => { }, () => { });
   const m = modal(`${a.image_path ? `<img class="ann-full" src="${esc(publicUrl('media', a.image_path))}" alt="">` : ''}
     <h3>${esc(tr(a.title))}</h3><p class="pre">${esc(tr(a.body))}</p>
     ${a.link ? `<a class="btn mt" href="${esc(a.link)}" target="_blank" rel="noopener">${ic('link')} ${esc(t('news.open_link'))}</a>` : ''}
-    ${state.isAdmin ? `<div class="row end mt"><button class="btn ghost sm" data-vis>${ic(a.visible ? 'eyeoff' : 'eye')}</button><button class="btn danger sm" data-del>${ic('trash')}</button></div>` : ''}`);
+    ${state.isAdmin ? `<div class="row end mt"><button class="btn ghost sm" data-vw>${ic('users', 16)} ${esc(T('Kim ko\'rdi', 'Кто смотрел', 'Who viewed'))}</button><button class="btn ghost sm" data-vis>${ic(a.visible ? 'eyeoff' : 'eye')}</button><button class="btn danger sm" data-del>${ic('trash')}</button></div>` : ''}`);
+  $('[data-vw]', m.el)?.addEventListener('click', () => { m.close(); viewersModal(a); });
   $('[data-vis]', m.el)?.addEventListener('click', async () => { await sb.from('announcements').update({ visible: !a.visible }).eq('id', a.id); m.close(); location.reload(); });
   $('[data-del]', m.el)?.addEventListener('click', async () => { if (!(await confirmDlg(t('delete') + '?'))) return; await sb.from('announcements').delete().eq('id', a.id); m.close(); location.reload(); });
 }
@@ -122,8 +137,16 @@ route('/news', async ({ el, alive }) => {
   const { data } = await sb.from('announcements').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(100);
   if (!alive()) return;
   const list = data || [];
+  const vc = {}; if (state.isAdmin) { const { data: cn } = await sb.rpc('ann_view_counts'); (cn || []).forEach(x => { vc[x.announcement_id] = x.n; }); }
   el.innerHTML = `<div class="page"><div class="row between mb"><h1>${esc(t('news.title'))}</h1>${state.isAdmin ? `<button class="btn" id="new">${ic('plus')} ${esc(t('news.new'))}</button>` : ''}</div>
-    <div class="cards">${list.length ? list.map(annCard).join('') : `<p class="muted">${esc(t('news.empty'))}</p>`}</div></div>`;
+    <div class="cards">${list.length ? list.map(a => annCard(a, vc[a.id] ?? (state.isAdmin ? 0 : null))).join('') : `<p class="muted">${esc(t('news.empty'))}</p>`}</div></div>`;
   $$('[data-ann]', el).forEach(c => c.onclick = () => openAnnouncement(list.find(a => a.id === c.dataset.ann)));
   $('#new', el)?.addEventListener('click', () => composeAnnouncement(() => location.reload()));
 }, { auth: true });
+
+// Bosh sahifaning eng tepasida: mahkamlangan va yangi e'lon/reklamalar
+export function annStrip(list) {
+  const l = (list || []).filter(a => a.visible !== false).sort((x, y) => (y.pinned - x.pinned) || (new Date(y.created_at) - new Date(x.created_at))).slice(0, 3);
+  if (!l.length) return '';
+  return `<div class="annstrip mt"><div class="row between"><h3 class="mb0">${ic('mega', 18)} ${esc(t('news.title'))}</h3><a href="#/news">${esc(T('Barchasi', 'Все', 'All'))}</a></div><div class="cards mt">${l.map(a => annCard(a)).join('')}</div></div>`;
+}

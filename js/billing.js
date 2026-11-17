@@ -1,4 +1,5 @@
 // Pullik tizim: admin uchun sozlama + to'lov so'rovlari; foydalanuvchi uchun to'lov ekrani
+import { T } from './ui.js';
 import { sb, state, t, addDict, loadSettings, esc, ic, $, $$, toast, btnBusy, confirmDlg, fmtDate, spinner, friendlyErr } from './core.js';
 
 addDict({
@@ -30,30 +31,43 @@ export async function hasAccess(force = false) {
 // Ruxsat bo'lmasa to'lov ekranini chizadi va true qaytaradi
 export async function paywall(el) {
   if (await hasAccess()) return false;
+  await payScreen(el); return true;
+}
+
+// Haqiqiy to'lov bormi (pullik tizim yoqilmagan bo'lsa ham)? Pullik kurs uchun ishlatiladi
+let pcache = { at: 0, ok: false };
+export async function paidNow(force = false) {
+  if (state.isAdmin) return true;
+  if (!force && Date.now() - pcache.at < 20000) return pcache.ok;
+  const { data, error } = await sb.rpc('paid_ok'); const ok = error ? false : !!data; pcache = { at: Date.now(), ok }; return ok;
+}
+
+// To'lov ekrani (qulf sababidan qat'i nazar): karta, summa, chek haqida ko'rsatma va so'rov holati
+export async function payScreen(el, opts = {}) {
   const c = cfg(), uid = state.user.id;
   const [{ data: sub }, { data: reqs }] = await Promise.all([
     sb.from('subscriptions').select('paid_until').eq('user_id', uid).maybeSingle(),
-    sb.from('payment_requests').select('id,status,created_at').eq('user_id', uid).eq('status', 'pending').limit(1),
+    sb.from('payment_requests').select('id,status,created_at,resolved_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(5),
   ]);
-  let pending = !!(reqs || []).length;
+  let pending = (reqs || []).some(r => r.status === 'pending'); const last = (reqs || [])[0];
   const draw = () => {
-    el.innerHTML = `<div class="page narrow"><div class="card pad center paycard"><div class="bigic">🔒</div><h2>${esc(t('pay.title'))}</h2><p class="muted">${esc(sub ? t('pay.expired') : t('pay.sub'))}</p>
+    el.innerHTML = `<div class="page narrow"><div class="card pad center paycard"><div class="bigic">🔒</div><h2>${esc(opts.title || t('pay.title'))}</h2><p class="muted">${esc(opts.text || (sub ? t('pay.expired') : t('pay.sub')))}</p>${last?.status === 'rejected' && !pending ? `<p class="err"><b>${esc(T('Oldingi so\'rovingiz rad etildi. To\'lov chekini adminga yuborib, qayta so\'rov qoldiring.', 'Прошлая заявка отклонена. Отправьте чек админу и подайте заявку снова.', 'Your previous request was rejected. Send the receipt to the admin and request again.'))}</b></p>` : ''}
       ${c.price > 0 ? `<div class="payamt"><small>${esc(t('pay.amount'))}</small><b>${esc(fmtSom(c.price))}</b> ${esc(t('pay.som'))}</div>` : ''}
       ${c.note ? `<p class="pre">${esc(c.note)}</p>` : ''}
       <h4 class="left mt">${esc(t('pay.cards'))}</h4>
       ${(c.cards || []).length ? `<div class="cards left">${c.cards.map((k, i) => `<div class="card pad item-row"><span class="item-ic">${ic('dollar')}</span><div class="grow"><b class="mono cardno">${esc(k.number)}</b><br><small class="muted">${esc([k.holder, k.bank].filter(Boolean).join(' · '))}</small></div><button class="btn sm soft" data-cp="${i}">${esc(t('pay.copy'))}</button></div>`).join('')}</div>` : `<p class="muted">${esc(t('pay.none'))}</p>`}
       <p class="small muted mt">${esc(t('pay.how'))}</p>
       ${pending ? `<p class="ok"><b>${esc(t('pay.pending'))}</b></p>` : `<textarea class="input" id="pn" rows="2" placeholder="${esc(t('pay.note_ph'))}"></textarea><button class="btn lg block mt" id="pd">${esc(t('pay.paid'))}</button>`}
-      <a class="btn ghost block mt" href="#/inbox?topic=help">${esc(t('pay.contact'))}</a></div></div>`;
+      ${opts.back ? `<a class="btn ghost block mt" href="${opts.back}">${esc(T('Orqaga', 'Назад', 'Back'))}</a>` : ''}<a class="btn ghost block mt" href="#/inbox?topic=help">${esc(t('pay.contact'))}</a></div></div>`;
     $$('[data-cp]', el).forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(String(c.cards[+b.dataset.cp].number).replace(/\s+/g, '')); toast(t('pay.copied'), 'ok'); } catch { /* */ } });
     $('#pd', el)?.addEventListener('click', async ev => {
       const b = ev.currentTarget; btnBusy(b, true);
-      const { error } = await sb.from('payment_requests').insert({ user_id: uid, amount: c.price || null, note: $('#pn', el).value.trim() });
+      const { error } = await sb.from('payment_requests').insert({ user_id: uid, amount: c.price || null, note: $('#pn', el).value.trim(), course_id: opts.courseId || null });
       if (error) { btnBusy(b, false); return toast(friendlyErr(error.message), 'err'); }
       pending = true; toast(t('pay.sent'), 'ok'); draw();
     });
   };
-  draw(); return true;
+  draw();
 }
 
 // ---------- ADMIN: sozlama + so'rovlar + obunalar
@@ -63,6 +77,7 @@ export async function billingTab(body) {
     sb.from('payment_requests').select('id,user_id,amount,note,created_at,profiles(full_name,email)').eq('status', 'pending').order('created_at'),
     sb.from('subscriptions').select('user_id,paid_until,profiles(full_name,email)').gt('paid_until', new Date().toISOString()).order('paid_until'),
   ]);
+  const { data: hist } = await sb.from('payment_requests').select('id,status,amount,note,created_at,resolved_at,profiles(full_name,email),courses(title)').neq('status', 'pending').order('resolved_at', { ascending: false, nullsFirst: false }).limit(30);
   body.innerHTML = `<div class="card pad form mb"><label class="chk"><input type="checkbox" id="en" ${c.enabled ? 'checked' : ''}> <b>${esc(t('bill.on'))}</b></label><p class="muted small">${esc(t('bill.on_d'))}</p>
       <label class="fld"><span>${esc(t('bill.price'))}</span><input class="input" id="pr" type="number" min="0" step="1000" value="${c.price || ''}"></label>
       <label class="fld"><span>${esc(t('bill.cards'))}</span><textarea class="input mono" id="cd" rows="3" placeholder="${esc(t('bill.cards_ph'))}">${esc((c.cards || []).map(k => [k.number, k.holder, k.bank].filter((x, i) => i === 0 || x).join(' | ')).join('\n'))}</textarea></label>
@@ -71,6 +86,7 @@ export async function billingTab(body) {
     <h3>${esc(t('bill.reqs'))}</h3>${(rq || []).length ? `<div class="cards mb">${rq.map(r => `<div class="card pad"><div class="row between"><b>${esc(r.profiles?.full_name || r.profiles?.email || '—')}</b><small class="muted">${esc(fmtDate(r.created_at))}</small></div>
       <small class="muted">${esc(r.profiles?.email || '')}${r.amount ? ' · ' + esc(fmtSom(r.amount)) : ''}</small>${r.note ? `<p class="pre">${esc(r.note)}</p>` : ''}
       <div class="row wrap mt"><label class="row small">${esc(t('bill.months'))} <input class="input sm" style="width:70px" type="number" min="1" max="36" value="1" data-m="${r.id}"></label><button class="btn sm" data-ok="${r.id}:${r.user_id}">${ic('check', 14)} ${esc(t('bill.approve'))}</button><button class="btn sm ghost" data-no="${r.id}">${esc(t('bill.reject'))}</button></div></div>`).join('')}</div>` : `<p class="muted mb">${esc(t('bill.none_req'))}</p>`}
+    <h3>${esc(T('Tasdiqlash tarixi', 'История решений', 'Decision history'))}</h3>${(hist || []).length ? `<div class="cards mb">${hist.map(r => `<div class="card pad item-row"><div class="grow"><b>${esc(r.profiles?.full_name || r.profiles?.email || '—')}</b>${r.courses?.title ? ' · <small>' + esc(r.courses.title.uz || '') + '</small>' : ''}<br><small class="muted">${esc(fmtDate(r.resolved_at || r.created_at))}${r.amount ? ' · ' + esc(fmtSom(r.amount)) : ''}${r.note ? ' · ' + esc(r.note) : ''}</small></div><span class="tg ${r.status === 'approved' ? '' : 'pr'}">${esc(r.status === 'approved' ? T('Tasdiqlangan', 'Одобрено', 'Approved') : T('Rad etilgan', 'Отклонено', 'Rejected'))}</span></div>`).join('')}</div>` : `<p class="muted mb">${esc(T('Hali qaror yo\'q', 'Решений пока нет', 'No decisions yet'))}</p>`}
     <h3>${esc(t('bill.grant'))}</h3><div class="card pad mb"><input class="input" id="gs" placeholder="${esc(t('bill.search'))}" autocomplete="off"><div id="gr" class="cards mt"></div></div>
     <h3>${esc(t('bill.subs'))}</h3>${(sb2 || []).length ? `<div class="cards">${sb2.map(s => `<div class="card pad item-row"><div class="grow"><b>${esc(s.profiles?.full_name || s.profiles?.email || '—')}</b><br><small class="muted">${esc(t('bill.until'))} ${esc(fmtDate(s.paid_until))}</small></div><button class="btn sm ghost" data-rv="${s.user_id}">${esc(t('bill.revoke'))}</button></div>`).join('')}</div>` : `<p class="muted">${esc(t('bill.none_sub'))}</p>`}`;
   $('#sv', body).onclick = async () => {
