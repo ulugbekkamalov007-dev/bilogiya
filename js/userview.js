@@ -27,3 +27,21 @@ route('/user/:uid', async ({ el, params, alive }) => {
     <div id="rp" class="mt"></div></div>`;
   await renderReport($('#rp', el), c.id, c.full_name, alive, { back: false, embed: true });
 }, { auth: true });
+
+// ---- Foydalanuvchilar ro'yxati (o'qituvchi: o'z guruhlaridagi talabalar; admin: hamma talabalar)
+route('/users', async ({ el, alive }) => {
+  if (!state.isAdmin && state.profile?.role !== 'teacher') return location.replace('#/home');
+  el.innerHTML = `<div class="page wide"><div class="row between wrap"><div><h1 class="mb0">${esc(T('Foydalanuvchilar', 'Пользователи', 'Users'))}</h1><p class="muted small mb0">${esc(state.isAdmin ? T('Barcha talabalar. Birortasini bossangiz, uning profili ochiladi.', 'Все студенты. Нажмите на человека, чтобы открыть профиль.', 'All students. Tap anyone to open their profile.') : T('Guruhlaringizdagi talabalar. Birortasini bossangiz, uning profili ochiladi.', 'Студенты ваших групп. Нажмите на человека, чтобы открыть профиль.', 'Students in your groups. Tap anyone to open their profile.'))}</p></div></div>
+    <input class="input mt" id="us" type="search" placeholder="${esc(T('Ism, email yoki guruh…', 'Имя, email или группа…', 'Name, email or group…'))}"><div id="ul" class="mt">${spinner()}</div></div>`;
+  const { data, error } = await sb.rpc('my_students'); if (!alive()) return;
+  const box = $('#ul', el); if (error) { box.innerHTML = errBox(dbErr(error)); return; }
+  const rows = data || [];
+  const paint = () => {
+    const q = $('#us', el).value.trim().toLowerCase();
+    const l = rows.filter(r => !q || [r.full_name, r.email, ...(r.groups || [])].join(' ').toLowerCase().includes(q));
+    box.innerHTML = l.length ? `<p class="muted small">${l.length} ${esc(T('ta', 'шт.', ''))}</p><div class="card plist">${l.map(r => `<a class="prow" href="#/user/${r.id}"><span class="avatar sm">${r.avatar_url ? `<img src="${esc(r.avatar_url)}" alt="">` : esc(ini(r.full_name))}</span>
+      <div class="grow"><b>${esc(r.full_name || r.email || '—')}</b><br><small class="muted">${esc((r.groups || []).join(', ') || r.email || '')}</small></div>
+      <small class="muted end">${r.last_day ? esc(T('Oxirgi: ', 'Последний: ', 'Last: ') + fmtDate(r.last_day)) : ''}</small></a>`).join('')}</div>` : `<p class="muted center pad">${esc(T('Hech narsa topilmadi', 'Ничего не найдено', 'Nothing found'))}</p>`;
+  };
+  $('#us', el).oninput = paint; paint();
+}, { auth: true });

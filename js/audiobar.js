@@ -54,7 +54,6 @@ const nextOf = () => { const i = AP.list.findIndex(x => x.id === AP.item?.id); r
 }));
 A.addEventListener('ended', async () => { AP.maxPos = A.duration || AP.maxPos; await save(true); emit('ended'); const n = nextOf(); if (n) apPlay(n, AP.list); });
 A.addEventListener('error', () => { AP.failed = true; emit('error'); });
-addEventListener('offline', () => { if (!A.paused) { A.pause(); toast(t('ap.offline')); } });
 
 function media() {
   if (!('mediaSession' in navigator) || !AP.item) return;

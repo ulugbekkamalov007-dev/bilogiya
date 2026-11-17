@@ -62,7 +62,7 @@ const ADM = (k, i, uz, ru, en) => ['/admin?tab=' + k, i, T(uz, ru, en), 1, p => 
 const ADMIN_NAV = () => [
   ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/groups', 'users', t('nav.groups'), 0, /^\/group/],
   ['/teach/materials', 'plus', T('Materiallar', 'Материалы', 'Materials'), 0, /^\/(teach\/materials|library|item|audios)/, 'cfab'],
-  ['/admin?tab=users', 'user', T('Foydalanuvchilar', 'Пользователи', 'Users'), 0, p => /^\/admin/.test(p) && /tab=users/.test(location.hash)],
+  ['/admin?tab=users', 'user', T('Foydalanuvchilar', 'Пользователи', 'Users'), 0, p => (/^\/admin/.test(p) && /tab=users/.test(location.hash)) || /^\/user\//.test(p)],
   ['/settings', 'gear', t('nav.profile'), 0, /^\/(settings|offline|guide|backgrounds)/],
   ['/teach', 'cap', T('Kurslar', 'Курсы', 'Courses'), 1, /^\/(teach(\/course.*)?$|courses|course|lesson|cert)/, 'sep'],
   ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 1, /^\/(tests|test|practice)/], ['/library', 'book', t('nav.library'), 1, /^\/library/],
@@ -76,7 +76,7 @@ const ADMIN_NAV = () => [
 const TEACHER_NAV = () => [
   ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/teach', 'cap', T('Kurslarim', 'Мои курсы', 'My courses'), 0, /^\/(teach(\/course.*)?$|courses|course|lesson|cert)/],
   ['/teach/materials', 'plus', T('Materiallar', 'Материалы', 'Materials'), 0, /^\/(teach\/materials|library|item|audios)/, 'cfab'],
-  ['/groups', 'users', t('nav.groups'), 0, /^\/group/],
+  ['/groups', 'users', t('nav.groups'), 0, /^\/group/], ['/users', 'user', T('Foydalanuvchilar', 'Пользователи', 'Users'), 0, /^\/(users|user\/)/],
   ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 1, /^\/(tests|test|practice)/], ['/library', 'book', t('nav.library'), 1, /^\/(library|item|audios)/],
   ['/stats', 'chart', T('Statistika', 'Статистика', 'Statistics'), 1, /^\/stats/], ['/rating', 'trophy', t('nav.rating'), 1, /^\/rating/],
   ['/inbox', 'msg', T('Chat', 'Чат', 'Chat'), 1, /^\/inbox/], ['/forum', 'msg', T('Forum', 'Форум', 'Forum'), 1, /^\/forum/],
@@ -183,7 +183,6 @@ async function onSignedIn(user) {
   }).subscribe();
   document.body.dataset.shell = 'app';
   if (navigator.onLine) refreshUnread();
-  if (!navigator.onLine && offList().length && !currentPath().startsWith('/offline')) go('/offline', true);
   else if (['/', '/login', '/register', '/verify', '/forgot'].includes(currentPath())) go('/home', true); else render();
   if (!window._miniInit) { window._miniInit = 1; initMiniBar(); }
   watchBlocked(); refreshStats(); subscriptionNotice();
@@ -232,9 +231,8 @@ function setupBackGuard() {
 
 document.addEventListener('bio-unread', () => refreshUnread());
 addEventListener('hashchange', render);
-const offBar = () => { let b = $('#offbar'); if (!b) { b = document.createElement('a'); b.id = 'offbar'; b.href = '#/offline'; $('#view').before(b); } b.hidden = navigator.onLine || !state.user || !offList().length; b.textContent = t('off.mode') + ' ›'; };
-addEventListener('online', () => { toast(t('net.on'), 'ok'); offBar(); });
-addEventListener('offline', () => { toast(t('net.off'), 'err'); offBar(); });
+const offBar = () => { let b = $('#offbar'); if (!b) { b = document.createElement('a'); b.id = 'offbar'; b.href = '#/offline'; $('#view').before(b); } b.hidden = true; b.textContent = t('off.mode') + ' ›'; };
+addEventListener('online', offBar); addEventListener('offline', offBar);   // "internet yo'q" xabarlari o'chirildi (brauzer ba'zan noto'g'ri signal beradi)
 addEventListener('hashchange', offBar);
 
 (async function boot() {

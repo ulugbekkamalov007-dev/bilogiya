@@ -20,7 +20,7 @@ function thread(el, tu, title, { topic, ctx } = {}) {
   const base = { thread_user: tu }; if (topic) base.topic = topic;
   const topics = [['question', 'inbox.t_question'], ['help', 'inbox.t_help'], ['complaint', 'inbox.t_complaint']];
   el.innerHTML = `<div class="page chatpage"><div class="row between"><div class="row">${state.isAdmin ? `<a class="btn ghost sm" href="#/inbox">${ic('back')}</a>` : ''}<h2 class="mb0">${esc(title)}</h2></div>
-    ${state.isAdmin ? `<a class="btn ghost sm" href="#/reports/user/${tu}">${ic('chart', 16)} ${esc(t('inbox.report'))}</a>` : ''}</div>
+    ${state.isAdmin ? `<a class="btn ghost sm" href="#/user/${tu}">${ic('chart', 16)} ${esc(t('inbox.report'))}</a>` : ''}</div>
     ${state.isAdmin ? '' : `<p class="muted small">🔒 ${esc(t('inbox.private'))}</p><div class="chips" id="tp">${topics.map(([k, l]) => `<button class="chip btnchip ${topic === k ? 'on' : ''}" data-t="${k}">${esc(t(l))}</button>`).join('')}</div>`}
     ${ctx ? `<p class="chip">${esc(t('inbox.help_ctx', { g: ctx }))}</p>` : ''}<div id="th"></div></div>`;
   $$('[data-t]', el).forEach(b => b.onclick = () => { const on = b.classList.contains('on'); $$('[data-t]', el).forEach(x => x.classList.remove('on')); if (on) delete base.topic; else { b.classList.add('on'); base.topic = b.dataset.t; } });

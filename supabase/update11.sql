@@ -104,4 +104,25 @@ grant execute on function public.complete_lesson(uuid) to authenticated;
 -- 7) Bo'limlarni yashirish: app_settings 'ui' = {"hidden":["ai","lab"]}  (admin ilovadan o'zgartiradi)
 insert into public.app_settings(key, value) values ('ui', '{"hidden":["ai","lab"]}'::jsonb) on conflict (key) do nothing;
 
+-- 8) O'qituvchi (va admin) uchun "Foydalanuvchilar" ro'yxati: o'qituvchi faqat o'z guruhlaridagi talabalarni ko'radi
+create or replace function public.my_students()
+returns table (id uuid, full_name text, email text, phone text, avatar_url text, role text, groups text[], last_day date)
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if public.is_admin() then
+    return query select p.id, p.full_name, p.email, p.phone, p.avatar_url, p.role::text,
+      coalesce((select array_agg(distinct g.name) from public.group_members gm join public.groups g on g.id = gm.group_id where gm.user_id = p.id and gm.status = 'approved'), '{}'),
+      (select max(u.day) from public.usage_daily u where u.user_id = p.id and u.seconds > 0)
+    from public.profiles p where p.role = 'user' order by p.full_name;
+  elsif public.is_teacher() then
+    return query select p.id, p.full_name, p.email, p.phone, p.avatar_url, p.role::text,
+      (select array_agg(distinct g.name) from public.group_members gm join public.groups g on g.id = gm.group_id where gm.user_id = p.id and gm.status = 'approved' and g.owner_id = auth.uid()),
+      (select max(u.day) from public.usage_daily u where u.user_id = p.id and u.seconds > 0)
+    from public.profiles p
+    where p.role = 'user' and exists (select 1 from public.group_members gm join public.groups g on g.id = gm.group_id where gm.user_id = p.id and gm.status = 'approved' and g.owner_id = auth.uid())
+    order by p.full_name;
+  else raise exception 'ruxsat yo''q'; end if;
+end $$;
+grant execute on function public.my_students() to authenticated;
+
 select 'update11 tayyor' as natija;

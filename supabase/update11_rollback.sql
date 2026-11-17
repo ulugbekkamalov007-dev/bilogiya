@@ -6,3 +6,4 @@ drop function if exists public.section_locked(uuid);
 alter table public.courses drop column if exists unlock_pct;
 -- complete_lesson ni update7.sql dagi asl holiga qaytarish uchun update7.sql dagi shu funksiya blokini qayta ishga tushiring.
 delete from public.app_settings where key = 'ui';
+drop function if exists public.my_students();

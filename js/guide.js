@@ -196,6 +196,18 @@ G.en.push(
 ['cap', 'Course path & topic lock', `<p>Topics are laid out as a winding path with a completion percentage. The next topic unlocks when the previous one is at least <b>60%</b> done. Paid courses open for 1 month after payment and admin approval.</p>`],
 ['chart', 'Statistics, analytics & report', `<p>Tap a card for details; hover a chart for exact values; “Create report” makes a printable report and CSV. Admin and teacher activity is not tracked.</p>`],
 );
+G.uz.push(
+['upload', 'Yuklash: audio istalgan formatda, kutubxona o\'qituvchiga ham', `<ul><li>Audio hamma rollarda <b>istalgan formatda</b> yuklanadi (mp3, m4a, amr, wma, 3gp va boshqalar). Brauzer ijro eta olmasa, «Yuklab olish» tugmasi chiqadi.</li><li>O'qituvchi ham <b>Kutubxona</b>dagi «+» tugmasi orqali material qo'sha oladi va o'zi qo'shganini tahrirlaydi.</li><li>Talaba vazifa audiosini istalgan formatdagi fayl yoki yozib olish orqali topshiradi.</li><li>«Internet yo'q» xabarlari olib tashlandi.</li></ul>`],
+['user', 'Foydalanuvchilar bo\'limi (o\'qituvchi va admin)', `<p>O'qituvchi menyusida <b>Foydalanuvchilar</b> bo'limi bor: o'z guruhlaridagi talabalar ro'yxati. Admin hamma talabalarni ko'radi. Birortasini bossangiz faqat o'sha odamning profili, faolligi va hisoboti ochiladi.</p>`],
+);
+G.ru.push(
+['upload', 'Загрузка: аудио в любом формате, библиотека и для преподавателя', `<p>Аудио загружается всеми ролями в любом формате. Преподаватель тоже добавляет материалы через «+» в Библиотеке. Студент сдаёт аудио задания файлом любого формата или записью. Сообщения «Нет интернета» убраны.</p>`],
+['user', 'Раздел «Пользователи»', `<p>У преподавателя есть раздел «Пользователи» — студенты его групп; админ видит всех. Нажмите на человека — откроется только его профиль и отчёт.</p>`],
+);
+G.en.push(
+['upload', 'Uploads: audio in any format, library for teachers too', `<p>Audio can be uploaded by every role in any format. Teachers can also add material with the “+” button in the Library. Students submit task audio as a file of any format or a recording. The “No internet” messages were removed.</p>`],
+['user', 'Users section', `<p>Teachers have a Users section with the students of their groups; admins see everyone. Tap a person to open only their profile and report.</p>`],
+);
 
 // ---- "Ilova haqida": imkoniyatlar (qanday ishlatish emas, nimalar bor)
 const A = {

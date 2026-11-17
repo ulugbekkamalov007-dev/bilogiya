@@ -190,7 +190,7 @@ route('/rating/u/:uid', async ({ el, params, q, alive }) => {
         ? `<div class="trow"><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}<br><small class="muted">${esc(fmtDate(i.created_at))}</small></span><span class="muted">${i.correct}/${i.total}</span><b>${Math.round(i.percent)}%</b></div>`
         : `<div class="trow"><span class="grow">${esc(tr(i.title) || t('rep.deleted'))}</span><b>${esc(fmtMin(i.seconds))}</b></div>`).join('') : `<p class="muted small">${esc(ok ? t('rep.no_data') : t('rep.unavail'))}</p>`}</div></details>`).join('')
       : `<p class="muted center">${esc(ok ? t('rep.no_data') : t('rep.unavail'))}</p>`}</div>
-    ${state.isAdmin ? `<a class="btn block mt" href="#/reports/user/${uid}">${esc(t('rep.full'))}</a>` : ''}</div>`;
+    ${state.isAdmin || state.profile?.role === 'teacher' ? `<a class="btn block mt" href="#/user/${uid}">${esc(t('rep.full'))}</a>` : ''}</div>`;
 }, { auth: true });
 
 route('/rating', async ({ el, alive }) => {

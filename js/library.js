@@ -81,8 +81,9 @@ const browse = async ({ el, params, alive }) => {
   if (vids.length) (await sb.from('video_progress').select('item_id,last_pos,duration,completed').eq('user_id', state.user.id).in('item_id', vids)).data?.forEach(p => prog[p.item_id] = p);
 
   const crumbHtml = `<nav class="crumbs"><a href="#/library">${ic('home', 16)} ${esc(t('lib.title'))}</a>${path.map(p => ` ${ic('chev', 14)} <a href="#/library/${p.id}">${esc(tr(p.title))}</a>`).join('')}</nav>`;
-  const adminBar = state.isAdmin && !lockedAnc ? `<button class="fab" id="fab" aria-label="add">${ic('plus', 28)}</button>` : '';
-  const adm = (type, id, vis) => state.isAdmin ? `<span class="acts"><button data-vis="${type}:${id}:${vis ? 1 : 0}" title="visible">${ic(vis ? 'eye' : 'eyeoff', 16)}</button><button data-edit="${type}:${id}">${ic('edit', 16)}</button><button data-del="${type}:${id}">${ic('trash', 16)}</button></span>` : '';
+  const isStaff = state.isAdmin || state.profile?.role === 'teacher';
+  const adminBar = isStaff && !lockedAnc ? `<button class="fab" id="fab" aria-label="add">${ic('plus', 28)}</button>` : '';
+  const adm = (type, id, vis, by) => (state.isAdmin || (isStaff && by === state.user.id)) ? `<span class="acts"><button data-vis="${type}:${id}:${vis ? 1 : 0}" title="visible">${ic(vis ? 'eye' : 'eyeoff', 16)}</button><button data-edit="${type}:${id}">${ic('edit', 16)}</button><button data-del="${type}:${id}">${ic('trash', 16)}</button></span>` : '';
 
   el.innerHTML = `<div class="page"><h1 class="mb0">${esc(path.length ? tr(path[path.length - 1].title) : t('lib.title'))}</h1>${crumbHtml}${!path.length && offList().length ? `<a class="btn sm soft mt" href="#/offline">${ic('download', 14)} ${esc(t('off.open'))} (${offList().length})</a>` : ''}${adminBar}
     ${lockedAnc ? `<div class="card pad center mt"><div class="bigic">🔒</div><h3>${esc(t('lib.locked_t'))}: ${esc(tr(lockedAnc.title))}</h3><p class="muted">${esc(t('lib.locked_d'))}</p>
@@ -90,11 +91,11 @@ const browse = async ({ el, params, alive }) => {
     ${folders.length ? `<div class="flist mt">${folders.map(fo => `<div class="card fldcard ${fo.visible ? '' : 'dim'}" data-open="${fo.id}">
       <div class="fic">${isLocked(fo) ? '🔒' : ic('folder', 30)}</div><b>${esc(tr(fo.title))}</b>
       <small class="muted">${fo.price > 0 ? `<span class="chip paid">${esc(t('lib.paid'))} · ${esc(fmtPrice(fo))}</span>` : ''}${fo.visible ? '' : `<span class="chip warn">${esc(t('lib.hidden'))}</span>`}</small>
-      ${adm('folder', fo.id, fo.visible)}</div>`).join('')}</div>` : ''}
+      ${adm('folder', fo.id, fo.visible, fo.created_by)}</div>`).join('')}</div>` : ''}
     ${items.length ? `<div class="cards mt">${items.map(it => { const p = prog[it.id]; return `<div class="card pad item-row ${it.visible ? '' : 'dim'}" data-item="${it.id}" data-kind="${it.kind}">
       <span class="item-ic ${it.kind}">${ic(KIND_IC[it.kind])}</span><div class="grow"><b>${esc(tr(it.title))}</b>
       <small class="muted">${esc(t('lib.k_' + it.kind))}${it.visible ? '' : ' · ' + esc(t('lib.hidden'))}${p?.completed ? ' · ✔ ' + esc(t('lib.watched')) : ''}</small>
-      ${p && p.duration && !p.completed ? `<div class="bar"><i style="width:${Math.min(100, p.last_pos / p.duration * 100)}%"></i></div>` : ''}</div>${adm('item', it.id, it.visible)}${ic('chev')}</div>`; }).join('')}</div>` : ''}
+      ${p && p.duration && !p.completed ? `<div class="bar"><i style="width:${Math.min(100, p.last_pos / p.duration * 100)}%"></i></div>` : ''}</div>${adm('item', it.id, it.visible, it.created_by)}${ic('chev')}</div>`; }).join('')}</div>` : ''}
     ${!folders.length && !items.length ? `<div class="card pad center mt muted">${esc(t('lib.empty'))}</div>` : ''}`}</div>`;
 
   $('#rq', el)?.addEventListener('click', async () => {

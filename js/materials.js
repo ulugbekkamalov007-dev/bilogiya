@@ -22,6 +22,7 @@ const catOfItem = x => (x.youtube_id || x.source === 'youtube' || (x.url && /you
 const EXT_KIND = { pptx: 'presentation', ppt: 'presentation', odp: 'presentation', pdf: 'book', epub: 'book', docx: 'book', doc: 'book', txt: 'book',
   mp4: 'video', webm: 'video', mov: 'video', m4v: 'video', mkv: 'video', ogv: 'video',
   mp3: 'audio', m4a: 'audio', aac: 'audio', wav: 'audio', ogg: 'audio', oga: 'audio', opus: 'audio', flac: 'audio', weba: 'audio' };
+const AUDIO_X = /^(amr|wma|3gp|3ga|aif|aiff|aifc|mid|midi|ac3|caf|ape|mka|m4b|m4r|mp2|spx|ra|dts|au|snd|awb|qcp)$/i;
 const BLOCK = /^(exe|dll|bat|cmd|com|msi|sh|js|mjs|vbs|ps1|jar|apk|html?|svg|php|py|scr|lnk)$/i;
 const ext = n => (n.split('.').pop() || '').toLowerCase();
 async function sniff(file) {
@@ -192,12 +193,13 @@ route('/teach/materials', async ({ el, q, alive }) => {
       const f = list[i], e = ext(f.name);
       try {
         if (BLOCK.test(e)) throw new Error(T('Xavfli fayl turi', 'Опасный тип файла', 'Unsafe file type'));
-        const kind = EXT_KIND[e]; if (!kind) throw new Error(T('Bu format qo\'llab-quvvatlanmaydi', 'Формат не поддерживается', 'Unsupported format'));
-        const k2 = forced && CATS[forced].kinds.includes(kind) ? kind : forced ? (() => { throw new Error(T(`${CATS[forced].n()} bo'limiga mos emas (.${e})`, `Не подходит для раздела «${CATS[forced].n()}» (.${e})`, `Not valid for ${CATS[forced].n()} (.${e})`)); })() : kind;
+        // audio bo'limida har qanday format qabul qilinadi; boshqa joyda ham audio/* yoki ma'lum audio kengaytmalari audio hisoblanadi
+        const kind = EXT_KIND[e] || ((forced === 'audio' || (f.type || '').startsWith('audio/') || AUDIO_X.test(e)) ? 'audio' : null); if (!kind) throw new Error(T('Bu format qo\'llab-quvvatlanmaydi', 'Формат не поддерживается', 'Unsupported format'));
+        const k2 = forced === 'audio' ? 'audio' : forced && CATS[forced].kinds.includes(kind) ? kind : forced ? (() => { throw new Error(T(`${CATS[forced].n()} bo'limiga mos emas (.${e})`, `Не подходит для раздела «${CATS[forced].n()}» (.${e})`, `Not valid for ${CATS[forced].n()} (.${e})`)); })() : kind;
         if (f.size > KB_LIMIT() * 1048576) throw new Error(T(`Fayl ${KB_LIMIT()} MB dan katta`, `Файл больше ${KB_LIMIT()} МБ`, `File exceeds ${KB_LIMIT()} MB`));
         if (f.size < 16) throw new Error(T('Fayl bo\'sh', 'Файл пуст', 'File is empty'));
-        const bad = await sniff(f); if (bad) throw new Error(T('Fayl ichidagi tur kengaytmaga mos emas (buzilgan yoki soxta fayl)', 'Содержимое не соответствует расширению (повреждён или подделан)', 'File content does not match its extension (corrupt or fake)'));
-        const meta = {}; if (k2 === 'video' || k2 === 'audio') { const pr = await probeMedia(f, k2); if (!pr.ok) throw new Error(T('Brauzer bu faylni ocha olmaydi. MP4/MP3 ga o\'tkazing', 'Браузер не может открыть файл. Конвертируйте в MP4/MP3', 'The browser cannot open this file. Convert to MP4/MP3')); meta.duration = pr.d; if (k2 === 'video') { meta.width = pr.w; meta.height = pr.h; } }
+        const bad = (forced === 'audio' && !EXT_KIND[e]) ? '' : await sniff(f); if (bad && !(forced === 'audio' || kind === 'audio')) throw new Error(T('Fayl ichidagi tur kengaytmaga mos emas (buzilgan yoki soxta fayl)', 'Содержимое не соответствует расширению (повреждён или подделан)', 'File content does not match its extension (corrupt or fake)'));
+        const meta = {}; if (k2 === 'video' || k2 === 'audio') { const pr = await probeMedia(f, k2); if (!pr.ok && k2 === 'audio') meta.noplay = true; else if (!pr.ok) throw new Error(T('Brauzer bu faylni ocha olmaydi. MP4/MP3 ga o\'tkazing', 'Браузер не может открыть файл. Конвертируйте в MP4/MP3', 'The browser cannot open this file. Convert to MP4/MP3')); if (pr.ok) meta.duration = pr.d; if (k2 === 'video') { meta.width = pr.w; meta.height = pr.h; } }
         st(i, T('yuklanmoqda…', 'загрузка…', 'uploading…'));
         const id = crypto.randomUUID(), path = `${id}/${safeName(f.name)}`; await upload('content', path, f, { contentType: mimeOf(f) });
         const { error } = await sb.from('items').insert({ id, folder_id: target, kind: k2, title: await i18nField(f.name.replace(/\.[^.]+$/, ''), state.lang), description: {}, visible: !hideNew, source: 'storage', storage_path: path, size_bytes: f.size, meta, created_by: uid });
@@ -209,7 +211,7 @@ route('/teach/materials', async ({ el, q, alive }) => {
   };
   const pickFiles = cat => {
     if (cat === 'test') return ensureFolder().then(f => testImportModal({ folderId: f, onDone: reload })).catch(e => toast(dbErr(e), 'err'));
-    const go2 = () => { const inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true; inp.accept = CATS[cat].acc; inp.onchange = () => uploadFiles(inp.files, cat); inp.click(); };
+    const go2 = () => { const inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true; if (cat !== 'audio') inp.accept = CATS[cat].acc; inp.onchange = () => uploadFiles(inp.files, cat); inp.click(); };
     if (cat !== 'video') return go2();
     const m = modal(`<h3>${esc(T('Video qo\'shish', 'Добавить видео', 'Add video'))}</h3><div class="stack"><button class="btn lg block" id="f1">${ic('video', 18)} ${esc(T('Telefon/kompyuterdan fayl', 'Файл с телефона/компьютера', 'File from device'))}</button>
       <form class="form" id="yf"><label class="fld"><span>${esc(T('yoki YouTube havolasi', 'или ссылка YouTube', 'or YouTube link'))}</span><input class="input" id="yu" placeholder="https://youtu.be/…"></label><button class="btn ghost block">${esc(T('Havolani qo\'shish', 'Добавить ссылку', 'Add link'))}</button></form></div>`);

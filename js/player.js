@@ -213,8 +213,6 @@ export async function mountPlayer(host, item, opts = {}) {
   const mark = q('.vmark'); const markIv = mark ? setInterval(() => { mark.style.top = (8 + Math.random() * 70) + '%'; mark.style.left = (4 + Math.random() * 60) + '%'; }, 7000) : null;
   const vis = () => { if (document.hidden) { save(true).catch(() => {}); if (S.pause_when_hidden && !isAud && ad.playing()) ad.pause(); } };
   document.addEventListener('visibilitychange', vis);
-  const off = () => { if (offline) return; if (ad.playing()) { ad.pause(); } msg(t('pl.offline')); };
-  addEventListener('offline', off);
   const ui = setInterval(paint, 500);
   const onFs = () => { root.classList.toggle('is-full', !!document.fullscreenElement); if (!document.fullscreenElement) screen.orientation?.unlock?.(); }; document.addEventListener('fullscreenchange', onFs);
   // telefon yonlatilsa (landshaft) video butun ekranga yoyiladi; tik holatga qaytsa — oddiy ko'rinish
@@ -235,7 +233,7 @@ export async function mountPlayer(host, item, opts = {}) {
     completed: () => completed || offline,
     async destroy() {
       try { if ('mediaSession' in navigator) { navigator.mediaSession.metadata = null; ['play', 'pause', 'seekbackward'].forEach(a => navigator.mediaSession.setActionHandler(a, null)); } } catch { /* */ }
-      clearInterval(ui); clearInterval(markIv); clearInterval(stallIv); screen.orientation?.unlock?.(); removeEventListener('orientationchange', orient); document.removeEventListener('visibilitychange', vis); removeEventListener('offline', off); removeEventListener('resize', orient); document.body.classList.remove('vland'); document.removeEventListener('fullscreenchange', onFs);
+      clearInterval(ui); clearInterval(markIv); clearInterval(stallIv); screen.orientation?.unlock?.(); removeEventListener('orientationchange', orient); document.removeEventListener('visibilitychange', vis); removeEventListener('resize', orient); document.body.classList.remove('vland'); document.removeEventListener('fullscreenchange', onFs);
       try { await save(true); } catch { /* */ } timer.stop(); ad.destroy();
     },
   };

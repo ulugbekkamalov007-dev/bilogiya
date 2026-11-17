@@ -260,7 +260,7 @@ route('/group/:id/task/:aid', async ({ el, params, alive }) => {
       if (error) throw error; toast(t('grp.submitted'), 'ok'); await drawSlots();
     };
     const slotSheet = n => {
-      const m = modal(`<h3>#${n}</h3><div class="form"><button class="btn lg block" id="sr">🎤 ${esc(t('grp.rec_now'))}</button><label class="btn ghost lg block">${ic('clip', 16)} ${esc(t('grp.pick_file'))}<input type="file" id="sf" accept="audio/*,.m4a,.mp3,.wav,.ogg,.aac,.opus,.amr" hidden></label></div>`);
+      const m = modal(`<h3>#${n}</h3><div class="form"><button class="btn lg block" id="sr">🎤 ${esc(t('grp.rec_now'))}</button><label class="btn ghost lg block">${ic('clip', 16)} ${esc(t('grp.pick_file'))}<input type="file" id="sf" hidden></label></div>`);
       let rec = null; const sr = $('#sr', m.el);
       sr.onclick = async () => {
         try {
