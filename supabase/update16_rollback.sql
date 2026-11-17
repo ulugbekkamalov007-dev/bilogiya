@@ -1,0 +1,1 @@
+-- lesson_bodies dagi matnni lessons.body ga qaytarish: update lessons l set body=b.body, youtube_id=b.youtube_id from lesson_bodies b where b.lesson_id=l.id; keyin: drop table lesson_bodies;

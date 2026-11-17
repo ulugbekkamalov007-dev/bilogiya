@@ -9,7 +9,7 @@ const CID = uid('course');
 const chNames = { 1: `1-bob. Biologiya – tirik tabiat haqidagi fan`, 2: `2-bob. Tirik organizmlar dunyosi`, 3: `3-bob. Organizm va tashqi muhit` };
 const out = []; let secPos = 0;
 out.push(`-- 5-sinf Biologiya kursi (avto-yaratilgan). Qayta ishga tushirsa avval o'chirib, qaytadan yaratadi.
--- Oldin update12.sql ni ishga tushiring.
+-- Oldin update12.sql va update16.sql ni ishga tushiring.
 begin;
 delete from public.items where id in (select item_id from public.lessons where course_id = '${CID}' and item_id is not null);
 delete from public.courses where id = '${CID}';
@@ -19,7 +19,7 @@ values ('${CID}', ${T3('5-sinf Biologiya')}, ${T3("5-sinf biologiya darsligi aso
   ${J(['Biologiya asoslarini sodda tilda o\'rganish', 'Har mavzuni test va kartochkalar bilan mustahkamlash', 'Tabiatni tushunish va asrash'])});`);
 let lp = 0;
 function section(id, title) { out.push(`insert into public.course_sections(id, course_id, title, position) values ('${id}','${CID}',${T3(title)},${secPos++});`); }
-function lesson(sec, id, title, kind, body, xp, item) { out.push(`insert into public.lessons(id, course_id, section_id, title, kind, item_id, body, xp, position) values ('${id}','${CID}','${sec}',${T3(title)},'${kind}',${item ? `'${item}'` : 'null'},${q(body)},${xp},${lp++});`); }
+function lesson(sec, id, title, kind, body, xp, item) { out.push(`insert into public.lessons(id, course_id, section_id, title, kind, item_id, body, xp, position) values ('${id}','${CID}','${sec}',${T3(title)},'${kind}',${item ? `'${item}'` : 'null'},'',${xp},${lp++});`); if (body) out.push(`insert into public.lesson_bodies(lesson_id, body) values ('${id}',${q(body)});`); }
 function testItem(key, title, qs, chapterOf) {
   const iid = uid('item:' + key);
   out.push(`insert into public.items(id, folder_id, kind, title, visible, source, created_by) values ('${iid}', null, 'test', ${T3(title)}, false, null, (select author_id from public.courses where id='${CID}'));`);

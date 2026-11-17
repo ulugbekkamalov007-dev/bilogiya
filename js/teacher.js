@@ -49,9 +49,12 @@ route('/teach/course/:id', async ({ el, params, alive }) => {
       <button class="btn lg block">${esc(T('Saqlash', 'Сохранить', 'Save'))}</button></form>`, { cls: 'wide' });
     $('#f', m.el).onsubmit = async e => { e.preventDefault(); const btn = $('button.btn', m.el); btnBusy(btn, true);
       let yt = $('#y', m.el).value.trim(); const mm = yt.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/); if (mm) yt = mm[1];
-      const row = { course_id: id, title: await i18nField($('#t', m.el).value.trim()), kind: $('#k', m.el).value, section_id: $('#s', m.el).value || null, xp: Math.max(0, Math.min(100, +$('#x', m.el).value || 0)), youtube_id: yt || null, item_id: $('#i', m.el).value || null, body: $('#b', m.el).value };
-      const r = l ? await sb.from('lessons').update(row).eq('id', l.id) : await sb.from('lessons').insert({ ...row, position: (ls?.length ? Math.max(...ls.map(x => x.position)) + 1 : 1) });
-      if (r.error) { btnBusy(btn, false); return toast(dbErr(r.error), 'err'); } m.close(); paint(); };
+      const row = { course_id: id, title: await i18nField($('#t', m.el).value.trim()), kind: $('#k', m.el).value, section_id: $('#s', m.el).value || null, xp: Math.max(0, Math.min(100, +$('#x', m.el).value || 0)), item_id: $('#i', m.el).value || null };
+      const bodyRow = { body: $('#b', m.el).value, youtube_id: yt || null };
+      const r = l ? await sb.from('lessons').update(row).eq('id', l.id).select('id').single() : await sb.from('lessons').insert({ ...row, position: (ls?.length ? Math.max(...ls.map(x => x.position)) + 1 : 1) }).select('id').single();
+      if (r.error) { btnBusy(btn, false); return toast(dbErr(r.error), 'err'); }
+      const rb = await sb.from('lesson_bodies').upsert({ lesson_id: r.data.id, ...bodyRow });
+      if (rb.error) { btnBusy(btn, false); return toast(dbErr(rb.error), 'err'); } m.close(); paint(); };
   };
   el.innerHTML = `<div class="page"><div class="row"><a class="btn ghost sm" href="#/teach">${ic('back')}</a><h2 class="mb0 grow">${esc(tr(c.title))}</h2><a class="btn sm ghost" href="#/course/${id}">${ic('eye', 14)} ${esc(T('Ko\'rish', 'Просмотр', 'Preview'))}</a><button class="btn danger sm" id="dc">${ic('trash', 14)}</button></div>
     <div class="cdetail mt" style="grid-template-columns:1fr"><form class="card pad form" id="cf"><h3>${esc(T('Kurs ma\'lumotlari', 'Данные курса', 'Course details'))}</h3>
