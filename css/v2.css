@@ -298,3 +298,56 @@ button.tc-h { border: 0; background: transparent; font: inherit; color: inherit;
 .tblwrap { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
 .lesson article, .sld, .crd { max-width: 100%; } .lnav { flex-wrap: wrap; } .lnav .btn { flex: 1 1 auto; justify-content: center; }
 @media (max-width: 480px) { .lnav .btn { font-size: .92rem; padding-inline: 10px; } }
+
+/* ===== Kurs 2.0 (learnpath) ===== */
+.lp { max-width: 720px; }
+.lp-top { margin-bottom: 12px; }
+.lp-course { width: 100%; display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 18px; border: 2px solid var(--line); background: var(--card); font: inherit; font-weight: 800; font-size: 1.05rem; color: var(--text); cursor: pointer; text-align: left; box-shadow: 0 4px 0 var(--line); }
+.lp-course:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--line); } .lp-car { color: var(--muted); }
+.lp-sum { margin-bottom: 4px; } .lp-sum .btn { text-decoration: none; }
+.lp-chs { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.lp-ch { position: relative; display: block; border-radius: 20px; overflow: hidden; border: 2px solid var(--line); background: var(--card); text-decoration: none; color: var(--text); box-shadow: 0 5px 0 var(--line); transition: transform .12s; }
+.lp-ch:hover { transform: translateY(-2px); } .lp-ch.lock { opacity: .78; }
+.lp-cov { position: relative; aspect-ratio: 16/9; display: grid; place-items: center; overflow: hidden; } .lp-cov img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.lp-emo { font-size: 3.2rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
+.lp-badge { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,.45); color: #fff; font-weight: 800; font-size: .78rem; padding: 4px 10px; border-radius: 99px; backdrop-filter: blur(4px); }
+.lp-lk, .lp-ok { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,.5); color: #fff; } .lp-ok { background: var(--brand); }
+.lp-cb { padding: 12px 14px 14px; display: grid; gap: 6px; } .lp-cb b { line-height: 1.25; }
+.lp-sheet-bg { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,0); display: flex; align-items: flex-end; justify-content: center; transition: background .2s; } .lp-sheet-bg.on { background: rgba(0,0,0,.45); }
+.lp-sheet { width: 100%; max-width: 560px; max-height: 80vh; overflow: auto; background: var(--card); border-radius: 26px 26px 0 0; padding: 12px 16px 22px; transform: translateY(100%); transition: transform .25s cubic-bezier(.2,.8,.2,1); } .lp-sheet-bg.on .lp-sheet { transform: none; }
+.lp-grab { width: 44px; height: 5px; border-radius: 9px; background: var(--line); margin: 0 auto 12px; }
+.lp-ci { display: flex; align-items: center; gap: 12px; padding: 12px; border: 2px solid var(--line); border-radius: 16px; margin: 8px 0; text-decoration: none; color: var(--text); } .lp-ci.on { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 8%, transparent); } .lp-ci small { display: block; }
+.lp-ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 1.1rem; flex: none; }
+/* xarita */
+.lp-map { position: relative; margin: 14px auto 0; width: 100%; } .lp-path { position: absolute; inset: 0; pointer-events: none; }
+.lp-n { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text); width: 84px; }
+.lp-nd { position: relative; z-index: 2; width: 66px; height: 66px; border-radius: 20px; display: grid; place-items: center; font-size: 1.5rem; font-weight: 900; background: var(--card); border: 4px solid var(--line); box-shadow: 0 6px 0 var(--line); color: var(--brand); transition: transform .12s; } .lp-n:hover .lp-nd { transform: scale(1.06); }
+.lp-n.review .lp-nd { border-radius: 50%; color: #e0701f; } .lp-n.final .lp-nd { border-radius: 50%; color: #c98a00; width: 72px; height: 72px; }
+.lp-nd em { position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: .68rem; font-weight: 800; background: var(--brand); color: #fff; padding: 2px 7px; border-radius: 99px; white-space: nowrap; } .lp-nd em.ok { padding: 3px 5px; display: grid; }
+.lp-n.done .lp-nd { background: var(--brand); border-color: var(--brand-d); box-shadow: 0 6px 0 var(--brand-d); color: #fff; } .lp-n.done .lp-nd em { background: #fff; color: var(--brand-d); }
+.lp-n.cur .lp-nd { border-color: var(--brand); box-shadow: 0 6px 0 var(--brand-d), 0 0 0 7px color-mix(in srgb, var(--brand) 22%, transparent); animation: snpulse 1.8s infinite; }
+.lp-n.lock .lp-nd { background: var(--card2); color: var(--muted); } .lp-n.lock { opacity: .75; }
+.lp-nl { position: absolute; top: 50%; transform: translateY(-50%); left: 78px; width: 120px; font-size: .78rem; font-weight: 700; line-height: 1.25; text-align: left; z-index: 1; } .lp-n.lft .lp-nl { left: auto; right: 78px; text-align: right; } .lp-nl small { display: block; color: var(--muted); font-weight: 500; }
+.lp-st i { font-style: normal; color: var(--line); font-size: .95rem; } .lp-st i.on { color: #f5b301; }
+.lp-next { margin: 26px 0 10px; display: grid; gap: 8px; }
+.lp-go { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border-radius: 18px; border: 2px solid var(--line); background: var(--card2); color: var(--muted); font: inherit; text-align: left; text-decoration: none; cursor: pointer; box-shadow: 0 5px 0 var(--line); } .lp-go small { display: block; font-weight: 600; } .lp-go b { color: inherit; }
+.lp-go.ready { background: var(--brand); border-color: var(--brand-d); color: #fff; box-shadow: 0 5px 0 var(--brand-d); animation: lpglow 2s infinite; } .lp-go.ready:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--brand-d); }
+.lp-gl { font-size: 1.5rem; display: grid; place-items: center; width: 34px; } .lp-arr { font-weight: 900; white-space: nowrap; }
+@keyframes lpglow { 0%,100% { box-shadow: 0 5px 0 var(--brand-d), 0 0 0 0 color-mix(in srgb, var(--brand) 40%, transparent); } 50% { box-shadow: 0 5px 0 var(--brand-d), 0 0 0 10px transparent; } }
+.lp-fx { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; background: rgba(10,20,15,.82); animation: lpfade .3s; overflow: hidden; }
+.lp-fxc { width: min(86vw, 340px); background: var(--card); border-radius: 26px; overflow: hidden; text-align: center; padding-bottom: 20px; animation: lppop .5s cubic-bezier(.2,1.4,.4,1); } .lp-fxc h2 { margin: 14px 12px 4px; } .lp-fxc p { margin: 0 12px; color: var(--muted); }
+.lp-fxl { font-size: 3rem; margin-top: 10px; display: inline-block; animation: lpshake .45s 2; } .lp-fx.open .lp-fxl { animation: lpunlock .5s forwards; }
+.lp-cf { position: absolute; top: -10%; font-style: normal; font-size: 1.6rem; animation: lpfall 2.2s linear forwards; }
+@keyframes lpfade { from { opacity: 0; } } @keyframes lppop { from { transform: scale(.6); opacity: 0; } }
+@keyframes lpshake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-14deg); } 75% { transform: rotate(14deg); } }
+@keyframes lpunlock { 0% { transform: scale(1); } 50% { transform: scale(1.5) rotate(-12deg); } 100% { transform: scale(1.2); } }
+@keyframes lpfall { to { transform: translateY(120vh) rotate(360deg); } }
+/* mavzu */
+.lp-tp { display: flex; align-items: center; gap: 14px; }
+.lp-ring { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; flex: none; background: conic-gradient(var(--brand) calc(var(--p) * 1%), var(--line) 0); position: relative; } .lp-ring::before { content: ''; position: absolute; inset: 7px; background: var(--card); border-radius: 50%; } .lp-ring b { position: relative; font-size: .85rem; }
+.lp-parts { display: grid; gap: 10px; }
+.lp-part { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid var(--line); border-radius: 18px; background: var(--card); text-decoration: none; color: var(--text); box-shadow: 0 4px 0 var(--line); } .lp-part small { display: block; margin: 2px 0 6px; }
+.lp-pi { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: color-mix(in srgb, var(--brand) 12%, transparent); color: var(--brand); flex: none; }
+.lp-part.done { border-color: var(--brand); } .lp-part.done .lp-pi { background: var(--brand); color: #fff; }
+.lp-part.cur { border-color: var(--brand); box-shadow: 0 4px 0 var(--brand-d); } .lp-part.lock { opacity: .6; } .lp-part.lock .lp-pi { background: var(--card2); color: var(--muted); }
+.lp-pp { font-weight: 800; min-width: 42px; text-align: right; }

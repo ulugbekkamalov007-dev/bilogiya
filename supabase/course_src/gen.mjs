@@ -18,7 +18,9 @@ values ('${CID}', ${T3('5-sinf Biologiya')}, ${T3("5-sinf biologiya darsligi aso
   (select id from public.profiles where lower(email) = 'ulugbekkamalov0829@gmail.com' limit 1),
   ${J(['Biologiya asoslarini sodda tilda o\'rganish', 'Har mavzuni test va kartochkalar bilan mustahkamlash', 'Tabiatni tushunish va asrash'])});`);
 let lp = 0;
-function section(id, title) { out.push(`insert into public.course_sections(id, course_id, title, position) values ('${id}','${CID}',${T3(title)},${secPos++});`); }
+let curCh = null;
+function chapter(id, title, pos) { out.push(`insert into public.course_chapters(id, course_id, title, position) values ('${id}','${CID}',${T3(title)},${pos});`); }
+function section(id, title, kind = 'topic') { out.push(`insert into public.course_sections(id, course_id, title, position, chapter_id, kind) values ('${id}','${CID}',${T3(title)},${secPos++},'${curCh}','${kind}');`); }
 function lesson(sec, id, title, kind, body, xp, item) { out.push(`insert into public.lessons(id, course_id, section_id, title, kind, item_id, body, xp, position) values ('${id}','${CID}','${sec}',${T3(title)},'${kind}',${item ? `'${item}'` : 'null'},'',${xp},${lp++});`); if (body) out.push(`insert into public.lesson_bodies(lesson_id, body) values ('${id}',${q(body)});`); }
 function testItem(key, title, qs, chapterOf) {
   const iid = uid('item:' + key);
@@ -28,6 +30,7 @@ function testItem(key, title, qs, chapterOf) {
 }
 const shuf = a => a; // aralashtirish ilovada (variantlar va savollar tartibi) bajariladi
 for (const ch of [1, 2, 3]) {
+  curCh = uid('chap:' + ch); chapter(curCh, chNames[ch], ch - 1);
   for (const t of topics.filter(x => x.ch === ch)) {
     const sid = uid('sec:' + t.n); const name = `${t.n}-§. ${t.title}`;
     section(sid, name);
@@ -35,10 +38,11 @@ for (const ch of [1, 2, 3]) {
     lesson(sid, uid(`l:${t.n}:sl`), `Slayd: ${t.title}`, 'slides', JSON.stringify(t.slides), 10);
     lesson(sid, uid(`l:${t.n}:cd`), `Kartochkalar: ${t.title}`, 'cards', JSON.stringify(t.cards), 15);
     lesson(sid, uid(`l:${t.n}:t`), `Mavzu testi: ${t.title}`, 'test', '', 25, testItem(`t${t.n}`, `${t.n}-§ ${t.title} – mavzu testi`, t.test, () => name));
-    if (t.rev && t.rev.length) lesson(sid, uid(`l:${t.n}:r`), `Takrorlash testi: ${t.n - 1}-§ va ${t.n}-§`, 'test', '', 25, testItem(`r${t.n}`, `${t.n - 1}-§ + ${t.n}-§ takrorlash testi`, t.rev, () => `${t.n - 1}–${t.n}-§ takrorlash`));
+    if (t.rev && t.rev.length) { const rid = uid('sec:r' + t.n); section(rid, `Takrorlash: ${t.n - 1}-§ va ${t.n}-§`, 'review');
+      lesson(rid, uid(`l:${t.n}:r`), `Takrorlash testi: ${t.n - 1}-§ va ${t.n}-§`, 'test', '', 25, testItem(`r${t.n}`, `${t.n - 1}-§ + ${t.n}-§ takrorlash testi`, t.rev, () => `${t.n - 1}–${t.n}-§ takrorlash`)); }
   }
   const sid = uid('sec:ch' + ch);
-  section(sid, `${ch}-bob yakuniy testi`);
+  section(sid, `${ch}-bob yakuniy testi`, 'final');
   const byN = Object.fromEntries(topics.map(t => [t.n, t.title]));
   lesson(sid, uid(`l:ch${ch}`), `${ch}-bob yakuniy testi`, 'test', '', 40, testItem(`ch${ch}`, chNames[ch] + ' – yakuniy test', CT[ch], x => `${x[4]}-§ ${byN[x[4]]}`));
 }

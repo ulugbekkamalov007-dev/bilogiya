@@ -13,6 +13,7 @@ import './settings.js';
 import './admin.js';
 import './guide.js';
 import './courses.js';
+import './learnpath.js';
 import './flash.js';
 import './teacher.js';
 import './forum.js';
@@ -92,7 +93,7 @@ const SETTINGS_ITEMS = () => [
 ];
 const NAV = () => NAV0().filter(n => { const pth = String(n[0]), sc = pth.includes('tab=ai') ? 'ai' : sectionOf(pth.split('?')[0]); return !(sc && hiddenSet().has(sc)); });
 const NAV0 = () => state.isAdmin ? [...ADMIN_NAV(), ...SETTINGS_ITEMS()] : isTeacher() ? [...TEACHER_NAV(), ...SETTINGS_ITEMS()] : [
-  ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/courses', 'cap', T('Kurslar', 'Курсы', 'Courses'), 0, /^\/(courses|course|lesson|cert)/],
+  ['/home', 'home', t('nav.home'), 0, /^\/home/], ['/courses', 'cap', T('Kurslar', 'Курсы', 'Courses'), 0, /^\/(courses|course|cinfo|chapter|topic|lesson|cert)/],
   ['/library', 'book', t('nav.library'), 0, /^\/(library|item|audios)/], ['/tests', 'test', T('Testlar', 'Тесты', 'Tests'), 0, /^\/(tests|test|practice)/],
   ['/groups', 'users', t('nav.groups'), 1, /^\/group/], ['/cards', 'layers', T('Kartalar', 'Карточки', 'Cards'), 1, /^\/cards/],
   ['/lab', 'flask', T('Laboratoriya', 'Лаборатория', 'Lab'), 1, /^\/lab/], ['/forum', 'msg', T('Forum', 'Форум', 'Forum'), 1, /^\/forum/],

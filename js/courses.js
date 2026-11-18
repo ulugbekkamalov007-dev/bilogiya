@@ -15,7 +15,7 @@ async function myProgress() {
   return { enrolled: Object.fromEntries((en || []).map(e => [e.course_id, e])), done };
 }
 
-route('/courses', async ({ el, alive }) => {
+route('/courses/all', async ({ el, alive }) => {
   const f = { q: '', grade: '', level: '', price: '', sort: 'new', mine: false };
   el.innerHTML = `<div class="page"><div class="row between"><h1>${esc(T('Kurslar', 'Курсы', 'Courses'))}</h1>${state.profile?.role !== 'user' ? `<a class="btn sm" href="#/teach">${ic('edit', 16)} ${esc(T('Kabinet', 'Кабинет', 'Studio'))}</a>` : ''}</div>
     <div class="chipbar"><input class="input" id="q" type="search" placeholder="${esc(T('Kurs qidirish…', 'Поиск курса…', 'Search courses…'))}" style="max-width:320px;flex:1">
@@ -48,7 +48,7 @@ route('/courses', async ({ el, alive }) => {
   await load();
 }, { auth: true });
 
-route('/course/:id', async ({ el, params, alive }) => {
+route('/cinfo/:id', async ({ el, params, alive }) => {
   const id = params.id; el.innerHTML = `<div class="page">${skeleton(4, 90)}</div>`;
   const [{ data: c, error }, { data: secs }, { data: ls }, { data: lp }, { data: en }, { data: rv }, { data: cert }] = await Promise.all([
     sb.from('courses').select('*').eq('id', id).maybeSingle(), sb.from('course_sections').select('*').eq('course_id', id).order('position'),
@@ -108,9 +108,12 @@ route('/pay/:cid', async ({ el, params }) => {
 
 route('/lesson/:cid/:lid', async ({ el, params, alive }) => {
   const { cid, lid } = params; el.innerHTML = `<div class="page">${skeleton(3, 120)}</div>`;
-  const [{ data: c }, { data: ls }, { data: lp }, { data: l, error }] = await Promise.all([sb.from('courses').select('id,title,unlock_pct').eq('id', cid).maybeSingle(), sb.from('lessons').select('id,title,kind,position,section_id').eq('course_id', cid).order('position'),
+  const [{ data: c }, { data: ls0 }, { data: lp }, { data: l, error }] = await Promise.all([sb.from('courses').select('id,title,unlock_pct,review_pct,final_pct').eq('id', cid).maybeSingle(), sb.from('lessons').select('id,title,kind,position,section_id').eq('course_id', cid).order('position'),
     sb.from('lesson_progress').select('lesson_id').eq('course_id', cid), sb.from('lessons').select('id,course_id,section_id,title,kind,item_id,xp,position').eq('id', lid).maybeSingle()]);
   if (!alive()) return; if (error || !l || !c) return go('/course/' + cid, true);
+  const ls = l.section_id ? ls0.filter(x => x.section_id === l.section_id) : ls0;
+  let secK = 'topic'; if (l.section_id) { const { data: sk } = await sb.from('course_sections').select('kind').eq('id', l.section_id).maybeSingle(); secK = sk?.kind || 'topic'; }
+  const thr = (secK === 'review' ? c.review_pct : secK === 'final' ? c.final_pct : c.unlock_pct) ?? 60, backHref = l.section_id ? `#/topic/${cid}/${l.section_id}` : `#/course/${cid}`;
   { const { data: cc, error: ce } = await sb.rpc('lesson_content', { p_lesson: lid }); if (!alive()) return;
     if (ce) { if (/PAID_REQUIRED/.test(ce.message || '')) return go('/pay/' + cid, true); toast(dbErr(ce), 'err'); return go('/course/' + cid, true); } l.body = cc?.body || ''; l.youtube_id = cc?.youtube_id || null; }
   { const { data: lk } = await sb.rpc('section_locked', { p_lesson: lid }); if (lk === true) { toast(T('Bu mavzu hali yopiq: oldingi mavzuni yetarlicha bajaring', 'Тема закрыта: сначала пройдите предыдущую', 'Topic locked: finish the previous topic first'), 'err'); return go('/course/' + cid, true); } }
@@ -121,24 +124,29 @@ route('/lesson/:cid/:lid', async ({ el, params, alive }) => {
   const media = l.youtube_id ? `<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(l.youtube_id)}" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" title="video"></iframe></div>` : '';
   const linked = l.item_id ? `<a class="btn lg block mt" href="#/${l.kind === 'test' ? 'test' : 'item'}/${l.item_id}">${ic(KI[l.kind] || 'book', 18)} ${esc(l.kind === 'test' ? T('Testni boshlash', 'Начать тест', 'Start test') : T('Materialni ochish', 'Открыть материал', 'Open material'))}</a>` : '';
   const aiQ = encodeURIComponent(`${tr(c.title)} — ${tr(l.title)}`);
-  el.innerHTML = `<div class="page" style="max-width:1400px"><div class="row"><a class="btn ghost sm" href="#/course/${cid}">${ic('back')}</a><div class="grow"><small class="muted">${esc(tr(c.title))}</small><h2 class="mb0">${esc(tr(l.title))}</h2></div><button class="btn ghost sm tocbtn" id="tb" style="display:none">${ic('list', 16)}</button></div>
+  el.innerHTML = `<div class="page" style="max-width:1400px"><div class="row"><a class="btn ghost sm" href="${backHref}">${ic('back')}</a><div class="grow"><small class="muted">${esc(tr(c.title))}</small><h2 class="mb0">${esc(tr(l.title))}</h2></div><button class="btn ghost sm tocbtn" id="tb" style="display:none">${ic('list', 16)}</button></div>
     <div class="lesson mt"><nav class="toc card pad"><h4>${esc(T('Mundarija', 'Содержание', 'Contents'))}</h4>${tocHtml}</nav>
-      <article>${media}${l.kind === 'slides' || l.kind === 'cards' ? '<div class="mt" id="vx"></div>' : `<div class="lbody card pad mt">${md(body) || (l.kind === 'test' ? '<p class="muted">' + esc(T('Testni kamida ' + (c.unlock_pct ?? 60) + '% natija bilan topshiring, so\'ng dars tugallanadi.', 'Сдайте тест минимум на ' + (c.unlock_pct ?? 60) + '%, и урок засчитается.', 'Pass the test with at least ' + (c.unlock_pct ?? 60) + '% to complete the lesson.')) + '</p>' : `<p class="muted">${esc(T('Matn yo\'q', 'Нет текста', 'No text'))}</p>`)}${linked}</div>`}
+      <article>${media}${l.kind === 'slides' || l.kind === 'cards' ? '<div class="mt" id="vx"></div>' : `<div class="lbody card pad mt">${md(body) || (l.kind === 'test' ? '<p class="muted">' + esc(T('Testni kamida ' + thr + '% natija bilan topshiring, so\'ng dars tugallanadi.', 'Сдайте тест минимум на ' + thr + '%, и урок засчитается.', 'Pass the test with at least ' + thr + '% to complete the lesson.')) + '</p>' : `<p class="muted">${esc(T('Matn yo\'q', 'Нет текста', 'No text'))}</p>`)}${linked}</div>`}
         <div class="lnav">${prev ? `<a class="btn ghost" href="#/lesson/${cid}/${prev.id}">${ic('back', 16)} ${esc(T('Oldingi', 'Назад', 'Previous'))}</a>` : ''}<button class="btn" id="fin">${done.has(lid) ? ic('check', 16) + ' ' + esc(T('Tugatilgan', 'Завершён', 'Completed')) : esc(T('Darsni tugatdim', 'Урок пройден', 'Mark complete'))} (+${l.xp} XP)</button>${next ? `<a class="btn ghost" href="#/lesson/${cid}/${next.id}">${esc(T('Keyingi', 'Далее', 'Next'))} ${ic('chev', 16)}</a>` : ''}</div></article>
       <aside class="side"><div class="card pad"><h4>${esc(T('Lug\'at', 'Словарь', 'Glossary'))}</h4>${gl.length ? gl.map(([a, b]) => `<p><b>${esc(a)}</b><br><small class="muted">${esc(b)}</small></p>`).join('') : `<p class="muted small">${esc(T('Bu darsda atamalar yo\'q (matnda [[atama|izoh]] yoziladi)', 'В уроке нет терминов', 'No terms in this lesson'))}</p>`}</div>
         <div class="card pad mt"><h4>${esc(T('Eslatmalar', 'Заметки', 'Notes'))}</h4><textarea class="input" id="nt" rows="6" placeholder="${esc(T('Shaxsiy eslatma (shu qurilmada saqlanadi)', 'Личная заметка (на этом устройстве)', 'Personal note (saved on this device)'))}"></textarea></div>
         ${hiddenSet().has('ai') ? '' : `<a class="btn block mt" href="#/ai?q=${aiQ}">${ic('bot', 16)} ${esc(T('AI yordamchidan so\'rash', 'Спросить ИИ', 'Ask the AI'))}</a>`}</aside></div></div>`;
   const fin = $('#fin', el); const lock = msg => { fin.disabled = true; fin.title = msg; }; const unlockFin = () => { fin.disabled = false; fin.title = ''; };
+  const isStaff = state.isAdmin || state.profile?.role === 'teacher'; let cur = 0, sent = 0;
+  const flush = async () => { if (isStaff || done.has(lid) || l.kind === 'test' || !cur || cur <= sent) return; sent = cur; try { await sb.rpc('report_pct', { p_lesson: lid, p_pct: cur }); } catch { /* */ } };
+  const rep = p => { p = Math.min(100, Math.round(p)); if (p <= cur) return; cur = p; if (cur >= sent + 10 || cur === 100) flush(); if (cur >= thr && fin.disabled && l.kind !== 'test') unlockFin(); };
   if (!done.has(lid) && !(state.isAdmin || state.profile?.role === 'teacher')) {
-    if (l.kind === 'slides' || l.kind === 'cards') { lock(T('Avval darsni oxirigacha ko\'ring', 'Сначала пройдите урок до конца', 'Finish the lesson first')); try { const lx = await import('./lessonx.js'); const data = JSON.parse(l.body || '[]'); (l.kind === 'slides' ? lx.renderSlides : lx.renderCards)($('#vx', el), data, unlockFin); } catch (e) { $('#vx', el).innerHTML = '<p class="muted">Xatolik: ' + esc(e.message) + '</p>'; unlockFin(); } }
-    else if (l.kind === 'test' && l.item_id) { const { data: at } = await sb.from('test_attempts').select('percent').eq('item_id', l.item_id).eq('user_id', state.user.id).order('percent', { ascending: false }).limit(1); if (!alive()) return; if ((at?.[0]?.percent ?? -1) < (c.unlock_pct ?? 60)) lock(T('Avval testdan kamida ' + (c.unlock_pct ?? 60) + '% oling', 'Сначала наберите в тесте минимум ' + (c.unlock_pct ?? 60) + '%', 'Score at least ' + (c.unlock_pct ?? 60) + '% in the test first')); }
+    if (l.kind === 'slides' || l.kind === 'cards') { lock(T('Avval darsni oxirigacha ko\'ring', 'Сначала пройдите урок до конца', 'Finish the lesson first')); try { const lx = await import('./lessonx.js'); const data = JSON.parse(l.body || '[]'); (l.kind === 'slides' ? lx.renderSlides : lx.renderCards)($('#vx', el), data, () => rep(100), f => rep(f * 100)); } catch (e) { $('#vx', el).innerHTML = '<p class="muted">Xatolik: ' + esc(e.message) + '</p>'; unlockFin(); } }
+    else if (l.kind === 'test' && l.item_id) { const { data: at } = await sb.from('test_attempts').select('percent').eq('item_id', l.item_id).eq('user_id', state.user.id).order('percent', { ascending: false }).limit(1); if (!alive()) return; if ((at?.[0]?.percent ?? -1) < thr) lock(T('Avval testdan kamida ' + thr + '% oling', 'Сначала наберите в тесте минимум ' + thr + '%', 'Score at least ' + thr + '% in the test first')); }
+    else if (!['video', 'audio', 'document'].includes(l.kind)) lock(T('Avval matnni oxirigacha o\'qing (' + thr + '%)', 'Сначала прочитайте текст (' + thr + '%)', 'Read the text first (' + thr + '%)'));
   } else if (l.kind === 'slides' || l.kind === 'cards') { const lx = await import('./lessonx.js'); try { (l.kind === 'slides' ? lx.renderSlides : lx.renderCards)($('#vx', el), JSON.parse(l.body || '[]')); } catch { /* */ } }
+  { const art = $('.lbody', el); if (art && !isStaff && !done.has(lid) && !['slides', 'cards', 'test'].includes(l.kind)) { const scr = () => { if (!document.body.contains(art)) return removeEventListener('scroll', scr); const r = art.getBoundingClientRect(); rep(Math.max(0, (innerHeight - r.top) / Math.max(r.height, 1) * 100)); }; addEventListener('scroll', scr, { passive: true }); scr(); } }
   const nt = $('#nt', el); try { nt.value = localStorage.getItem(noteKey) || ''; } catch { /* */ } nt.oninput = () => { try { localStorage.setItem(noteKey, nt.value); } catch { /* */ } };
   const tb = $('#tb', el); if (window.matchMedia('(max-width:1099px)').matches) tb.style.display = ''; tb.onclick = async () => { const { modal } = await import('./core.js'); const m = modal(`<h3>${esc(T('Mundarija', 'Содержание', 'Contents'))}</h3>${tocHtml}`); m.el.addEventListener('click', e => { if (e.target.closest('a')) m.close(); }); };
-  fin.onclick = async e => { if (done.has(lid)) return next ? go(`/lesson/${cid}/${next.id}`) : go('/course/' + cid); btnBusy(e.currentTarget, true);
+  fin.onclick = async e => { if (done.has(lid)) return next ? go(`/lesson/${cid}/${next.id}`) : go(backHref.slice(1)); btnBusy(e.currentTarget, true); if (['video', 'audio', 'document'].includes(l.kind)) cur = Math.max(cur, 100); await flush();
     const { data, error: er } = await sb.rpc('complete_lesson', { p_lesson: lid }); if (er) { btnBusy($('#fin', el), false); return toast(dbErr(er), 'err'); }
     if (data.xp) toast(`+${data.xp} XP`, 'ok'); announceAchievements(data.achievements); refreshStats();
-    if (data.finished) { toast('🎓 ' + T('Kurs tugatildi!', 'Курс завершён!', 'Course completed!'), 'ok'); go('/cert/' + data.cert); } else if (next) go(`/lesson/${cid}/${next.id}`); else go('/course/' + cid); };
+    if (data.finished) { toast('🎓 ' + T('Kurs tugatildi!', 'Курс завершён!', 'Course completed!'), 'ok'); go('/cert/' + data.cert); } else go(backHref.slice(1)); };
 }, { auth: true });
 
 // sertifikat (ochiq tekshirish: kod bilan)

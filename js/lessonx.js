@@ -6,10 +6,10 @@ const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 export const norm = s => String(s ?? '').toLowerCase().replace(/[’ʻʼ`‘´′]/g, "'").replace(/\s+/g, ' ').trim();
 
-export function renderSlides(host, slides, onDone) {
+export function renderSlides(host, slides, onDone, onProg) {
   let i = 0, seen = new Set();
   const draw = () => {
-    const s = slides[i]; seen.add(i);
+    const s = slides[i]; seen.add(i); onProg?.(seen.size / slides.length);
     host.innerHTML = `<div class="sld"><div class="sld-top"><small class="muted">${i + 1} / ${slides.length}</small><div class="sld-dots">${slides.map((_, k) => `<i class="${k === i ? 'on' : seen.has(k) ? 'seen' : ''}"></i>`).join('')}</div></div>
       <div class="sld-card"><div class="sld-ic">${esc(s.ic || '📘')}</div><h2>${esc(s.h)}</h2><ul>${(s.p || []).map(p => `<li>${inline(p)}</li>`).join('')}</ul>
       ${s.q ? `<div class="sld-q"><b>🤔 ${esc(T('O\'ylab ko\'ring', 'Подумайте', 'Think'))}:</b> ${esc(s.q)}<div><button class="btn ghost sm" id="sa">${esc(T('Javobni ko\'rish', 'Показать ответ', 'Show answer'))}</button></div><p class="sld-a" id="sat" hidden>${esc(s.a || '')}</p></div>` : ''}</div>
@@ -22,10 +22,11 @@ export function renderSlides(host, slides, onDone) {
   draw();
 }
 
-export function renderCards(host, cards, onDone) {
+export function renderCards(host, cards, onDone, onProg) {
   let queue = shuffle(cards.map((c, k) => ({ c, k, miss: 0 }))), total = cards.length, right = 0, tries = 0, fin = false;
   const bar = () => `<div class="bar"><i style="width:${Math.round(right / total * 100)}%"></i></div>`;
   const next = () => {
+    onProg?.(right / total);
     if (!queue.length) {
       if (!fin) { fin = true; onDone?.(); }
       host.innerHTML = `<div class="crd-end card pad"><div style="font-size:3rem">🎉</div><h3>${esc(T('Hamma kartochka to\'g\'ri!', 'Все карточки верно!', 'All cards correct!'))}</h3><p class="muted">${esc(T(`Urinishlar: ${tries}, aniqlik: ${Math.round(total / tries * 100)}%`, `Попыток: ${tries}, точность: ${Math.round(total / tries * 100)}%`, `Attempts: ${tries}, accuracy: ${Math.round(total / tries * 100)}%`))}</p><button class="btn ghost" id="rs">${esc(T('Qayta mashq qilish', 'Повторить', 'Practise again'))}</button></div>`;
