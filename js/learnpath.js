@@ -47,6 +47,7 @@ async function load(cid) {
   const loose = (ls || []).filter(l => !l.section_id || !(secs || []).some(s => s.id === l.section_id));
   if (loose.length) S.unshift({ id: 'loose', title: { uz: 'Umumiy darslar', ru: 'Общие уроки', en: 'General lessons' }, kind: 'topic', chapter_id: null, parts: loose });
   S = S.filter(s => s.parts.length);
+  const B = S.filter(s => s.kind === 'bank'); S = S.filter(s => s.kind !== 'bank');
   const allowed = Math.max(c.free_topics ?? 1, gr?.upto ?? 0); let ordc = 0;
   S.forEach(s => {
     if (s.kind === 'topic' && s.id !== 'loose') ordc++; s.ord = s.id === 'loose' ? 0 : ordc; s.pay = !free && s.ord > allowed;
@@ -61,10 +62,11 @@ async function load(cid) {
   if (orphan.length) C.push({ id: 'x', title: { uz: 'Mavzular', ru: 'Темы', en: 'Topics' }, cover: null, secs: orphan });
   C = C.filter(ch => ch.secs.length);
   C.forEach((ch, i) => { ch.i = i; ch.pct = Math.round(ch.secs.reduce((a, s) => a + s.pct, 0) / ch.secs.length); ch.passed = ch.secs.every(s => s.passed); ch.locked = ch.secs[0].locked; ch.topics = ch.secs.filter(s => s.kind === 'topic').length; });
+  const bank = B.length ? { lessons: B.flatMap(s => s.parts).sort((a, b) => a.position - b.position), locked: !staff && !S.every(s => s.passed), pay: !free && ordc > allowed } : null;
   const all = S.flatMap(s => s.parts);
   S.forEach(s => s.parts.forEach(l => { l.pay = s.pay; }));
   const total = all.length ? Math.round(all.reduce((a, l) => a + l.p, 0) / all.length) : 0;
-  return { c, C, S, staff, free: allFree, total, uid, allowed };
+  return { c, C, S, staff, free: allFree, total, uid, allowed, bank };
 }
 // ruxsat yo'q: adminga yozish (xabar kurs nomi va mavzu bilan avtomatik yuboriladi)
 export function askAdmin(d, s) {
@@ -109,9 +111,11 @@ async function chaptersView(el, cid, alive) {
     <h3 class="mt">${esc(T('Boblar', 'Главы', 'Chapters'))}</h3>
     ${C.length ? `<div class="lp-chs">${C.map(ch => `<a class="lp-ch ${ch.locked ? 'lock' : ''}" href="#/chapter/${cid}/${ch.id}" data-i="${ch.i}">${chCover(ch, ch.i)}<span class="lp-badge">${ch.i + 1}-${esc(T('bob', 'глава', 'ch.'))}</span>${ch.locked ? `<span class="lp-lk">${ic('lock', 22)}</span>` : ch.passed ? `<span class="lp-ok">${ic('check', 18)}</span>` : ''}
       <div class="lp-cb"><b>${esc(tr(ch.title))}</b><small class="muted">${ch.topics} ${esc(T('mavzu', 'тем', 'topics'))} · ${ch.pct}%</small>${bar(ch.pct)}</div></a>`).join('')}</div>`
-      : empty('list', T('Bu kursda hali boblar yo\'q', 'В курсе пока нет глав', 'No chapters yet'))}</div>`;
+      : empty('list', T('Bu kursda hali boblar yo\'q', 'В курсе пока нет глав', 'No chapters yet'))}
+    ${d.bank ? `<a id="bk" class="lp-bank ${d.bank.locked || d.bank.pay ? 'lock' : ''}" href="#/bank/${cid}"><span class="lp-bi">${d.bank.locked || d.bank.pay ? ic('lock', 26) : '🎓'}</span><span class="grow"><b>${esc(T('Yakuniy sinov markazi', 'Центр итоговой проверки', 'Final practice center'))}</b><small>${esc(d.bank.locked ? T('Barcha boblarni tugatgach ochiladi', 'Откроется после всех глав', 'Opens after all chapters') : T('Katta test va kartochkalar banki — bilimingizni sinang', 'Большой банк тестов и карточек — проверьте знания', 'Big test and card bank — test your knowledge'))}</small></span><span class="lp-arr">➜</span></a>` : ''}</div>`;
   $('#cs', el).onclick = () => openSheet(cid);
   $('#ask', el)?.addEventListener('click', () => askAdmin(d, null));
+  $('#bk', el)?.addEventListener('click', e => { if (d.bank.pay) { e.preventDefault(); askAdmin(d, null); } else if (d.bank.locked) { e.preventDefault(); toast(T('Avval barcha boblarni tugating', 'Сначала завершите все главы', 'Finish all chapters first')); } });
   $$('.lp-ch.lock', el).forEach(a => a.onclick = e => { e.preventDefault(); toast(T('Avval oldingi bobni tugating', 'Сначала завершите предыдущую главу', 'Finish the previous chapter first')); });
   fillR2(el);
 }
@@ -170,7 +174,7 @@ route('/topic/:cid/:sid', async ({ el, params, alive }) => {
   const d = await load(cid); if (!alive()) return;
   const s = d && d.S.find(x => x.id === sid); if (!s) return go('/course/' + cid, true);
   const ch = d.C.find(x => x.secs.includes(s)), idx = d.S.indexOf(s), nxt = d.S[idx + 1], KLn = KL();
-  const label = l => (s.kind === 'review' && l.kind === 'test' ? T('Takrorlash testi', 'Тест-повторение', 'Review test') : s.kind === 'final' && l.kind === 'test' ? T('Yakuniy test', 'Итоговый тест', 'Final test') : KLn[l.kind] || l.kind);
+  const label = l => { const pm = l.kind === 'test' ? (tr(l.title).match(/\((\d+\/\d+)\)/) || [])[1] : null; return (s.kind === 'review' && l.kind === 'test' ? T('Takrorlash testi', 'Тест-повторение', 'Review test') : s.kind === 'final' && l.kind === 'test' ? T('Yakuniy test', 'Итоговый тест', 'Final test') : KLn[l.kind] || l.kind) + (pm ? ' ' + pm : ''); };
   const cur = s.parts.findIndex(l => !l.done);
   el.innerHTML = `<div class="page lp"><div class="row"><a class="btn ghost sm" href="#/chapter/${cid}/${ch ? ch.id : 'x'}">${ic('back')}</a><div class="grow"><small class="muted">${esc(tr(d.c.title))}</small><h2 class="mb0">${esc(tr(s.title))}</h2></div></div>
     <div class="lp-tp card pad mt"><div class="lp-ring" style="--p:${s.pct}"><b>${s.pct}%</b></div><div class="grow"><b>${s.passed ? esc(T('Mavzu tugatildi! 🎉', 'Тема пройдена! 🎉', 'Topic complete! 🎉')) : esc(T('Mavzu progressi', 'Прогресс темы', 'Topic progress'))}</b>
@@ -184,3 +188,41 @@ route('/topic/:cid/:sid', async ({ el, params, alive }) => {
       : `<a class="btn block" href="#/chapter/${cid}/${ch ? ch.id : 'x'}">${esc(T('Xaritaga qaytish', 'К карте', 'Back to the map'))}</a>`}</div></div>`;
   $$('.lp-part', el).forEach(a => a.onclick = e => { const k = a.dataset.k; if (k === 'lock') { e.preventDefault(); toast(lockMsg(s.thr)); } else if (k === 'pay') { e.preventDefault(); askAdmin(d, s); } });
 }, { auth: true });
+
+// ---- Yakuniy sinov markazi ----
+route('/bank/:cid', async ({ el, params, alive }) => {
+  const { cid } = params; el.innerHTML = `<div class="page lp">${skeleton(3, 90)}</div>`;
+  const d = await load(cid); if (!alive()) return;
+  if (!d || !d.bank) return go('/course/' + cid, true);
+  if (d.bank.pay) { askAdmin(d, null); return go('/course/' + cid, true); }
+  if (d.bank.locked) { toast(T('Avval barcha boblarni tugating', 'Сначала завершите все главы', 'Finish all chapters first')); return go('/course/' + cid, true); }
+  el.innerHTML = `<div class="page lp"><div class="row"><a class="btn ghost sm" href="#/course/${cid}">${ic('back')}</a><div class="grow"><small class="muted">${esc(tr(d.c.title))}</small><h2 class="mb0">🎓 ${esc(T('Yakuniy sinov markazi', 'Центр итоговой проверки', 'Final practice center'))}</h2></div></div>
+    <p class="muted mt">${esc(T('Bu yerda butun kitob bo\'yicha qiyin testlar va kartochkalar. Mavzularni tanlab, o\'zingizni sinab ko\'ring — natijalar saqlanadi.', 'Здесь сложные тесты и карточки по всей книге. Выбирайте темы и проверяйте себя — результаты сохраняются.', 'Hard tests and cards for the whole book. Pick topics and test yourself — results are saved.'))}</p>
+    <div class="lp-parts mt">${d.bank.lessons.map(l => `<a class="lp-part" href="#/lesson/${cid}/${l.id}"><span class="lp-pi">${l.kind === 'cards' ? '🃏' : '🧪'}</span><span class="grow"><b>${esc(tr(l.title))}</b><small class="muted">${esc(l.kind === 'cards' ? T('Kartochkalar banki', 'Банк карточек', 'Card bank') : T('Test banki', 'Банк тестов', 'Test bank'))}</small></span><span class="lp-arr">➜</span></a>`).join('')}</div></div>`;
+}, { auth: true });
+
+// bank darsi (test banki → /test sahifasi, kartochkalar → mavzu va hajmni tanlab o'ynash)
+export async function bankLesson(el, c, l, backHref, alive) {
+  const ex = (x) => esc(x);
+  const head = `<div class="row"><a class="btn ghost sm" href="${backHref}">${ic('back')}</a><div class="grow"><small class="muted">${ex(tr(c.title))}</small><h2 class="mb0">${ex(tr(l.title))}</h2></div></div>`;
+  if (l.kind === 'test' && l.item_id) {
+    const { count } = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('item_id', l.item_id); if (!alive()) return;
+    el.innerHTML = `<div class="page lp">${head}<div class="card pad mt"><p><b>${count || 0}</b> ${ex(T('ta savol', 'вопросов', 'questions'))}</p><p class="muted small">${ex(T('Boshlashdan oldin mavzularni va savollar sonini tanlaysiz. Savollar va variantlar har safar aralashadi.', 'Перед стартом выберете темы и число вопросов. Вопросы и варианты каждый раз перемешиваются.', 'Choose topics and number of questions first. Questions and options shuffle every time.'))}</p><a class="btn lg block" href="#/test/${l.item_id}">${ic('test', 18)} ${ex(T('Boshlash', 'Начать', 'Start'))}</a></div></div>`; return;
+  }
+  const { data: cc, error } = await sb.rpc('lesson_content', { p_lesson: l.id }); if (!alive()) return;
+  let cards = []; try { cards = JSON.parse(cc?.body || '[]'); } catch { /* */ }
+  if (error || !cards.length) { el.innerHTML = `<div class="page lp">${head}${empty('list', T('Kartochka yo\'q', 'Нет карточек', 'No cards'))}</div>`; return; }
+  const themes = [...new Set(cards.map(x => x[4]).filter(Boolean))]; let nSel = 20, th = '';
+  const lx = await import('./lessonx.js');
+  const paint = () => {
+    const pool = th ? cards.filter(x => x[4] === th) : cards;
+    el.innerHTML = `<div class="page lp">${head}<div class="card pad mt"><p><b>${cards.length}</b> ${ex(T('ta kartochka', 'карточек', 'cards'))}</p>
+      ${themes.length ? `<label class="fld"><span>${ex(T('Mavzu', 'Тема', 'Topic'))}</span><select class="input" id="th"><option value="">${ex(T('Hammasi', 'Все', 'All'))} (${cards.length})</option>${themes.map(t2 => `<option value="${ex(t2)}" ${t2 === th ? 'selected' : ''}>${ex(t2)} (${cards.filter(x => x[4] === t2).length})</option>`).join('')}</select></label>` : ''}
+      <div class="chips mb">${[10, 20, 40, 0].map(n => `<button class="chip btnchip ${nSel === n ? 'on' : ''}" data-n="${n}">${n ? n : ex(T('Hammasi', 'Все', 'All'))}</button>`).join('')}</div>
+      <button class="btn lg block" id="st">${ex(T('Boshlash', 'Начать', 'Start'))} (${nSel ? Math.min(nSel, pool.length) : pool.length})</button></div></div>`;
+    $('#th', el)?.addEventListener('change', e => { th = e.target.value; paint(); });
+    $$('[data-n]', el).forEach(b => b.onclick = () => { nSel = +b.dataset.n; paint(); });
+    $('#st', el).onclick = () => { const sub = (nSel ? pool.slice().sort(() => Math.random() - .5).slice(0, nSel) : pool); el.innerHTML = `<div class="page lp">${head}<div id="vx" class="mt"></div></div>`; lx.renderCards($('#vx', el), sub, () => {}); };
+  };
+  paint();
+}

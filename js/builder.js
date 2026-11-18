@@ -3,6 +3,8 @@ import { sb, state, tr, route, go, esc, ic, $, $$, modal, toast, btnBusy, confir
 import { T, skeleton, empty, errBox, bar, dbErr } from './ui.js';
 import { r2Upload, r2Delete } from './r2.js';
 import { parseQuestions } from './testparse.js';
+import { readTestFile } from './docread.js';
+import { uploadQImages } from './qimg.js';
 
 const U = s => ({ uz: s, ru: s, en: s });
 const staffOnly = () => state.profile?.role === 'teacher' || state.isAdmin;
@@ -16,19 +18,20 @@ const SLOTS = {
   slides: { i: 1, lab: () => T('Taqdimot', 'Презентация', 'Slides'), kinds: ['slides'], accept: '.pdf', xp: 10, hint: () => T('PDF fayl (PowerPoint\'dan "PDF sifatida saqlang")', 'PDF (в PowerPoint «Сохранить как PDF»)', 'PDF (PowerPoint → Save as PDF)') },
   video: { i: 2, lab: () => T('Video', 'Видео', 'Video'), kinds: ['video'], accept: 'video/*,.mp4,.webm,.mov,.m4v', xp: 10, link: true, hint: () => T('Video fayl yoki YouTube havolasi', 'Видеофайл или ссылка YouTube', 'Video file or YouTube link') },
   cards: { i: 3, lab: () => T('Kartochkalar', 'Карточки', 'Cards'), kinds: ['cards'], accept: '.csv,.tsv,.txt', xp: 15, hint: () => T('CSV/TXT: «termin;ta\'rif» yoki «tf;termin;ta\'rif;ha|yo\'q»', 'CSV/TXT: «термин;определение» или «tf;термин;определение;да|нет»', 'CSV/TXT: "term;definition" or "tf;term;definition;yes|no"') },
-  test: { i: 4, lab: () => T('Test', 'Тест', 'Test'), kinds: ['test'], accept: '.txt,.md,.csv', xp: 25, hint: () => T('TXT fayl: 1. savol, keyin variantlar (birinchisi to\'g\'ri)', 'TXT: 1. вопрос, затем варианты (первый верный)', 'TXT: 1. question, then options (first is correct)') },
+  test: { i: 4, lab: () => T('Test', 'Тест', 'Test'), kinds: ['test'], accept: '.docx,.txt,.md,.csv', xp: 25, hint: () => T('Word (.docx, rasmlar bilan) yoki TXT: 1. savol, keyin variantlar (birinchisi to\'g\'ri). Bir nechta fayl = bir nechta qism.', 'Word (.docx, с картинками) или TXT: 1. вопрос, затем варианты (первый верный). Много вопросов делится на части.', 'Word (.docx, with images) or TXT: 1. question, then options (first is correct). Many questions are split into parts.') },
 };
 const slotOfKind = k => Object.keys(SLOTS).find(s => SLOTS[s].kinds.includes(k));
 
 export function parseCards(text) {
-  const out = [];
+  const out = []; let theme = '';
   for (const raw of String(text || '').replace(/\r/g, '').split('\n')) {
-    const line = raw.trim(); if (!line || line.startsWith('#')) continue;
+    const line = raw.trim(); if (!line) continue;
+    if (line.startsWith('#')) { theme = line.replace(/^#+\s*(?:mavzu|bob|тема)?\s*[:\-–]?\s*/i, '').trim(); continue; }
     const sep = line.includes('\t') ? '\t' : line.includes(';') ? ';' : line.includes('|') ? '|' : ',';
     const p = line.split(sep).map(x => x.trim()), k = p[0].toLowerCase();
-    if (k === 'tf' && p.length >= 4) out.push(['tf', p[1], p[2], /^(ha|true|1|yes|da|\+|to'g'ri|togri)$/i.test(p[3])]);
-    else if ((k === 'yoz' || k === 'type') && p.length >= 3) out.push(['type', p[1], p[2], (p[3] || '').split(/[,/]/).map(s => s.trim()).filter(Boolean)]);
-    else if (p.length >= 2 && !(/^(termin|term|термин)$/i.test(p[0]) && /^(ta['’‘`]?rif|tarif|izoh|definition|определение)$/i.test(p[1]))) out.push(['type', p[1], p[0], []]);
+    if (k === 'tf' && p.length >= 4) out.push(['tf', p[1], p[2], /^(ha|true|1|yes|da|\+|to'g'ri|togri)$/i.test(p[3]), theme]);
+    else if ((k === 'yoz' || k === 'type') && p.length >= 3) out.push(['type', p[1], p[2], (p[3] || '').split(/[,/]/).map(s => s.trim()).filter(Boolean), theme]);
+    else if (p.length >= 2 && !(/^(termin|term|термин)$/i.test(p[0]) && /^(ta['’‘`]?rif|tarif|izoh|definition|определение)$/i.test(p[1]))) out.push(['type', p[1], p[0], [], theme]);
   }
   return out;
 }
@@ -48,8 +51,11 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
   const stateOf = l => { if (!l) return null; const b = bodies[l.id]; return b?.youtube_id ? 'YouTube' : (b?.body || '').startsWith('r2:') ? 'R2' : l.kind === 'test' ? 'test' : 'matn'; };
 
   // ---------- yozish amallari ----------
-  const delSlotAssets = async l => { if (!l) return; const b = bodies[l.id]; if (b?.body?.startsWith('r2:')) r2Delete(b.body.slice(3)).catch(() => {}); if (l.item_id) await sb.from('items').delete().eq('id', l.item_id); };
-  async function setSlot(sec, slot, input, onP) {
+  const delSlotAssets = async l => { if (!l) return; const b = bodies[l.id]; if (b?.body?.startsWith('r2:')) r2Delete(b.body.slice(3)).catch(() => {});
+    if (l.item_id) { try { const { data: qi } = await sb.from('questions').select('image_path').eq('item_id', l.item_id).not('image_path', 'is', null); [...new Set((qi || []).map(x => x.image_path))].forEach(p => p.startsWith('r2:') && r2Delete(p.slice(3)).catch(() => {})); } catch { /* */ } await sb.from('items').delete().eq('id', l.item_id); } };
+  const testsOf = s => ls.filter(l => l.section_id === s.id && l.kind === 'test').sort((a, b) => a.position - b.position);
+  async function setSlot(sec, slot, input, onP, opts = {}) {
+    if (slot === 'test') return setTests(sec, input.files || [input.file], opts.parts, onP, opts.append);
     const cfg = SLOTS[slot], old = lessonOf(sec, slot), base = tr(sec.title);
     let kind, body = '', yt = null, item = null, lab = cfg.lab();
     if (input.link) { yt = ytId(input.link); if (!yt) throw new Error(T('YouTube havolasi noto\'g\'ri', 'Неверная ссылка YouTube', 'Invalid YouTube link')); kind = 'video'; }
@@ -59,13 +65,6 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
       else if (slot === 'slides') { if (e !== 'pdf') throw new Error(T('Taqdimot PDF bo\'lishi kerak (PowerPoint → PDF qilib saqlang)', 'Презентация должна быть PDF', 'Slides must be a PDF')); const r = await r2Upload(f, onP); kind = 'slides'; body = 'r2:' + r.key; }
       else if (slot === 'video') { const r = await r2Upload(f, onP); kind = 'video'; body = 'r2:' + r.key; }
       else if (slot === 'cards') { const cs = parseCards(await f.text()); if (!cs.length) throw new Error(T('Kartochka topilmadi — fayl formatini tekshiring', 'Карточки не найдены', 'No cards found')); kind = 'cards'; body = JSON.stringify(cs); }
-      else if (slot === 'test') {
-        const r = parseQuestions(await f.text()); if (!r.questions.length) throw new Error(T('Savol topilmadi — fayl formatini tekshiring', 'Вопросы не найдены', 'No questions found'));
-        const { data: it, error } = await sb.from('items').insert({ folder_id: null, kind: 'test', visible: false, title: U(`${base} – test`), created_by: state.user.id }).select('id').single(); if (error) throw error; item = it.id;
-        const rows = r.questions.map((q, i) => ({ item_id: item, position: i, chapter: q.chapter || base, question: q.question, correct: q.correct, wrong: q.wrong, explanation: q.explanation || null }));
-        for (let i = 0; i < rows.length; i += 200) { const { error: e2 } = await sb.from('questions').insert(rows.slice(i, i + 200)); if (e2) { await sb.from('items').delete().eq('id', item); throw e2; } }
-        kind = 'test';
-      }
     }
     const xp = sec.kind === 'final' ? 40 : cfg.xp, row = { kind, title: U(`${lab}: ${base}`), item_id: item, xp, position: cfg.i };
     let lid;
@@ -75,7 +74,57 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
     if (old) await delSlotAssets(old);
     return lid;
   }
-  const delSlot = async (sec, slot) => { const l = lessonOf(sec, slot); if (!l) return; const { error } = await sb.from('lessons').delete().eq('id', l.id); if (error) throw error; await delSlotAssets(l); };
+  // Test faylini (docx rasm bilan / txt) o'qib, k qismga bo'lib, har qismga alohida dars (test) yaratadi
+  async function readQuestions(f, onP) {
+    const { text, images } = await readTestFile(f); const r = parseQuestions(text);
+    if (!r.questions.length) throw new Error(T('Savol topilmadi — fayl formatini tekshiring', 'Вопросы не найдены', 'No questions found'));
+    const used = [...new Set(r.questions.map(q => q.image).filter(x => x != null && images[x]))]; const imap = used.length ? await uploadQImages(images, used, p => onP?.(p * 0.5)) : {};
+    return r.questions.map(q => ({ ...q, image_path: q.image != null ? imap[q.image] || null : null }));
+  }
+  async function makeItem(title, qs, chapterDefault) {
+    const { data: it, error } = await sb.from('items').insert({ folder_id: null, kind: 'test', visible: false, title: U(title), created_by: state.user.id }).select('id').single(); if (error) throw error;
+    const rows = qs.map((q, i) => ({ item_id: it.id, position: i, chapter: q.chapter || chapterDefault || '', question: q.question, correct: q.correct, wrong: q.wrong, explanation: q.explanation || null, image_path: q.image_path || null }));
+    for (let i = 0; i < rows.length; i += 200) { const { error: e2 } = await sb.from('questions').insert(rows.slice(i, i + 200)); if (e2) { await sb.from('items').delete().eq('id', it.id); throw e2; } }
+    return it.id;
+  }
+  // Har bir fayl = bitta qism. Bitta fayl + "qismlar soni" = fayl teng bo'linadi. append=true: mavjudlarga qo'shiladi.
+  async function setTests(sec, files, parts, onP, append) {
+    const base = tr(sec.title), xp = sec.kind === 'final' ? 40 : 25, groups = [];
+    for (let fi = 0; fi < files.length; fi++) {
+      const qs = await readQuestions(files[fi], x => onP?.((fi + x * 0.5) / files.length * 0.5));
+      if (files.length === 1 && parts > 1) { const n = qs.length, k = Math.min(parts, n, 12), sz = Math.floor(n / k), ex = n % k; let at = 0; for (let i = 0; i < k; i++) { const c = sz + (i < ex ? 1 : 0); groups.push(qs.slice(at, at + c)); at += c; } }
+      else groups.push(qs);
+    }
+    const old = append ? [] : testsOf(sec), start = append ? testsOf(sec).length : 0, k = groups.length, total = start + k;
+    if (start + k > 30) throw new Error(T('Bir darsda 30 tadan ortiq qism bo\'lmaydi', 'Не более 30 частей в уроке', 'At most 30 parts per lesson'));
+    for (let i = 0; i < k; i++) {
+      const no = start + i + 1, item = await makeItem(`${base} – test ${no}`, groups[i], base);
+      const { data, error } = await sb.from('lessons').insert({ course_id: id, section_id: sec.id, kind: 'test', title: U(`Test ${no}: ${base}`), item_id: item, xp, position: SLOTS.test.i + start + i }).select('id,section_id,kind,title,item_id,position').single(); if (error) throw error;
+      await sb.from('lesson_bodies').upsert({ lesson_id: data.id, body: '', youtube_id: null }); ls.push(data); onP?.(0.5 + 0.5 * (i + 1) / k);
+    }
+    for (const o of old) { await sb.from('lessons').delete().eq('id', o.id); await delSlotAssets(o); }
+    return total;
+  }
+  // ---- Yakuniy sinov markazi (bank) ----
+  const bankSec = () => secs.find(s => s.kind === 'bank');
+  async function ensureBank() {
+    let b = bankSec(); if (b) return b;
+    const mx = secs.reduce((a, s) => Math.max(a, s.position), 0);
+    const { data, error } = await sb.from('course_sections').insert({ course_id: id, chapter_id: null, kind: 'bank', title: U('Yakuniy sinov markazi'), position: mx + 1000 }).select('*').single(); if (error) throw error; secs.push(data); return data;
+  }
+  async function addBankTest(name, f, onP) {
+    const b = await ensureBank(), qs = await readQuestions(f, onP), item = await makeItem(name, qs, '');
+    const pos = ls.filter(l => l.section_id === b.id).length;
+    const { data, error } = await sb.from('lessons').insert({ course_id: id, section_id: b.id, kind: 'test', title: U(name), item_id: item, xp: 0, position: pos }).select('id,section_id,kind,title,item_id,position').single(); if (error) throw error;
+    await sb.from('lesson_bodies').upsert({ lesson_id: data.id, body: '', youtube_id: null }); ls.push(data); return qs.length;
+  }
+  async function addBankCards(name, f) {
+    const b = await ensureBank(), cs = parseCards(await f.text()); if (!cs.length) throw new Error(T('Kartochka topilmadi — fayl formatini tekshiring', 'Карточки не найдены', 'No cards found'));
+    const pos = ls.filter(l => l.section_id === b.id).length;
+    const { data, error } = await sb.from('lessons').insert({ course_id: id, section_id: b.id, kind: 'cards', title: U(name), item_id: null, xp: 0, position: pos }).select('id,section_id,kind,title,item_id,position').single(); if (error) throw error;
+    await sb.from('lesson_bodies').upsert({ lesson_id: data.id, body: JSON.stringify(cs), youtube_id: null }); ls.push(data); return cs.length;
+  }
+  const delSlot = async (sec, slot) => { if (slot === 'test') { for (const t of testsOf(sec)) { await sb.from('lessons').delete().eq('id', t.id); await delSlotAssets(t); } return; } const l = lessonOf(sec, slot); if (!l) return; const { error } = await sb.from('lessons').delete().eq('id', l.id); if (error) throw error; await delSlotAssets(l); };
 
   async function build(counts, intro = false) {
     let { data: base } = await sb.from('course_sections').select('position').eq('course_id', id).order('position', { ascending: false }).limit(1); let pos = (base?.[0]?.position ?? -1) + 1;
@@ -116,7 +165,12 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
       ${chs.map((ch, ci) => { const ss = secs.filter(s => s.chapter_id === ch.id); return `<div class="card pad mb bd-ch" data-ch="${ch.id}"><div class="row"><b class="grow">${ci + 1}-${esc(T('bob', 'глава', 'chapter'))}</b><button class="btn ghost sm" data-cover="${ch.id}">${ic('image', 14)} ${esc(T('Rasm', 'Обложка', 'Cover'))}${ch.cover ? ' ✓' : ''}</button><button class="btn ghost sm" data-addt="${ch.id}">${ic('plus', 14)} ${esc(T('Mavzu', 'Тема', 'Topic'))}</button><button class="btn ghost sm" data-delch="${ch.id}">${ic('trash', 14)}</button></div>
         <input class="input bd-t" data-rn-ch="${ch.id}" value="${esc(tr(ch.title))}">
         ${ss.map(s => `<div class="bd-sec ${s.kind}"><div class="row"><span class="bd-k">${s.kind === 'topic' ? '📘' : s.kind === 'intro' ? '📖' : s.kind === 'review' ? '🔁' : '🏆'}</span><input class="input bd-t grow" data-rn="${s.id}" value="${esc(tr(s.title))}"><button class="btn ghost sm" data-dels="${s.id}">${ic('trash', 14)}</button></div>
-          <div class="bd-slots">${(s.kind === 'topic' || s.kind === 'intro' ? ['book', 'slides', 'video', 'cards', 'test'] : ['test']).map(k => { const st = stateOf(lessonOf(s, k)); return `<button class="bd-slot ${st ? 'ok' : ''}" data-slot="${s.id}:${k}">${esc(SLOTS[k].lab())}<small>${st ? '✓ ' + esc(st) : esc(T('yuklash', 'загрузить', 'upload'))}</small></button>`; }).join('')}</div></div>`).join('')}</div>`; }).join('')}`;
+          <div class="bd-slots">${(s.kind === 'topic' || s.kind === 'intro' ? ['book', 'slides', 'video', 'cards', 'test'] : ['test']).map(k => { const tl = k === 'test' ? testsOf(s) : null, st = k === 'test' ? (tl.length ? (tl.length > 1 ? tl.length + ' ' + T('qism', 'части', 'parts') : 'test') : null) : stateOf(lessonOf(s, k)); return `<button class="bd-slot ${st ? 'ok' : ''}" data-slot="${s.id}:${k}">${esc(SLOTS[k].lab())}<small>${st ? '✓ ' + esc(st) : esc(T('yuklash', 'загрузить', 'upload'))}</small></button>`; }).join('')}</div></div>`).join('')}</div>`; }).join('')}
+      <div class="card pad mb bd-bank"><div class="row"><b class="grow">🎓 ${esc(T('Yakuniy sinov markazi', 'Центр итоговой проверки', 'Final practice center'))}</b></div><p class="muted small">${esc(T('Butun kitob bo\'yicha katta test banki (mavzulashtirilgan: Word/TXT faylda «Mavzu: …» qatorlari) va katta kartochkalar to\'plami. O\'quvchi barcha boblarni tugatgach ochiladi.', 'Большой банк тестов по всей книге (темы: строки «Тема: …») и наборы карточек. Открывается после всех глав.', 'A big test bank for the whole book (themes via «Topic: …» lines) and large card sets. Opens after all chapters.'))}</p>
+        ${(bankSec() ? ls.filter(l => l.section_id === bankSec().id) : []).map(l => `<div class="row bd-g"><span class="bd-k">${l.kind === 'cards' ? '🃏' : '🧪'}</span><b class="grow">${esc(tr(l.title))}</b><button class="btn ghost sm" data-delb="${l.id}">${ic('trash', 14)}</button></div>`).join('')}
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" id="bt">${ic('plus', 14)} ${esc(T('Test banki', 'Банк тестов', 'Test bank'))}</button><button class="btn sm ghost" id="bc">${ic('plus', 14)} ${esc(T('Kartochkalar banki', 'Банк карточек', 'Card bank'))}</button></div></div>`;
+    $('#bt', host).onclick = () => bankModal('test'); $('#bc', host).onclick = () => bankModal('cards');
+    $$('[data-delb]', host).forEach(b => b.onclick = async () => { if (!await confirmDlg(T('Bu bank o\'chirilsinmi?', 'Удалить этот банк?', 'Delete this bank?'))) return; const l = ls.find(x => x.id === b.dataset.delb); await sb.from('lessons').delete().eq('id', l.id); await delSlotAssets(l); reload(); });
     $('#ac', host).onclick = e => run(e.currentTarget, async () => { await build([1]); await reload(); });
     $('#ai', host)?.addEventListener('click', e => run(e.currentTarget, async () => { const first = chs[0]; const mn = secs.reduce((a, s) => Math.min(a, s.position), 0); const { error } = await sb.from('course_sections').insert({ course_id: id, chapter_id: first.id, kind: 'intro', title: U("Kirish (so'z boshi)"), position: mn - 1 }); if (error) throw error; await reload(); }));
     $$('[data-rn]', host).forEach(i => i.onchange = async () => { const { error } = await sb.from('course_sections').update({ title: U(i.value.trim() || '—') }).eq('id', i.dataset.rn); toast(error ? dbErr(error) : T('Saqlandi', 'Сохранено', 'Saved'), error ? 'err' : 'ok'); });
@@ -132,18 +186,34 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
     $$('[data-cover]', host).forEach(b => b.onclick = () => pickFile('image/*', async f => { const { key } = await r2Upload(f); const old = chs.find(x => x.id === b.dataset.cover)?.cover; const { error } = await sb.from('course_chapters').update({ cover: 'r2:' + key }).eq('id', b.dataset.cover); if (error) throw error; if (old?.startsWith('r2:')) r2Delete(old.slice(3)).catch(() => {}); toast(T('Rasm yuklandi', 'Обложка загружена', 'Cover uploaded'), 'ok'); reload(); }));
     $$('[data-slot]', host).forEach(b => b.onclick = () => { const [sid, k] = b.dataset.slot.split(':'); slotModal(secs.find(x => x.id === sid), k); });
   }
-  function pickFile(accept, fn) { const i = document.createElement('input'); i.type = 'file'; i.accept = accept; i.onchange = async () => { if (i.files[0]) try { await fn(i.files[0]); } catch (e) { toast(dbErr(e), 'err'); } }; i.click(); }
-  function slotModal(s, k) {
-    const cfg = SLOTS[k], l = lessonOf(s, k), b = l && bodies[l.id];
-    const m = modal(`<h3>${esc(cfg.lab())} · ${esc(tr(s.title))}</h3><p class="muted small">${esc(cfg.hint())}</p>
-      ${l ? `<p class="chip">${esc(T('Hozir:', 'Сейчас:', 'Now:'))} ${esc(stateOf(l))}${b?.youtube_id ? ' · youtu.be/' + esc(b.youtube_id) : ''}</p>` : ''}
+  function pickFile(accept, fn, multi) { const i = document.createElement('input'); i.type = 'file'; i.accept = accept; if (multi) i.multiple = true; i.onchange = async () => { if (i.files[0]) try { await fn(multi ? [...i.files].sort((x, y) => x.name.localeCompare(y.name, undefined, { numeric: true })) : i.files[0]); } catch (e) { toast(dbErr(e), 'err'); } }; i.click(); }
+  function bankModal(kind) {
+    const m = modal(`<h3>${kind === 'test' ? '🧪 ' + esc(T('Test banki qo\'shish', 'Добавить банк тестов', 'Add test bank')) : '🃏 ' + esc(T('Kartochkalar banki qo\'shish', 'Добавить банк карточек', 'Add card bank'))}</h3>
+      <p class="muted small">${esc(kind === 'test' ? T('Word (.docx, rasmlar bilan) yoki TXT. Mavzulashtirish uchun faylda «Mavzu: Hujayra» kabi qatorlar yozing — o\'quvchi mavzularni tanlab sinaydi. Savollar soni cheklanmagan.', 'Word (.docx с картинками) или TXT. Для тем пишите строки «Тема: Клетка». Число вопросов не ограничено.', 'Word (.docx with images) or TXT. Use «Topic: Cell» lines for themes. Unlimited questions.') : T('CSV/TXT. Mavzulash uchun «# Hujayra» qatorlaridan foydalaning. Minglab kartochka bo\'lishi mumkin.', 'CSV/TXT. Для тем используйте строки «# Клетка». Карточек может быть тысячи.', 'CSV/TXT. Use «# Cell» lines for themes. Thousands of cards allowed.'))}</p>
+      <label class="fld"><span>${esc(T('Nomi', 'Название', 'Name'))}</span><input class="input" id="bn" placeholder="${esc(kind === 'test' ? T('Qiyin testlar banki', 'Банк сложных тестов', 'Hard test bank') : T('Umumiy kartochkalar', 'Общие карточки', 'General cards'))}"></label>
       <div class="bd-prog" id="pg" hidden>${bar(0)}<small class="muted" id="pt"></small></div>
+      <button class="btn block" id="bu">${ic('plus', 16)} ${esc(T('Fayl tanlash va yuklash', 'Выбрать файл и загрузить', 'Choose a file and upload'))}</button>`);
+    $('#bu', m.el).onclick = () => pickFile(kind === 'test' ? '.docx,.txt,.md,.csv' : '.csv,.tsv,.txt', async f => {
+      btnBusy($('#bu', m.el), true);
+      try { const nm = $('#bn', m.el).value.trim() || stem(f.name); const prog = x => { $('#pg', m.el).hidden = false; $('.pbar i', m.el).style.width = Math.round(x * 100) + '%'; };
+        const n = kind === 'test' ? await addBankTest(nm, f, prog) : await addBankCards(nm, f); m.close(); toast(T(`${n} ta qo'shildi`, `Добавлено: ${n}`, `${n} added`), 'ok'); reload(); }
+      catch (e) { btnBusy($('#bu', m.el), false); throw e; } });
+  }
+  function slotModal(s, k) {
+    const cfg = SLOTS[k], l = k === 'test' ? testsOf(s)[0] : lessonOf(s, k), b = l && bodies[l.id];
+    const m = modal(`<h3>${esc(cfg.lab())} · ${esc(tr(s.title))}</h3><p class="muted small">${esc(cfg.hint())}</p>
+      ${l ? `<p class="chip">${esc(T('Hozir:', 'Сейчас:', 'Now:'))} ${esc(k === 'test' ? testsOf(s).length + ' ' + T('qism', 'част.', 'part(s)') : stateOf(l))}${b?.youtube_id ? ' · youtu.be/' + esc(b.youtube_id) : ''}</p>` : ''}
+      <div class="bd-prog" id="pg" hidden>${bar(0)}<small class="muted" id="pt"></small></div>
+      ${k === 'test' ? `<p class="muted small">${esc(T('Bir nechta fayl tanlang — har fayl alohida qism (Test 1, Test 2, …) bo\'ladi. Qismlar soni cheklanmagan (30 gacha). Bitta faylni teng bo\'lish uchun pastga raqam yozing.', 'Выберите несколько файлов — каждый станет отдельной частью. Для деления одного файла укажите число ниже.', 'Pick several files — each becomes its own part. To split a single file evenly, enter a number below.'))}</p><label class="fld"><span>${esc(T('Bitta faylni nechta qismga bo\'lish (ixtiyoriy)', 'Разделить один файл на частей (необязательно)', 'Split a single file into parts (optional)'))}</span><input class="input" id="np" type="number" min="1" max="12" placeholder="—"></label>
+      ${l ? `<button class="btn block" id="ad">${ic('plus', 16)} ${esc(T('Qism(lar) qo\'shish (mavjudlari qoladi)', 'Добавить часть(и) (текущие остаются)', 'Add part(s) (keep existing)'))}</button>` : ''}` : ''}
       <button class="btn block" id="up">${ic('plus', 16)} ${esc(l ? T('Almashtirish (fayl tanlash)', 'Заменить (выбрать файл)', 'Replace (choose file)') : T('Fayl tanlash va yuklash', 'Выбрать файл и загрузить', 'Choose a file and upload'))}</button>
       ${cfg.link ? `<label class="fld mt"><span>${esc(T('yoki YouTube havolasi', 'или ссылка YouTube', 'or YouTube link'))}</span><input class="input" id="yl" placeholder="https://youtu.be/…"></label><button class="btn ghost block" id="ys">${esc(T('Havolani saqlash', 'Сохранить ссылку', 'Save link'))}</button>` : ''}
       ${l ? `<button class="btn ghost block mt" id="rm" style="color:var(--danger,#d33)">${ic('trash', 16)} ${esc(T('O\'chirish', 'Удалить', 'Delete'))}</button>` : ''}`);
     const prog = f => { $('#pg', m.el).hidden = false; $('.pbar i', m.el).style.width = Math.round(f * 100) + '%'; $('#pt', m.el).textContent = Math.round(f * 100) + '%'; };
     const done = () => { m.close(); toast(T('Saqlandi', 'Сохранено', 'Saved'), 'ok'); reload(); };
-    $('#up', m.el).onclick = () => pickFile(cfg.accept, async f => { btnBusy($('#up', m.el), true); try { await setSlot(s, k, { file: f }, prog); done(); } catch (e) { btnBusy($('#up', m.el), false); throw e; } });
+    const upTest = (btn, append) => pickFile(cfg.accept, async fs => { btnBusy(btn, true); try { await setSlot(s, k, { files: fs }, prog, { parts: +($('#np', m.el)?.value) || 0, append }); done(); } catch (e) { btnBusy(btn, false); throw e; } }, true);
+    if (k === 'test') { $('#up', m.el).onclick = () => upTest($('#up', m.el), false); const ad = $('#ad', m.el); if (ad) ad.onclick = () => upTest(ad, true); }
+    else $('#up', m.el).onclick = () => pickFile(cfg.accept, async f => { btnBusy($('#up', m.el), true); try { await setSlot(s, k, { file: f }, prog, {}); done(); } catch (e) { btnBusy($('#up', m.el), false); throw e; } });
     $('#ys', m.el)?.addEventListener('click', e => run(e.currentTarget, async () => { await setSlot(s, k, { link: $('#yl', m.el).value }); done(); }));
     $('#rm', m.el)?.addEventListener('click', e => run(e.currentTarget, async () => { await delSlot(s, k); done(); }));
   }
@@ -151,10 +221,11 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
   // --- Papka yuklash ---
   const slotName = n => { const s = stem(n).toLowerCase(); return /takror|review|povtor/.test(s) ? 'review' : /yakuniy|final/.test(s) ? 'final' : /kitob|book/.test(s) ? 'book' : /taqdimot|slayd|slide|present/.test(s) ? 'slides' : /video/.test(s) ? 'video' : /kartochka|karta|cards?/.test(s) ? 'cards' : /test/.test(s) ? 'test' : null; };
   function planOf(files) {
-    const root = { json: null, chapters: new Map(), warn: [] };
+    const root = { json: null, chapters: new Map(), bank: [], warn: [] };
     for (const f of files) {
       const p = f.webkitRelativePath.split('/').slice(1); if (!p.length) continue;
       if (p.length === 1) { if (/^course\.json$/i.test(p[0])) root.json = f; continue; }
+      if (/sinov|bank/i.test(p[0]) && p.length === 2) { root.bank.push(f); continue; }
       const ch = root.chapters.get(p[0]) || root.chapters.set(p[0], { name: p[0], cover: null, final: null, topics: new Map() }).get(p[0]);
       if (p.length === 2) { if (/^(cover|rasm)\./i.test(p[1])) ch.cover = f; else if (slotName(p[1]) === 'final' || slotName(p[1]) === 'test') ch.final = f; else root.warn.push(`${p.join('/')}: ?`); continue; }
       const tp = ch.topics.get(p[1]) || ch.topics.set(p[1], { name: p[1], files: [] }).get(p[1]);
@@ -169,6 +240,7 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
     host.innerHTML = `<div class="card pad form"><h3>${esc(T('Tayyor kurs papkasini yuklash', 'Загрузка готовой папки курса', 'Upload a ready course folder'))}</h3>
       <p class="muted small">${esc(T('Papka tuzilishi:', 'Структура папки:', 'Folder layout:'))}</p>
 <pre class="bd-pre">KursPapkasi/
+  Yakuniy sinov/         (kurs oxiridagi bank: test*.docx/.txt, kartochka*.csv)
   course.json            (ixtiyoriy: {"title":"…","grade":5,"is_premium":true,"free_topics":1})
   1-bob. Nomi/
     cover.jpg            (bob rasmi, ixtiyoriy)
@@ -181,10 +253,10 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
     $('#pf', host).onclick = () => { const i = document.createElement('input'); i.type = 'file'; i.webkitdirectory = true; i.multiple = true; i.onchange = () => preview(Array.from(i.files)); i.click(); };
     const preview = files => {
       const pl = planOf(files), chl = [...pl.chapters.values()].sort((a, b) => nat(a.name, b.name)), nT = chl.reduce((a, x) => a + x.topics.size, 0), nF = chl.reduce((a, x) => a + [...x.topics.values()].reduce((q, t) => q + t.files.length, 0), 0), mb = Math.round(files.reduce((a, f) => a + f.size, 0) / 1048576);
-      $('#pv', host).innerHTML = `<p><b>${chl.length}</b> ${esc(T('bob', 'глав', 'chapters'))} · <b>${nT}</b> ${esc(T('mavzu', 'тем', 'topics'))} · <b>${nF}</b> ${esc(T('fayl', 'файлов', 'files'))} · ${mb} MB</p>
+      $('#pv', host).innerHTML = `<p><b>${chl.length}</b> ${esc(T('bob', 'глав', 'chapters'))} · <b>${nT}</b> ${esc(T('mavzu', 'тем', 'topics'))} · <b>${nF}</b> ${esc(T('fayl', 'файлов', 'files'))}${pl.bank.length ? ' · 🎓 ' + pl.bank.length : ''} · ${mb} MB</p>
         ${chl.map(ch => `<details class="mb"><summary><b>${esc(ch.name)}</b> (${ch.topics.size})</summary>${[...ch.topics.values()].sort((a, b) => nat(a.name, b.name)).map(t => `<div class="small">• ${esc(t.name)}: ${t.files.map(x => x.slot).join(', ') || '—'}</div>`).join('')}</details>`).join('')}
         ${pl.warn.length ? `<details class="warnbox"><summary>${esc(T('Ogohlantirishlar', 'Предупреждения', 'Warnings'))} (${pl.warn.length})</summary>${pl.warn.slice(0, 40).map(w => `<div>${esc(w)}</div>`).join('')}</details>` : ''}
-        <button class="btn lg block mt" id="go" ${nT ? '' : 'disabled'}>${esc(T('Yuklashni boshlash', 'Начать загрузку', 'Start upload'))}</button><div id="log" class="bd-log"></div>`;
+        <button class="btn lg block mt" id="go" ${nT || pl.bank.length ? '' : 'disabled'}>${esc(T('Yuklashni boshlash', 'Начать загрузку', 'Start upload'))}</button><div id="log" class="bd-log"></div>`;
       $('#go', host).onclick = e => run(e.currentTarget, () => doImport(pl, chl, nF, $('#log', host)));
     };
   }
@@ -220,6 +292,7 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
       }
       if (ch.final) { const { data: fs, error: e3 } = await sb.from('course_sections').insert({ course_id: id, chapter_id: chr.id, kind: 'final', title: U(`${ci}-bob yakuniy testi`), position: pos++ }).select('*').single(); if (e3) throw e3; secs.push(fs); const d = line('… ' + ch.final.name); try { await setSlot(fs, 'test', { file: ch.final }); d.textContent = '✓ ' + ch.final.name; } catch (e) { d.textContent = '✗ ' + ch.final.name + ': ' + (e.message || e); } }
     }
+    for (const f of pl.bank.slice().sort((a, b) => nat(a.name, b.name))) { const d = line('… 🎓 ' + f.name); try { const isC = /kartochka|karta|cards?/i.test(f.name) || /\.(csv|tsv)$/i.test(f.name) && !/test/i.test(f.name); const n = isC ? await addBankCards(stem(f.name), f) : await addBankTest(stem(f.name), f); d.textContent = '✓ 🎓 ' + f.name + ' (' + n + ')'; } catch (e) { d.textContent = '✗ 🎓 ' + f.name + ': ' + (e.message || e); } }
     line('✅ ' + T('Tugadi', 'Готово', 'Done')); toast(T('Papka yuklandi', 'Папка загружена', 'Folder uploaded'), 'ok'); setTimeout(reload, 1200);
   }
 

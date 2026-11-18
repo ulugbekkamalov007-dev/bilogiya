@@ -114,6 +114,7 @@ route('/lesson/:cid/:lid', async ({ el, params, alive }) => {
   const ls = l.section_id ? ls0.filter(x => x.section_id === l.section_id) : ls0;
   let secK = 'topic'; if (l.section_id) { const { data: sk } = await sb.from('course_sections').select('kind').eq('id', l.section_id).maybeSingle(); secK = sk?.kind || 'topic'; }
   const thr = (secK === 'review' ? c.review_pct : secK === 'final' ? c.final_pct : c.unlock_pct) ?? 60, backHref = l.section_id ? `#/topic/${cid}/${l.section_id}` : `#/course/${cid}`;
+  if (secK === 'bank') { const { bankLesson } = await import('./learnpath.js'); return bankLesson(el, c, l, `#/bank/${cid}`, alive); }
   { const { data: cc, error: ce } = await sb.rpc('lesson_content', { p_lesson: lid }); if (!alive()) return;
     if (ce) { if (/PAID_REQUIRED/.test(ce.message || '')) { toast(T('Bu qismga ruxsat yo\'q — adminga murojaat qiling', 'Нет доступа — обратитесь к админу', 'No access — contact the admin')); return go(l.section_id ? `/topic/${cid}/${l.section_id}` : '/course/' + cid, true); } toast(dbErr(ce), 'err'); return go('/course/' + cid, true); } l.body = cc?.body || ''; l.youtube_id = cc?.youtube_id || null; }
   const r2k = (l.body || '').startsWith('r2:') ? l.body.slice(3) : null;

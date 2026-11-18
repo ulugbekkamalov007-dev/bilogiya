@@ -21,8 +21,9 @@ function clean(s) { return s.replace(/\s+/g, ' ').replace(/^[\s ]+|[\s ]+$/g, 
 
 // bitta blokni (savol + variantlar) savolga aylantiradi
 function buildQuestion(lines, chapter, warnings, idx) {
-  let explanation = '', key = null; const body = [];
+  let explanation = '', key = null, image = null; const body = [];
   for (const raw of lines) {
+    const im = raw.match(/^\s*\[\[rasm:(\d+)\]\]\s*$/i); if (im) { if (image === null) image = +im[1]; continue; }
     const m = raw.match(EXPL_RE); if (m) { explanation = clean(m[1]); continue; }
     const k = raw.match(KEY_RE); if (k) { key = normLetter(k[1]); continue; }
     body.push(raw);
@@ -58,7 +59,7 @@ function buildQuestion(lines, chapter, warnings, idx) {
   const seen = new Set([correct.toLowerCase()]), wrong2 = [];
   for (const w of wrong) { if (!w) continue; const k = w.toLowerCase(); if (seen.has(k)) continue; seen.add(k); wrong2.push(w); }
   if (!correct || !wrong2.length) { warnings.push(`#${idx}: variantlar to'g'ri emas — o'tkazib yuborildi`); return null; }
-  return { chapter: chapter || '', question: clean(qLine), correct, wrong: wrong2, explanation };
+  return { chapter: chapter || '', question: clean(qLine), correct, wrong: wrong2, explanation, image };
 }
 
 export function parseQuestions(text, { optionsCount = 4 } = {}) {
@@ -69,7 +70,7 @@ export function parseQuestions(text, { optionsCount = 4 } = {}) {
   for (const l of rawLines) {
     if (!l.trim()) { items.push({ t: 'blank' }); continue; }
     const c = l.match(CHAPTER_RE);
-    if (c && !NUM_RE.test(l) && c[1].length < 90) { items.push({ t: 'chapter', v: clean(c[1]) }); continue; }
+    if (c && !NUM_RE.test(l) && c[1].length < 90) { items.push({ t: 'chapter', v: clean(c[1]).replace(/^(?:bob|mavzu|bo['‘’`]?lim|глава|тема|раздел|chapter|topic|section)\s*[:\-–]\s*/i, '') }); continue; }
     items.push({ t: 'line', v: l.trim() });
   }
   const lineItems = items.filter(i => i.t === 'line');

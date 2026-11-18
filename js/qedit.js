@@ -1,6 +1,8 @@
 // Test savollari muharriri: savol, A–D variantlar (to'g'risi belgilanadi), mavzu, qiyinlik, ball, rasm. Faqat egasi va admin.
 import { sb, state, tr, route, go, esc, ic, $, $$, modal, toast, btnBusy, confirmDlg, spinner, publicUrl, upload, compressImage, uid8 } from './core.js';
 import { T, empty, errBox, dbErr } from './ui.js';
+import { hydrateQ } from './qimg.js';
+import { r2Upload } from './r2.js';
 
 const DIFF = () => ({ 1: T('Oson', 'Легко', 'Easy'), 2: T('O\'rta', 'Средне', 'Medium'), 3: T('Qiyin', 'Сложно', 'Hard') });
 
@@ -39,9 +41,9 @@ route('/test/:id/edit', async ({ el, params, alive }) => {
       <label class="fld"><span>${esc(T('Izoh (ixtiyoriy)', 'Пояснение (необязательно)', 'Explanation (optional)'))}</span><textarea class="input" id="ex" rows="2" maxlength="1000">${esc(q?.explanation || '')}</textarea></label>
       <div class="fld"><span>${esc(T('Rasm (ixtiyoriy)', 'Изображение (необязательно)', 'Image (optional)'))}</span><div id="ip" class="row" style="gap:10px;align-items:center"></div><input type="file" id="fi" accept="image/png,image/jpeg,image/webp" hidden></div>
       <div class="row end"><button type="button" class="btn ghost" data-c>${esc(T('Bekor qilish', 'Отмена', 'Cancel'))}</button><button class="btn">${esc(T('Saqlash', 'Сохранить', 'Save'))}</button></div></form>`);
-    const prev = () => { $('#ip', m.el).innerHTML = (newFile ? `<img class="qimg" src="${URL.createObjectURL(newFile)}" alt="">` : img ? `<img class="qimg" src="${esc(publicUrl('media', img))}" alt="">` : '') +
+    const prev = () => { $('#ip', m.el).innerHTML = (newFile ? `<img class="qimg" src="${URL.createObjectURL(newFile)}" alt="">` : img ? (img.startsWith('r2:') ? `<img class="qimg" data-r2="${esc(img.slice(3))}" alt="">` : `<img class="qimg" src="${esc(publicUrl('media', img))}" alt="">`) : '') +
       `<button type="button" class="btn ghost sm" id="pk">${esc(img || newFile ? T('Almashtirish', 'Заменить', 'Replace') : T('Rasm tanlash', 'Выбрать', 'Choose image'))}</button>${img || newFile ? `<button type="button" class="btn ghost sm" id="rm">${esc(T('Olib tashlash', 'Убрать', 'Remove'))}</button>` : ''}`;
-      $('#pk', m.el).onclick = () => $('#fi', m.el).click(); $('#rm', m.el)?.addEventListener('click', () => { img = null; newFile = null; prev(); }); };
+      hydrateQ($('#ip', m.el)); $('#pk', m.el).onclick = () => $('#fi', m.el).click(); $('#rm', m.el)?.addEventListener('click', () => { img = null; newFile = null; prev(); }); };
     $('#fi', m.el).onchange = e => { const f = e.target.files[0]; if (!f) return; if (!/^image\/(png|jpe?g|webp)$/.test(f.type)) return toast(T('Faqat PNG/JPG/WEBP', 'Только PNG/JPG/WEBP', 'PNG/JPG/WEBP only'), 'err'); if (f.size > 8 * 1048576) return toast(T('Rasm 8 MB dan katta', 'Больше 8 МБ', 'Over 8 MB'), 'err'); newFile = f; prev(); };
     prev(); $('[data-c]', m.el).onclick = () => m.close();
     $('#f', m.el).onsubmit = async e => { e.preventDefault(); const b = $('.btn:not(.ghost)', m.el); btnBusy(b, true);
@@ -49,7 +51,7 @@ route('/test/:id/edit', async ({ el, params, alive }) => {
         const o = $$('[data-o]', m.el).map(x => x.value.trim()), ci = +$('input[name=c]:checked', m.el).value; if (!o[ci]) throw new Error(T('To\'g\'ri variant bo\'sh bo\'lmasligi kerak', 'Верный вариант не может быть пустым', 'Correct option cannot be empty'));
         const correct = o[ci], wrong = o.filter((x, k) => k !== ci && x); if (!wrong.length) throw new Error(T('Kamida bitta noto\'g\'ri variant kerak', 'Нужен хотя бы один неверный вариант', 'At least one wrong option is needed'));
         if (new Set(o.filter(Boolean)).size !== o.filter(Boolean).length) throw new Error(T('Variantlar takrorlanmasin', 'Варианты не должны повторяться', 'Options must be unique'));
-        let path = img; if (newFile) { const blob = await compressImage(newFile, { max: 1400, quality: 0.8 }); path = `q/${state.user.id}/${uid8()}-${Date.now()}.${blob.type === 'image/webp' ? 'webp' : 'jpg'}`; await upload('media', path, blob, { contentType: blob.type }); }
+        let path = img; if (newFile) { const blob = await compressImage(newFile, { max: 1400, quality: 0.8 }); path = 'r2:' + (await r2Upload(new File([blob], 'q.' + (blob.type === 'image/webp' ? 'webp' : 'jpg'), { type: blob.type }))).key; }
         const row = { item_id: iid, question: $('#qq', m.el).value.trim(), correct, wrong, chapter: $('#ch', m.el).value.trim() || null, explanation: $('#ex', m.el).value.trim() || null, difficulty: +$('#df', m.el).value, points: Math.max(1, Math.min(100, +$('#pt', m.el).value || 1)), image_path: path };
         if (!row.question) throw new Error(T('Savol matni kerak', 'Нужен текст вопроса', 'Question text required'));
         const r = q ? await sb.from('questions').update(row).eq('id', q.id) : await sb.from('questions').insert({ ...row, position: (qs.reduce((a, x) => Math.max(a, x.position || 0), 0) || 0) + 1 });

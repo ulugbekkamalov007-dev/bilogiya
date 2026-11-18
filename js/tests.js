@@ -4,6 +4,8 @@ import { sb, state, t, addDict, friendlyErr, route, go, esc, ic, $, $$, tr, shuf
 import { T } from './ui.js';
 import { paywall } from './billing.js';
 import { parseQuestions } from './testparse.js';
+import { readTestDocx } from './docread.js';
+import { qFig, hydrateQ, uploadQImages } from './qimg.js';
 import { celebrate } from './fx.js';
 
 addDict({
@@ -138,12 +140,12 @@ export function testImportModal({ folderId = null, itemId = null, hidden = false
       <label class="fld"><span>${esc(t('imp.opts'))}</span><input class="input" id="oc" type="number" min="2" max="8" value="4" style="max-width:100px"></label>
       <div class="err" id="err"></div><button class="btn" id="pr">${esc(t('imp.parse'))}</button>
       <div id="prev"></div></div>`, { cls: 'wide' });
-  const el = m.el; let qs = [];
+  const el = m.el; let qs = [], imgs = [];
   $('#tgb', el).onclick = () => testGuide(txt => { $('#tx', el).value = txt; if (!itemId && !$('#nm', el).value) $('#nm', el).value = t('tg.sample_name'); $('#pr', el).click(); });
   const err = x => $('#err', el).textContent = x || '';
   $('#fl', el).onchange = async e => {
     const f = e.target.files[0]; if (!f) return; err(); $('#tx', el).value = t('imp.reading');
-    try { $('#tx', el).value = await extractText(f); if (!itemId && !$('#nm', el).value) $('#nm', el).value = f.name.replace(/\.[^.]+$/, ''); }
+    try { if (/\.docx$/i.test(f.name)) { try { const r = await readTestDocx(f); imgs = r.images; $('#tx', el).value = r.text; } catch { imgs = []; $('#tx', el).value = await extractText(f); } } else { imgs = []; $('#tx', el).value = await extractText(f); } if (!itemId && !$('#nm', el).value) $('#nm', el).value = f.name.replace(/\.[^.]+$/, ''); }
     catch (x) { $('#tx', el).value = ''; err(f.name.toLowerCase().endsWith('.pdf') ? t('imp.pdf_fail') : friendlyErr(x.message || String(x))); }
   };
   $('#pr', el).onclick = () => {
@@ -153,7 +155,7 @@ export function testImportModal({ folderId = null, itemId = null, hidden = false
     const chapters = [...new Set(qs.map(q => q.chapter).filter(Boolean))];
     prev.innerHTML = `<p class="ok"><b>${esc(t('imp.found', { n: qs.length, mode: t('imp.mode_' + r.mode) }))}</b>${chapters.length ? ' · ' + chapters.map(esc).join(', ') : ''}</p>
       ${r.warnings.length ? `<details class="warnbox"><summary>${esc(t('imp.warn'))} (${r.warnings.length})</summary>${r.warnings.map(w => `<div>${esc(w)}</div>`).join('')}</details>` : ''}
-      <div class="qprev">${qs.slice(0, 60).map((q, i) => `<div class="qp" data-i="${i}"><button class="xbtn" data-rm="${i}">${ic('x', 14)}</button><b>${i + 1}. ${esc(q.question)}</b><div class="ok">✔ ${esc(q.correct)}</div>${q.wrong.map(w => `<div class="muted">✗ ${esc(w)}</div>`).join('')}</div>`).join('')}${qs.length > 60 ? `<p class="muted">… +${qs.length - 60}</p>` : ''}</div>
+      <div class="qprev">${qs.slice(0, 60).map((q, i) => `<div class="qp" data-i="${i}"><button class="xbtn" data-rm="${i}">${ic('x', 14)}</button><b>${i + 1}. ${esc(q.question)}</b>${q.image != null && imgs[q.image] ? `<img class="qthumb" src="${URL.createObjectURL(imgs[q.image].blob)}" alt="">` : ''}<div class="ok">✔ ${esc(q.correct)}</div>${q.wrong.map(w => `<div class="muted">✗ ${esc(w)}</div>`).join('')}</div>`).join('')}${qs.length > 60 ? `<p class="muted">… +${qs.length - 60}</p>` : ''}</div>
       <button class="btn lg block mt" id="sv">${esc(t('imp.save'))}</button>`;
     $$('[data-rm]', prev).forEach(b => b.onclick = () => { qs[+b.dataset.rm] = null; b.closest('.qp').remove(); });
     $('#sv', prev).onclick = async ev => {
@@ -166,7 +168,8 @@ export function testImportModal({ folderId = null, itemId = null, hidden = false
           if (error) throw error; id = data.id;
         }
         const { count } = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('item_id', id);
-        const rows = list.map((q, i) => ({ item_id: id, position: (count || 0) + i, chapter: q.chapter, question: q.question, correct: q.correct, wrong: q.wrong, explanation: q.explanation || null }));
+        const used = [...new Set(list.map(q => q.image).filter(x => x != null && imgs[x]))]; const imap = used.length ? await uploadQImages(imgs, used) : {};
+        const rows = list.map((q, i) => ({ item_id: id, position: (count || 0) + i, chapter: q.chapter, question: q.question, correct: q.correct, wrong: q.wrong, explanation: q.explanation || null, image_path: q.image != null ? imap[q.image] || null : null }));
         for (let i = 0; i < rows.length; i += 200) { const { error } = await sb.from('questions').insert(rows.slice(i, i + 200)); if (error) throw error; }
         toast(t('imp.saved'), 'ok'); m.close(); onDone?.(id);
       } catch (x) { err(friendlyErr(x.message || String(x))); btnBusy(btn, false); }
@@ -261,9 +264,10 @@ function run(el, item, pool, chapters, allQs) {
     const q = pool[i], opts = shuffle([q.correct, ...q.wrong]); answered = false;
     el.innerHTML = `<div class="page narrow"><div class="row between"><button class="btn ghost sm" id="ex">${ic('x')}</button><small class="muted">${esc(t('tests.q_of', { i: i + 1, n: pool.length }))}</small><span class="mono">⏱ <span id="tm">0:00</span></span></div>
       <div class="bar thick mt"><i style="width:${i / pool.length * 100}%"></i></div>
-      <div class="card pad mt">${q.image_path ? `<img class="qimg full" src="${esc(publicUrl('media', q.image_path))}" alt="" loading="lazy">` : ''}<h3 class="qtext">${esc(q.question)}</h3>
+      <div class="card pad mt">${qFig(q.image_path)}<h3 class="qtext">${esc(q.question)}</h3>
       <div class="opts">${opts.map((o, k) => `<button class="opt" data-o="${k}"><span class="ltr">${'ABCDEFGH'[k]}</span><span>${esc(o)}</span></button>`).join('')}</div>
       <div id="fb"></div></div></div>`;
+    hydrateQ(el);
     const tm = setInterval(() => { if (!$('#tm', el)) return clearInterval(tm); $('#tm', el).textContent = fmtDur((Date.now() - t0) / 1000); }, 1000);
     $('#ex', el).onclick = async () => { if (await confirmDlg(t('tests.exit'), t('yes'))) { timer.stop(); go(backTo(item)); } };
     // 1) variant tanlanadi, 2) "Tasdiqlash" bosiladi, 3) to'g'ri/xato ko'rsatiladi

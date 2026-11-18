@@ -370,3 +370,14 @@ button.tc-h { border: 0; background: transparent; font: inherit; color: inherit;
 .pv-bar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-top: 1px solid var(--line); } .pv-bar .btn { min-width: 46px; font-size: 1.3rem; line-height: 1; } .pv-pb { flex: 1; height: 8px; border-radius: 9px; background: var(--line); overflow: hidden; } .pv-pb i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .25s; }
 .vp video { width: 100%; max-height: 70vh; border-radius: 14px; background: #000; display: block; }
 .lp-n.intro .lp-nd { border-radius: 50%; color: #3a5fcf; font-size: 1.6rem; }
+
+/* ===== Savol rasmi ===== */
+.qfig { margin: 0 0 14px; padding: 8px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0,0,0,.10), inset 0 0 0 1px rgba(255,255,255,.4); cursor: zoom-in; position: relative; overflow: hidden; }
+.qfig img { display: block; width: 100%; max-height: 44vh; object-fit: contain; border-radius: 14px; background: #fff; animation: qfin .35s ease; }
+.qfig figcaption { text-align: center; font-size: .72rem; font-weight: 600; color: var(--muted); padding: 6px 0 2px; pointer-events: none; }
+@keyframes qfin { from { opacity: 0; transform: scale(.97); } }
+.qzoom { position: fixed; inset: 0; z-index: 130; background: rgba(0,0,0,.88); display: grid; place-items: center; padding: 14px; cursor: zoom-out; animation: lpfade .2s; } .qzoom img { max-width: 100%; max-height: 92vh; border-radius: 12px; background: #fff; }
+.qthumb { display: block; max-width: 180px; max-height: 90px; border-radius: 10px; margin: 6px 0; border: 1px solid var(--line); }
+.lp-bank { display: flex; align-items: center; gap: 14px; margin-top: 18px; padding: 16px; border-radius: 22px; text-decoration: none; color: #fff; background: linear-gradient(135deg, #7d3bd1, #3a5fcf); box-shadow: 0 6px 0 #2c3f93; } .lp-bank small { display: block; opacity: .85; font-weight: 500; margin-top: 2px; } .lp-bank.lock { background: var(--card2); color: var(--muted); box-shadow: 0 5px 0 var(--line); }
+.lp-bi { font-size: 1.9rem; width: 44px; display: grid; place-items: center; }
+.bd-bank { border-left: 5px solid #7d3bd1; }
