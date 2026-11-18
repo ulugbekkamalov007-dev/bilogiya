@@ -137,11 +137,11 @@ route('/chapter/:cid/:chid', async ({ el, params, alive }) => {
   const firstOpen = secs.findIndex(s => !s.passed && !s.locked);
   let tn = 0;
   const nodes = secs.map((s, i) => {
-    const [x, y] = pts[i], left = x > cx, k = s.kind, num = k === 'topic' ? ++tn : 0, st = k !== 'topic' && s.passed ? stars(Math.max(...s.parts.map(l => l.p)), s.thr) : 0;
-    const body = s.locked || s.pay ? ic('lock', 24) : k === 'topic' ? `<b>${num}</b>` : k === 'review' ? '🔁' : '🏆';
+    const [x, y] = pts[i], left = x > cx, k = s.kind, num = k === 'topic' ? ++tn : 0, st = (k === 'review' || k === 'final') && s.passed ? stars(Math.max(...s.parts.map(l => l.p)), s.thr) : 0;
+    const body = s.locked || s.pay ? ic('lock', 24) : k === 'topic' ? `<b>${num}</b>` : k === 'review' ? '🔁' : k === 'intro' ? '📖' : '🏆';
     return `<a class="lp-n ${k} ${s.passed ? 'done' : ''} ${i === firstOpen ? 'cur' : ''} ${s.locked || s.pay ? 'lock' : ''} ${s.pay ? 'pay' : ''} ${left ? 'lft' : ''}" style="left:${x / W * 100}%;top:${y}px" href="#/topic/${cid}/${s.id}" data-lock="${s.pay ? 'pay' : s.locked ? 1 : ''}" data-s="${s.id}">
       <span class="lp-nd">${body}${!s.locked && !s.passed && s.pct ? `<em>${s.pct}%</em>` : ''}${s.passed ? `<em class="ok">${ic('check', 12)}</em>` : ''}</span>
-      <span class="lp-nl">${esc(tr(s.title).replace(/^\d+-§\.\s*/, ''))}<small>${k === 'review' ? esc(T('Takrorlash', 'Повторение', 'Review')) : k === 'final' ? esc(T('Yakuniy test', 'Итоговый тест', 'Final test')) : esc(T('Mavzu', 'Тема', 'Topic'))}${s.pct ? ' · ' + s.pct + '%' : ''}</small>${st ? starHtml(st) : ''}</span></a>`;
+      <span class="lp-nl">${esc(tr(s.title).replace(/^\d+-§\.\s*/, ''))}<small>${k === 'review' ? esc(T('Takrorlash', 'Повторение', 'Review')) : k === 'intro' ? esc(T('Kirish', 'Введение', 'Intro')) : k === 'final' ? esc(T('Yakuniy test', 'Итоговый тест', 'Final test')) : esc(T('Mavzu', 'Тема', 'Topic'))}${s.pct ? ' · ' + s.pct + '%' : ''}</small>${st ? starHtml(st) : ''}</span></a>`;
   }).join('');
   const nx = d.C[ch.i + 1], seenKey = nx ? 'bio.unl.' + nx.id : '';
   el.innerHTML = `<div class="page lp"><div class="row"><a class="btn ghost sm" href="#/course/${cid}">${ic('back')}</a><div class="grow"><small class="muted">${esc(tr(d.c.title))}</small><h2 class="mb0">${(() => { const r = tr(ch.title).replace(/^\d+-bob\.?\s*/i, '').trim(); return `${ch.i + 1}-${esc(T('bob', 'глава', 'chapter'))}${r ? '. ' + esc(r) : ''}`; })()}</h2></div><b>${ch.pct}%</b></div>

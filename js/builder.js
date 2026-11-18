@@ -77,13 +77,13 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
   }
   const delSlot = async (sec, slot) => { const l = lessonOf(sec, slot); if (!l) return; const { error } = await sb.from('lessons').delete().eq('id', l.id); if (error) throw error; await delSlotAssets(l); };
 
-  async function build(counts) {
+  async function build(counts, intro = false) {
     let { data: base } = await sb.from('course_sections').select('position').eq('course_id', id).order('position', { ascending: false }).limit(1); let pos = (base?.[0]?.position ?? -1) + 1;
     const { count: tc } = await sb.from('course_sections').select('*', { count: 'exact', head: true }).eq('course_id', id).eq('kind', 'topic'); let n = tc || 0;
     const { count: cc } = await sb.from('course_chapters').select('*', { count: 'exact', head: true }).eq('course_id', id); let ci = cc || 0;
     for (const k of counts) {
       ci++; const { data: ch, error } = await sb.from('course_chapters').insert({ course_id: id, title: U(`${ci}-bob`), position: ci - 1 }).select('id').single(); if (error) throw error;
-      const rows = [];
+      const rows = []; if (intro && ci === 1) rows.push({ course_id: id, chapter_id: ch.id, kind: 'intro', title: U("Kirish (so'z boshi)"), position: pos++ });
       for (let t = 0; t < k; t++) { n++; rows.push({ course_id: id, chapter_id: ch.id, kind: 'topic', title: U(`${n}-mavzu`), position: pos++ }); if (n >= 2) rows.push({ course_id: id, chapter_id: ch.id, kind: 'review', title: U(`Takrorlash: ${n - 1}-mavzu va ${n}-mavzu`), position: pos++ }); }
       rows.push({ course_id: id, chapter_id: ch.id, kind: 'final', title: U(`${ci}-bob yakuniy testi`), position: pos++ });
       const { error: e2 } = await sb.from('course_sections').insert(rows); if (e2) throw e2;
@@ -105,19 +105,20 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
   function pStruct(host) {
     if (!chs.length) {
       host.innerHTML = `<div class="card pad form"><h3>${esc(T('Kurs tuzilmasini yaratish', 'Создать структуру курса', 'Create the course structure'))}</h3><p class="muted small">${esc(T('Nechta bob bo\'lishini va har bobda nechta mavzu borligini kiriting. Papkalar, takrorlash va yakuniy test joylari avtomatik ochiladi.', 'Укажите число глав и тем в каждой. Папки, повторения и итоговые тесты создадутся автоматически.', 'Enter the number of chapters and topics per chapter. Folders, review tests and final tests are created automatically.'))}</p>
-        <label class="fld"><span>${esc(T('Boblar soni', 'Число глав', 'Chapters'))}</span><input class="input" id="nch" type="number" min="1" max="30" value="3"></label><div id="cnt"></div>
+        <label class="fld"><span>${esc(T('Boblar soni', 'Число глав', 'Chapters'))}</span><input class="input" id="nch" type="number" min="1" max="30" value="3"></label><label class="chip" style="cursor:pointer;margin:6px 0"><input type="checkbox" id="nin" checked> ${esc(T('«Kirish» (so\'z boshi) bo\'limi bo\'lsin — mavzu hisoblanmaydi', 'Раздел «Введение» (не считается темой)', '«Intro» section (not counted as a topic)'))}</label><div id="cnt"></div>
         <button class="btn lg block mt" id="mk">${esc(T('Tuzilmani yaratish', 'Создать', 'Create'))}</button><p class="muted small center mt">${esc(T('Yoki tayyor papkani «Papka yuklash» bo\'limidan yuklang.', 'Или загрузите готовую папку во вкладке «Загрузка папки».', 'Or upload a ready folder in the "Folder upload" tab.'))}</p></div>`;
       const draw = () => { const n = Math.max(1, Math.min(30, +$('#nch', host).value || 1)); $('#cnt', host).innerHTML = Array.from({ length: n }, (_, i) => `<label class="fld"><span>${i + 1}-${esc(T('bobda mavzular soni', 'глава: число тем', 'chapter: topics'))}</span><input class="input cn" type="number" min="1" max="100" value="${$$('.cn', host)[i]?.value || 4}"></label>`).join(''); };
       $('#nch', host).oninput = draw; draw();
-      $('#mk', host).onclick = e => run(e.currentTarget, async () => { await build($$('.cn', host).map(x => Math.max(1, +x.value || 1))); toast(T('Tuzilma yaratildi', 'Структура создана', 'Structure created'), 'ok'); await reload(); });
+      $('#mk', host).onclick = e => run(e.currentTarget, async () => { await build($$('.cn', host).map(x => Math.max(1, +x.value || 1)), $('#nin', host).checked); toast(T('Tuzilma yaratildi', 'Структура создана', 'Structure created'), 'ok'); await reload(); });
       return;
     }
-    host.innerHTML = `<div class="row mb" style="gap:8px;flex-wrap:wrap"><button class="btn sm" id="ac">${ic('plus', 14)} ${esc(T('Bob qo\'shish', 'Добавить главу', 'Add chapter'))}</button></div>
+    host.innerHTML = `<div class="row mb" style="gap:8px;flex-wrap:wrap"><button class="btn sm" id="ac">${ic('plus', 14)} ${esc(T('Bob qo\'shish', 'Добавить главу', 'Add chapter'))}</button>${secs.some(s => s.kind === 'intro') ? '' : `<button class="btn sm ghost" id="ai">📖 ${esc(T('Kirish qo\'shish', 'Добавить введение', 'Add intro'))}</button>`}</div>
       ${chs.map((ch, ci) => { const ss = secs.filter(s => s.chapter_id === ch.id); return `<div class="card pad mb bd-ch" data-ch="${ch.id}"><div class="row"><b class="grow">${ci + 1}-${esc(T('bob', 'глава', 'chapter'))}</b><button class="btn ghost sm" data-cover="${ch.id}">${ic('image', 14)} ${esc(T('Rasm', 'Обложка', 'Cover'))}${ch.cover ? ' ✓' : ''}</button><button class="btn ghost sm" data-addt="${ch.id}">${ic('plus', 14)} ${esc(T('Mavzu', 'Тема', 'Topic'))}</button><button class="btn ghost sm" data-delch="${ch.id}">${ic('trash', 14)}</button></div>
         <input class="input bd-t" data-rn-ch="${ch.id}" value="${esc(tr(ch.title))}">
-        ${ss.map(s => `<div class="bd-sec ${s.kind}"><div class="row"><span class="bd-k">${s.kind === 'topic' ? '📘' : s.kind === 'review' ? '🔁' : '🏆'}</span><input class="input bd-t grow" data-rn="${s.id}" value="${esc(tr(s.title))}"><button class="btn ghost sm" data-dels="${s.id}">${ic('trash', 14)}</button></div>
-          <div class="bd-slots">${(s.kind === 'topic' ? ['book', 'slides', 'video', 'cards', 'test'] : ['test']).map(k => { const st = stateOf(lessonOf(s, k)); return `<button class="bd-slot ${st ? 'ok' : ''}" data-slot="${s.id}:${k}">${esc(SLOTS[k].lab())}<small>${st ? '✓ ' + esc(st) : esc(T('yuklash', 'загрузить', 'upload'))}</small></button>`; }).join('')}</div></div>`).join('')}</div>`; }).join('')}`;
+        ${ss.map(s => `<div class="bd-sec ${s.kind}"><div class="row"><span class="bd-k">${s.kind === 'topic' ? '📘' : s.kind === 'intro' ? '📖' : s.kind === 'review' ? '🔁' : '🏆'}</span><input class="input bd-t grow" data-rn="${s.id}" value="${esc(tr(s.title))}"><button class="btn ghost sm" data-dels="${s.id}">${ic('trash', 14)}</button></div>
+          <div class="bd-slots">${(s.kind === 'topic' || s.kind === 'intro' ? ['book', 'slides', 'video', 'cards', 'test'] : ['test']).map(k => { const st = stateOf(lessonOf(s, k)); return `<button class="bd-slot ${st ? 'ok' : ''}" data-slot="${s.id}:${k}">${esc(SLOTS[k].lab())}<small>${st ? '✓ ' + esc(st) : esc(T('yuklash', 'загрузить', 'upload'))}</small></button>`; }).join('')}</div></div>`).join('')}</div>`; }).join('')}`;
     $('#ac', host).onclick = e => run(e.currentTarget, async () => { await build([1]); await reload(); });
+    $('#ai', host)?.addEventListener('click', e => run(e.currentTarget, async () => { const first = chs[0]; const mn = secs.reduce((a, s) => Math.min(a, s.position), 0); const { error } = await sb.from('course_sections').insert({ course_id: id, chapter_id: first.id, kind: 'intro', title: U("Kirish (so'z boshi)"), position: mn - 1 }); if (error) throw error; await reload(); }));
     $$('[data-rn]', host).forEach(i => i.onchange = async () => { const { error } = await sb.from('course_sections').update({ title: U(i.value.trim() || '—') }).eq('id', i.dataset.rn); toast(error ? dbErr(error) : T('Saqlandi', 'Сохранено', 'Saved'), error ? 'err' : 'ok'); });
     $$('[data-rn-ch]', host).forEach(i => i.onchange = async () => { const { error } = await sb.from('course_chapters').update({ title: U(i.value.trim() || '—') }).eq('id', i.dataset.rnCh); toast(error ? dbErr(error) : T('Saqlandi', 'Сохранено', 'Saved'), error ? 'err' : 'ok'); });
     $$('[data-dels]', host).forEach(b => b.onclick = async () => { if (!await confirmDlg(T('Bu bo\'lim va ichidagi darslar o\'chadi. Davom etasizmi?', 'Раздел и его уроки будут удалены. Продолжить?', 'This section and its lessons will be deleted. Continue?'))) return; const s = secs.find(x => x.id === b.dataset.dels); for (const l of ls.filter(x => x.section_id === s.id)) { await sb.from('lessons').delete().eq('id', l.id); await delSlotAssets(l); } await sb.from('course_sections').delete().eq('id', s.id); reload(); });
@@ -174,7 +175,8 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
     yakuniy.txt          (bob yakuniy testi, ixtiyoriy)
     1-mavzu. Nomi/
       kitob.pdf   taqdimot.pdf   video.mp4 (yoki video.txt — YouTube havola)
-      kartochka.csv   test.txt   takrorlash.txt (ixtiyoriy)</pre>
+      kartochka.csv   test.txt   takrorlash.txt (ixtiyoriy)
+    Kirish/              (so'z boshi: mavzu hisoblanmaydi, birinchi bo'lib turadi)</pre>
       <button class="btn lg block" id="pf">${ic('folder', 18)} ${esc(T('Papkani tanlash', 'Выбрать папку', 'Choose folder'))}</button><div id="pv" class="mt"></div></div>`;
     $('#pf', host).onclick = () => { const i = document.createElement('input'); i.type = 'file'; i.webkitdirectory = true; i.multiple = true; i.onchange = () => preview(Array.from(i.files)); i.click(); };
     const preview = files => {
@@ -199,8 +201,9 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
       const { data: chr, error } = await sb.from('course_chapters').insert({ course_id: id, title: U(ch.name), cover, position: ci++ }).select('id').single(); if (error) throw error;
       const topics = [...ch.topics.values()].sort((a, b) => nat(a.name, b.name));
       for (const tp of topics) {
-        n++; const { data: s, error: e1 } = await sb.from('course_sections').insert({ course_id: id, chapter_id: chr.id, kind: 'topic', title: U(tp.name), position: pos++ }).select('*').single(); if (e1) throw e1; secs.push(s);
-        const rv = tp.files.find(x => x.slot === 'review'); let rs = null;
+        const isIntro = /^\W*(0[\s.\-]*)?(kirish|so['’‘ʻ`]?z\s*boshi|intro)/i.test(tp.name); if (!isIntro) n++;
+        const { data: s, error: e1 } = await sb.from('course_sections').insert({ course_id: id, chapter_id: chr.id, kind: isIntro ? 'intro' : 'topic', title: U(tp.name), position: pos++ }).select('*').single(); if (e1) throw e1; secs.push(s);
+        const rv = !isIntro && tp.files.find(x => x.slot === 'review'); let rs = null;
         if (rv) { const { data: r, error: e2 } = await sb.from('course_sections').insert({ course_id: id, chapter_id: chr.id, kind: 'review', title: U(`Takrorlash: ${Math.max(1, n - 1)}-mavzu va ${n}-mavzu`), position: pos++ }).select('*').single(); if (e2) throw e2; rs = r; secs.push(r); }
         for (const x of tp.files.slice().sort((a, b) => (SLOTS[a.slot]?.i ?? 9) - (SLOTS[b.slot]?.i ?? 9))) {
           const d = line('… ' + tp.name + ' / ' + x.f.name);
