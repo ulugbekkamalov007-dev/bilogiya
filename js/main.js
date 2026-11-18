@@ -14,6 +14,7 @@ import './admin.js';
 import './guide.js';
 import './courses.js';
 import './learnpath.js';
+import './builder.js';
 import './flash.js';
 import './teacher.js';
 import './forum.js';
