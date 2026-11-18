@@ -6,3 +6,4 @@ docs
 scripts
 supabase
 node_modules
+worker.js
