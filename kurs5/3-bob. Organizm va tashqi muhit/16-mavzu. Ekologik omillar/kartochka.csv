@@ -1,0 +1,31 @@
+tf;Ekologik omillar;tirik organizmga tashqaridan ta'sir ko'rsatuvchi omillar;ha
+tf;Ekologik omillar;inson faoliyatining tabiatga ta'siri;yo'q
+tf;Abiotik omil;jonsiz tabiat omili, masalan yorug'lik, namlik, harorat;ha
+tf;Abiotik omil;tabiiy jamoaning jonli qismi;yo'q
+tf;Biotik omil;tirik organizmlarning bir-biriga ta'siri;ha
+tf;Biotik omil;organik modda hosil qiluvchi yashil o'simlik;yo'q
+tf;Antropogen omil;inson faoliyatining tabiatga ta'siri;ha
+tf;Antropogen omil;tayyor organik moddani iste'mol qiluvchi organizm;yo'q
+tf;Biotsenoz;tabiiy jamoaning jonli qismi;ha
+tf;Biotsenoz;organik moddalarni mineral moddalargacha parchalovchi organizm;yo'q
+tf;Produtsent;organik modda hosil qiluvchi yashil o'simlik;ha
+tf;Produtsent;o'zidan oldingisini yeb, keyingisiga ozuqa bo'ladigan organizmlar qatori;yo'q
+tf;Konsument;tayyor organik moddani iste'mol qiluvchi organizm;ha
+tf;Konsument;organizm moslashgan va yaxshi ko'payadigan muhit;yo'q
+tf;Redutsent;organik moddalarni mineral moddalargacha parchalovchi organizm;ha
+tf;Redutsent;baliqlarning suv qarshiligini yengishga moslashuvi;yo'q
+tf;Ozuqa zanjiri;o'zidan oldingisini yeb, keyingisiga ozuqa bo'ladigan organizmlar qatori;ha
+tf;Ozuqa zanjiri;tirik organizmga tashqaridan ta'sir ko'rsatuvchi omillar;yo'q
+tf;Yashash muhiti;organizm moslashgan va yaxshi ko'payadigan muhit;ha
+tf;Yashash muhiti;jonsiz tabiat omili, masalan yorug'lik, namlik, harorat;yo'q
+tf;Suyri shakl;baliqlarning suv qarshiligini yengishga moslashuvi;ha
+tf;Suyri shakl;tirik organizmlarning bir-biriga ta'siri;yo'q
+yoz;Jonsiz tabiat omillari qanday nomlanadi?;Abiotik omillar;abiotik
+yoz;Tirik organizmlarning bir-biriga ta'siri qanday omil?;Biotik omil;biotik
+yoz;Inson faoliyatining tabiatga ta'siri qanday omil?;Antropogen omil;antropogen
+yoz;Organik modda hosil qiluvchi yashil o'simliklar ozuqa zanjirida kim?;Produtsent;produtsentlar
+yoz;Tayyor organik modda bilan oziqlanuvchi organizmlar kim?;Konsument;konsumentlar
+yoz;Bakteriya va zamburug'lar ozuqa zanjirida kim?;Redutsent;redutsentlar
+yoz;Tabiiy jamoaning jonli qismi nima deyiladi?;Biotsenoz;
+yoz;Ekologik omillar nechta turga bo'linadi?;3;uchta,3 ta,uch
+yoz;Bug'doy, chigirtka, baqa, ilon zanjirida ilondan keyin kim keladi?;Burgut;
