@@ -1,0 +1,37 @@
+tf;Mikrobiologiya;bakteriyalarni o'rganuvchi fan;ha
+tf;Mikrobiologiya;tayoqchasimon bakteriya;yo'q
+tf;Koloniya;bakteriyalarning tez ko'payishidan hosil bo'lgan ko'zga ko'rinadigan to'plam;ha
+tf;Koloniya;buralgan, spiralsimon bakteriya;yo'q
+tf;Kokk;sharsimon bakteriya;ha
+tf;Kokk;noqulay sharoitda bakteriya hosil qiladigan, uzoq yillar saqlanadigan shakl;yo'q
+tf;Batsilla;tayoqchasimon bakteriya;ha
+tf;Batsilla;sut uglevodlarini sut kislotaga aylantiruvchi bakteriyalar;yo'q
+tf;Spirilla;buralgan, spiralsimon bakteriya;ha
+tf;Spirilla;sut-qatiq mahsulotlari va tuzlama tayyorlashda ishtirok etuvchi bakteriyalar;yo'q
+tf;Spora;noqulay sharoitda bakteriya hosil qiladigan, uzoq yillar saqlanadigan shakl;ha
+tf;Spora;o'lik qoldiqlarni parchalab, yer yuzini tozalovchi bakteriyalar;yo'q
+tf;Tomizg'i;sut uglevodlarini sut kislotaga aylantiruvchi bakteriyalar;ha
+tf;Tomizg'i;dukkakdoshlar ildizida yashab, erkin azotni o'zlashtiruvchi bakteriyalar;yo'q
+tf;Achituvchi bakteriyalar;sut-qatiq mahsulotlari va tuzlama tayyorlashda ishtirok etuvchi bakteriyalar;ha
+tf;Achituvchi bakteriyalar;yuqumli kasallikning ko'pchilik aholi o'rtasida yoppasiga tarqalishi;yo'q
+tf;Chirituvchi bakteriyalar;o'lik qoldiqlarni parchalab, yer yuzini tozalovchi bakteriyalar;ha
+tf;Chirituvchi bakteriyalar;epidemiyaning oldini olish uchun e'lon qilinadigan chora;yo'q
+tf;Tugunak bakteriyalar;dukkakdoshlar ildizida yashab, erkin azotni o'zlashtiruvchi bakteriyalar;ha
+tf;Tugunak bakteriyalar;archa va terak ajratadigan, bakteriyalarni o'ldiruvchi modda;yo'q
+tf;Epidemiya;yuqumli kasallikning ko'pchilik aholi o'rtasida yoppasiga tarqalishi;ha
+tf;Epidemiya;sil tayoqchasi (bakteriya) keltirib chiqaradigan kasallik;yo'q
+tf;Karantin;epidemiyaning oldini olish uchun e'lon qilinadigan chora;ha
+tf;Karantin;bakteriyalarni o'rganuvchi fan;yo'q
+tf;Fitonsid;archa va terak ajratadigan, bakteriyalarni o'ldiruvchi modda;ha
+tf;Fitonsid;bakteriyalarning tez ko'payishidan hosil bo'lgan ko'zga ko'rinadigan to'plam;yo'q
+tf;Sil;sil tayoqchasi (bakteriya) keltirib chiqaradigan kasallik;ha
+tf;Sil;sharsimon bakteriya;yo'q
+yoz;Sharsimon bakteriya qanday nomlanadi?;Kokk;
+yoz;Tayoqchasimon bakteriya qanday nomlanadi?;Batsilla;basilla
+yoz;Bakteriyalarning ko'zga ko'rinadigan to'plami nima deyiladi?;Koloniya;
+yoz;Noqulay sharoitda bakteriya hosil qiladigan shakl nima deyiladi?;Spora;
+yoz;Yuqumli kasallikning yoppasiga tarqalishi nima deyiladi?;Epidemiya;
+yoz;Epidemiyaning oldini olish uchun e'lon qilinadigan chora qaysi?;Karantin;
+yoz;Archa va terak ajratadigan bakteriyalarni o'ldiruvchi modda qaysi?;Fitonsid;
+yoz;Yer yuzining sanitarlari deb qaysi bakteriyalar ataladi?;Chirituvchi bakteriyalar;chirituvchilar,chirituvchi
+yoz;Dukkakdoshlar ildizida azotni o'zlashtiruvchi bakteriyalar qaysi?;Tugunak bakteriyalar;tugunak
