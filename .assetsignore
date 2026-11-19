@@ -7,3 +7,17 @@ scripts
 supabase
 node_modules
 worker.js
+
+.git
+.github
+*.zip
+*.log
+.env
+.DS_Store
+kurs5/README.txt
+
+.git
+.github
+*.zip
+*.log
+.env
