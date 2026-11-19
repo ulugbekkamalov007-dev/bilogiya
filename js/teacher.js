@@ -1,4 +1,5 @@
 // O'qituvchi kabineti: kurslar CMS, dars muharriri, o'quvchilar ro'yxati va arizalar
+import { needBundled, bundledCard, bindBundled } from './bundled.js';
 import { sb, state, tr, route, go, esc, ic, $, $$, modal, toast, btnBusy, confirmDlg, spinner, fmtDate, i18nField } from './core.js';
 import { T, skeleton, empty, errBox, pct, bar, dbErr } from './ui.js';
 
@@ -17,6 +18,7 @@ route('/teach', async ({ el, alive }) => {
     <div class="tblwrap mt"><table class="tbl2"><thead><tr><th>${esc(T('Kurs', 'Курс', 'Course'))}</th><th>${esc(T('Holat', 'Статус', 'Status'))}</th><th>${esc(T('Darslar', 'Уроки', 'Lessons'))}</th><th>${esc(T('O\'quvchilar', 'Ученики', 'Students'))}</th><th>${esc(T('Tugatgan', 'Завершили', 'Done'))}</th><th></th></tr></thead><tbody>
     ${(cs || []).map(c => `<tr><td><b>${esc(tr(c.title))}</b></td><td><span class="tg ${c.status === 'published' ? '' : 'pr'}">${esc(c.status === 'published' ? T('Nashr etilgan', 'Опубликован', 'Published') : T('Qoralama', 'Черновик', 'Draft'))}</span></td><td>${c.lessons?.[0]?.count || 0}</td><td>${st[c.id]?.n || 0}</td><td>${st[c.id]?.d || 0}</td><td class="row wrap" style="gap:6px"><a class="btn sm" href="#/teach/build/${c.id}">${ic('folder', 14)} ${esc(T('Quruvchi', 'Конструктор', 'Builder'))}</a> <a class="btn sm ghost" href="#/teach/course/${c.id}">${ic('edit', 14)} ${esc(T('Eski muharrir', 'Старый редактор', 'Old editor'))}</a><button class="btn sm ghost" data-tv="${c.id}:${c.status}">${ic('eye', 14)} ${esc(c.status === 'published' ? T('Yashirish', 'Скрыть', 'Hide') : T('Ko\'rsatish', 'Показать', 'Show'))}</button></td></tr>`).join('') || `<tr><td colspan="6">${empty('cap', T('Hali kurs yo\'q', 'Курсов пока нет', 'No courses yet'))}</td></tr>`}</tbody></table></div>`;
   $$('[data-tv]', el).forEach(b => b.onclick = async () => { const [cid, cur] = b.dataset.tv.split(':'); btnBusy(b, true); const { error: er } = await sb.from('courses').update({ status: cur === 'published' ? 'draft' : 'published' }).eq('id', cid); if (er) { btnBusy(b, false); return toast(dbErr(er), 'err'); } toast(T('Saqlandi', 'Сохранено', 'Saved'), 'ok'); location.reload(); });
+  if (needBundled(cs)) { $('#tl', el).insertAdjacentHTML('afterbegin', bundledCard()); bindBundled(el); }
   $('#nc', el).onclick = async () => { const title = prompt0(T('Kurs nomi', 'Название курса', 'Course title')); if (!title) return; const { data, error: er } = await sb.from('courses').insert({ title: await i18nField(title), author_id: state.user.id }).select('id').single(); if (er) return toast(dbErr(er), 'err'); go('/teach/build/' + data.id); };
 }, { auth: true });
 
