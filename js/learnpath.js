@@ -123,6 +123,11 @@ route('/courses', async ({ el, alive }) => {
   el.innerHTML = `<div class="page lp">${skeleton(3, 150)}</div>`;
   const { data } = await (state.isAdmin ? sb.from('courses').select('id,grade').order('grade') : sb.from('courses').select('id,grade').eq('status', 'published').order('grade'));
   if (!alive()) return;
+  if (!(data || []).length && state.isAdmin) {
+    el.innerHTML = `<div class="page lp">${empty('cap', T('Hozircha kurslar yo\'q', 'Курсов пока нет', 'No courses yet'))}<div class="card pad center"><h3>📚 Biologiya 5-sinf</h3><p class="muted">${esc(T('Tayyor kurs ilova bilan birga keldi: 3 bob, 18 mavzu, testlar, kartochkalar. Bir tugma bilan o\'rnating — o\'zi yaratadi va yuklaydi.', 'Готовый курс идёт вместе с приложением. Установите одной кнопкой.', 'The ready course ships with the app. Install it with one button.'))}</p><button class="btn lg" id="inst">⚡ ${esc(T('Tayyor kursni o\'rnatish', 'Установить готовый курс', 'Install ready course'))}</button></div></div>`;
+    $('#inst', el).onclick = async e => { btnBusy(e.currentTarget, true); try { const { i18nField } = await import('./core.js'); const { data: c, error } = await sb.from('courses').insert({ title: await i18nField('Biologiya 5-sinf'), grade: 5, author_id: state.user.id }).select('id').single(); if (error) throw error; go('/teach/build/' + c.id + '?auto=1'); } catch (er) { btnBusy(e.currentTarget, false); toast(String(er.message || er), 'err'); } };
+    return;
+  }
   if (!(data || []).length) { el.innerHTML = `<div class="page lp">${empty('cap', T('Hozircha kurslar yo\'q', 'Курсов пока нет', 'No courses yet'))}<p class="center"><a class="btn" href="#/courses/all">${esc(T('Katalog', 'Каталог', 'Catalog'))}</a></p></div>`; return; }
   const last = recall(); const id = (data.find(x => x.id === last) || data[0]).id;
   await chaptersView(el, id, alive);

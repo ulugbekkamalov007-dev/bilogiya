@@ -42,7 +42,8 @@ export function parseCards(text) {
 route('/teach/build/:id', async ({ el, params, alive }) => {
   if (!staffOnly()) return go('/teach', true);
   const id = params.id; el.innerHTML = `<div class="page">${skeleton(3, 100)}</div>`;
-  let c, chs, secs, ls, bodies, tab = 'struct', grants = [];
+  const auto = /[?&]auto=1/.test(location.hash); let autoDone = false;
+  let c, chs, secs, ls, bodies, tab = auto ? 'import' : 'struct', grants = [];
   const load = async () => {
     const [a, b, d, e, f] = await Promise.all([sb.from('courses').select('*').eq('id', id).maybeSingle(), sb.from('course_chapters').select('*').eq('course_id', id).order('position'),
       sb.from('course_sections').select('*').eq('course_id', id).order('position'), sb.from('lessons').select('id,section_id,kind,title,item_id,position').eq('course_id', id).order('position'),
@@ -149,6 +150,7 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
       <div class="mt">${tabs()}</div><div id="tb"></div></div>`;
     $$('[data-tab]', el).forEach(b => b.onclick = () => { tab = b.dataset.tab; paint(); });
     ({ struct: pStruct, import: pImport, settings: pSettings, access: pAccess })[tab]($('#tb', el));
+    if (auto && tab === 'import' && !autoDone) { autoDone = true; setTimeout(() => $('#pk', el)?.click(), 200); }
   };
   const reload = async () => { await load(); if (alive()) paint(); };
   const run = async (btn, fn) => { btnBusy(btn, true); try { await fn(); } catch (e) { toast(dbErr(e), 'err'); } btnBusy(btn, false); };
@@ -258,7 +260,7 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
       const r = await fetch('/kurs5/manifest.json', { cache: 'no-cache' }); if (!r.ok) throw new Error(T('Tayyor kurs topilmadi (kurs5/ papkasi deploy qilinganmi?)', 'Готовый курс не найден', 'Bundled course not found'));
       const man = await r.json(), files = [], kg = $('#kg', host); kg.hidden = false; let done = 0;
       for (const m of man.files) { const x = await fetch('/kurs5/' + m.split('/').map(encodeURIComponent).join('/'), { cache: 'no-cache' }); if (!x.ok) throw new Error(m + ': ' + x.status); const f = new File([await x.blob()], m.split('/').pop()); Object.defineProperty(f, 'webkitRelativePath', { value: 'kurs5/' + m }); files.push(f); $('.pbar i', kg).style.width = Math.round(++done / man.files.length * 100) + '%'; $('#kt', host).textContent = T('Yuklab olinmoqda', 'Скачивание', 'Downloading') + ` ${done}/${man.files.length}`; }
-      kg.hidden = true; preview(files);
+      kg.hidden = true; preview(files); if (auto) setTimeout(() => $('#go', host)?.click(), 300);
     });
     $('#pf', host).onclick = () => { const i = document.createElement('input'); i.type = 'file'; i.webkitdirectory = true; i.multiple = true; i.onchange = () => preview(Array.from(i.files)); i.click(); };
     const preview = files => {
@@ -308,6 +310,7 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
       if (ch.final) { const { data: fs, error: e3 } = await sb.from('course_sections').insert({ course_id: id, chapter_id: chr.id, kind: 'final', title: U(`${ci}-bob yakuniy testi`), position: pos++ }).select('*').single(); if (e3) throw e3; secs.push(fs); const d = line('… ' + ch.final.name); try { await setSlot(fs, 'test', { file: ch.final }); d.textContent = '✓ ' + ch.final.name; } catch (e) { d.textContent = '✗ ' + ch.final.name + ': ' + (e.message || e); } }
     }
     for (const f of pl.bank.slice().sort((a, b) => nat(a.name, b.name))) { const d = line('… 🎓 ' + f.name); try { const isC = /kartochka|karta|cards?/i.test(f.name) || /\.(csv|tsv)$/i.test(f.name) && !/test/i.test(f.name); const n = isC ? await addBankCards(stem(f.name), f) : await addBankTest(stem(f.name), f); d.textContent = '✓ 🎓 ' + f.name + ' (' + n + ')'; } catch (e) { d.textContent = '✗ 🎓 ' + f.name + ': ' + (e.message || e); } }
+    if (auto) { const { error: pe } = await sb.from('courses').update({ status: 'published' }).eq('id', id); line(pe ? '✗ nashr: ' + pe.message : '📢 ' + T('Kurs nashr qilindi — o\'quvchilar ko\'radi', 'Курс опубликован', 'Course published')); }
     line('✅ ' + T('Tugadi', 'Готово', 'Done')); toast(T('Papka yuklandi', 'Папка загружена', 'Folder uploaded'), 'ok'); setTimeout(reload, 1200);
   }
 
