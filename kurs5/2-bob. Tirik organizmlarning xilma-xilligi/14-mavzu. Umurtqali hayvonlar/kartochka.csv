@@ -1,0 +1,31 @@
+tf;Jabra;baliqlarning nafas olish organi;ha
+tf;Jabra;baqaning suvda yashovchi, suzgichli lichinkasi;yo'q
+tf;Sovuqqonli hayvonlar;tana harorati tashqi muhitga bog'liq hayvonlar;ha
+tf;Sovuqqonli hayvonlar;sudralib yuruvchilar tanasini qoplab, suv yo'qotishni kamaytiruvchi qatlam;yo'q
+tf;Issiqqonli hayvonlar;tana harorati doimiy bo'lgan hayvonlar;ha
+tf;Issiqqonli hayvonlar;qushlarga bir marta olgan havodan ikki marta nafas olish imkonini beruvchi organ;yo'q
+tf;Itbaliq;baqaning suvda yashovchi, suzgichli lichinkasi;ha
+tf;Itbaliq;bolasini sut bilan boqadigan, jun bilan qoplangan hayvonlar;yo'q
+tf;Muguz tangacha;sudralib yuruvchilar tanasini qoplab, suv yo'qotishni kamaytiruvchi qatlam;ha
+tf;Muguz tangacha;pat bilan qoplangan, oldingi oyoqlari qanotga aylangan issiqqonli hayvonlar;yo'q
+tf;Havo xaltachalari;qushlarga bir marta olgan havodan ikki marta nafas olish imkonini beruvchi organ;ha
+tf;Havo xaltachalari;muguz tangachali, 3 kamerali yurakli, tuxumini quruqlikka qo'yadigan hayvonlar;yo'q
+tf;Sutemizuvchilar;bolasini sut bilan boqadigan, jun bilan qoplangan hayvonlar;ha
+tf;Sutemizuvchilar;teri va o'pka bilan nafas oladigan, tuxumini suvga qo'yadigan hayvonlar;yo'q
+tf;Qushlar;pat bilan qoplangan, oldingi oyoqlari qanotga aylangan issiqqonli hayvonlar;ha
+tf;Qushlar;suyri tanali, 2 kamerali yurakli, jabra bilan nafas oladigan hayvonlar;yo'q
+tf;Sudralib yuruvchilar;muguz tangachali, 3 kamerali yurakli, tuxumini quruqlikka qo'yadigan hayvonlar;ha
+tf;Sudralib yuruvchilar;baliqlarning nafas olish organi;yo'q
+tf;Suvda hamda quruqlikda yashovchilar;teri va o'pka bilan nafas oladigan, tuxumini suvga qo'yadigan hayvonlar;ha
+tf;Suvda hamda quruqlikda yashovchilar;tana harorati tashqi muhitga bog'liq hayvonlar;yo'q
+tf;Baliqlar;suyri tanali, 2 kamerali yurakli, jabra bilan nafas oladigan hayvonlar;ha
+tf;Baliqlar;tana harorati doimiy bo'lgan hayvonlar;yo'q
+yoz;Baliqlarning nafas olish organi qaysi?;Jabra;
+yoz;Baqaning suvda yashovchi lichinkasi nima deyiladi?;Itbaliq;
+yoz;Tana harorati doimiy bo'lgan hayvonlar qanday nomlanadi?;Issiqqonli;issiqqonlilar
+yoz;Tana harorati tashqi muhitga bog'liq hayvonlar qanday nomlanadi?;Sovuqqonli;sovuqqonlilar
+yoz;Sudralib yuruvchilar tanasini qoplab turuvchi qatlam qaysi?;Muguz tangacha;
+yoz;Qushlarga ikki marta nafas olish imkonini beruvchi organ qaysi?;Havo xaltachalari;havo xaltachalari
+yoz;Bolasini sut bilan boqadigan hayvonlar sinfi qaysi?;Sutemizuvchilar;sut emizuvchilar
+yoz;Yuragi ikki kamerali hayvonlar sinfi qaysi?;Baliqlar;
+yoz;Baqa ovini nima bilan ushlaydi?;Til;uzun yopishqoq til,tili
