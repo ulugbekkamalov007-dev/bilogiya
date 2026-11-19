@@ -1,0 +1,33 @@
+tf;Yo'sinlar;ildizi bo'lmagan, rizoidlari bilan birikadigan yuksak sporali o'simliklar;ha
+tf;Yo'sinlar;qirqbo'g'imda ozuqa to'planadigan yer osti poyasi;yo'q
+tf;Funariya;sporalari qo'ng'ir ko'sakchada yetiladigan yo'sin;ha
+tf;Funariya;sporalari barg ostidagi sorusda yetiladigan o'simlik;yo'q
+tf;Qirqbo'g'im;poyasi va barglari ko'p bo'g'imlarga bo'lingan sporali o'simlik;ha
+tf;Qirqbo'g'im;qirqquloq sporalari yetiladigan qism;yo'q
+tf;Ildizpoya;qirqbo'g'imda ozuqa to'planadigan yer osti poyasi;ha
+tf;Ildizpoya;urug'i qubbada ochiq holda yetiladigan o'simliklar;yo'q
+tf;Qirqquloq;sporalari barg ostidagi sorusda yetiladigan o'simlik;ha
+tf;Qirqquloq;gul va meva hosil qiluvchi o'simliklar;yo'q
+tf;Sorus;qirqquloq sporalari yetiladigan qism;ha
+tf;Sorus;ochiq urug'li o'simlik smolasidan hosil bo'lgan tosh;yo'q
+tf;Ochiq urug'lilar;urug'i qubbada ochiq holda yetiladigan o'simliklar;ha
+tf;Ochiq urug'lilar;qadimgi daraxtsimon qirqquloqlardan hosil bo'lgan yoqilg'i;yo'q
+tf;Yopiq urug'lilar;gul va meva hosil qiluvchi o'simliklar;ha
+tf;Yopiq urug'lilar;o'rikning dastlabki mevasi;yo'q
+tf;Kahrabo;ochiq urug'li o'simlik smolasidan hosil bo'lgan tosh;ha
+tf;Kahrabo;ninasimon bargli, poyasi smolali ochiq urug'li daraxt;yo'q
+tf;Toshko'mir;qadimgi daraxtsimon qirqquloqlardan hosil bo'lgan yoqilg'i;ha
+tf;Toshko'mir;ildizi bo'lmagan, rizoidlari bilan birikadigan yuksak sporali o'simliklar;yo'q
+tf;Dovuchcha;o'rikning dastlabki mevasi;ha
+tf;Dovuchcha;sporalari qo'ng'ir ko'sakchada yetiladigan yo'sin;yo'q
+tf;Qarag'ay;ninasimon bargli, poyasi smolali ochiq urug'li daraxt;ha
+tf;Qarag'ay;poyasi va barglari ko'p bo'g'imlarga bo'lingan sporali o'simlik;yo'q
+yoz;Ildizi bo'lmagan yuksak sporali o'simliklar qaysi?;Yo'sinlar;yo'sin
+yoz;Qirqbo'g'imda ozuqa to'planadigan yer osti poyasi nima deyiladi?;Ildizpoya;
+yoz;Qirqquloq sporalari yetiladigan qism nima deyiladi?;Sorus;
+yoz;Ochiq urug'li o'simlik smolasidan hosil bo'lgan tosh nima deyiladi?;Kahrabo;
+yoz;Qadimgi daraxtsimon qirqquloqlardan hosil bo'lgan yoqilg'i qaysi?;Toshko'mir;
+yoz;O'rikning dastlabki mevasi nima deyiladi?;Dovuchcha;
+yoz;Barglari ninasimon bo'lgan ochiq urug'li daraxt qaysi?;Qarag'ay;
+yoz;Gul va meva hosil qiluvchi o'simliklar guruhi qaysi?;Yopiq urug'lilar;yopiq urug'li o'simliklar
+yoz;Archa bargi suv bug'latmasligi uchun nima bilan qoplangan?;Mum;
