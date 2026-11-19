@@ -31,7 +31,7 @@ route('/courses/all', async ({ el, alive }) => {
     const [{ data, error }, p, { data: ec }] = await Promise.all([(state.isAdmin ? sb.from('courses').select('*, lessons(count)') : sb.from('courses').select('*, lessons(count)').eq('status', 'published')).order('created_at', { ascending: false }), myProgress(), sb.from('enrollments').select('course_id')]);
     if (error) { $('#cl', el).innerHTML = errBox(dbErr(error), 'rt'); $('#rt', el).onclick = load; return; }
     courses = data || []; pg = p; (ec || []).forEach(x => cnt[x.course_id] = (cnt[x.course_id] || 0) + 1); paint();
-    if (needBundled(courses) && !el.querySelector('[data-inst]')) { $('#cl', el).insertAdjacentHTML('beforebegin', bundledCard()); bindBundled(el); }
+    if (needBundled(courses) && !el.querySelector('[data-inst]')) { $('#cl', el).insertAdjacentHTML('beforebegin', bundledCard()); bindBundled(el, courses); }
   };
   const paint = () => {
     let l = courses.filter(c => (!f.q || tr(c.title).toLowerCase().includes(f.q)) && (!f.grade || c.grade === +f.grade) && (!f.level || c.level === f.level) && (!f.price || (f.price === 'prem') === c.is_premium) && (!f.mine || pg.enrolled[c.id]));
