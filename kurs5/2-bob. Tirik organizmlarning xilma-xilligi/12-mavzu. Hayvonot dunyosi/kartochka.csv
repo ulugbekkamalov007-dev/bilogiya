@@ -1,0 +1,33 @@
+tf;Fauna;hayvonot dunyosi;ha
+tf;Fauna;umurtqali hayvonlar tipi;yo'q
+tf;Biofiltr;suvni organik qoldiqlardan tozalaydigan organizm;ha
+tf;Biofiltr;ichki organlar uchun tayanch bo'luvchi qism;yo'q
+tf;Tabiat sanitari;o'lik qoldiqlarni yo'q qiluvchi organizm;ha
+tf;Tabiat sanitari;hayvonlar sistematikasidagi eng katta birlik;yo'q
+tf;Xordalilar;umurtqali hayvonlar tipi;ha
+tf;Xordalilar;dunyodan keyingi sistematik birlik;yo'q
+tf;Umurtqa;ichki organlar uchun tayanch bo'luvchi qism;ha
+tf;Umurtqa;tipdan keyingi, turkumdan oldingi sistematik birlik;yo'q
+tf;Dunyo;hayvonlar sistematikasidagi eng katta birlik;ha
+tf;Dunyo;sinfdan keyingi, oiladan oldingi sistematik birlik;yo'q
+tf;Tip;dunyodan keyingi sistematik birlik;ha
+tf;Tip;oiladan keyingi, turdan oldingi sistematik birlik;yo'q
+tf;Sinf;tipdan keyingi, turkumdan oldingi sistematik birlik;ha
+tf;Sinf;hayvonlar sistematikasidagi eng kichik birlik;yo'q
+tf;Turkum;sinfdan keyingi, oiladan oldingi sistematik birlik;ha
+tf;Turkum;kasallik qo'zg'atuvchi sodda hayvon;yo'q
+tf;Urug';oiladan keyingi, turdan oldingi sistematik birlik;ha
+tf;Urug';hayvonot dunyosi;yo'q
+tf;Tur;hayvonlar sistematikasidagi eng kichik birlik;ha
+tf;Tur;suvni organik qoldiqlardan tozalaydigan organizm;yo'q
+tf;Leyshmaniya;kasallik qo'zg'atuvchi sodda hayvon;ha
+tf;Leyshmaniya;o'lik qoldiqlarni yo'q qiluvchi organizm;yo'q
+yoz;Hayvonot dunyosining boshqa nomi nima?;Fauna;
+yoz;Ikki pallali mollyuskalar suv uchun qanday organizm hisoblanadi?;Biofiltr;
+yoz;Hayvonlar sistematikasidagi eng katta birlik qaysi?;Dunyo;
+yoz;Hayvonlar sistematikasidagi eng kichik birlik qaysi?;Tur;
+yoz;Umurtqali hayvonlar qaysi tipga kiradi?;Xordalilar;xordalilar tipi
+yoz;Qo'ng'ir ayiq qaysi oilaga mansub?;Ayiqlar;
+yoz;Qor barsi qaysi oilaga mansub?;Mushuklar;
+yoz;Yomg'ir chuvalchangi va go'ng qo'ng'izi tabiatda kim hisoblanadi?;Tabiat sanitari;sanitar
+yoz;Asalari va kapalak o'simliklarni nima qiladi?;Changlatadi;
