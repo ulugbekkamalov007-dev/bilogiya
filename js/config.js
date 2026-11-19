@@ -21,7 +21,7 @@ export const CONFIG = {
 
   // Bepul Supabase: 1 GB fayl, 50 MB/fayl. Katta videolarni YouTube (unlisted) yoki
   // tashqi URL (Cloudflare R2 / Bunny) orqali ulang. Pastdagi son — admin yuklaydigan fayl limiti (MB).
-  MAX_UPLOAD_MB: 50,
+  MAX_UPLOAD_MB: 1024,
 
   // Dasturchi bilan bog'lanish (Sozlamalar → Dasturchi va birinchi kirishdagi eslatma)
   DEV_NAME: 'Ulugbek (dasturchi)',

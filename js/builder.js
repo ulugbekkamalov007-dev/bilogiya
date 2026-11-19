@@ -29,10 +29,13 @@ export function parseCards(text) {
     if (line.startsWith('#')) { theme = line.replace(/^#+\s*(?:mavzu|bob|тема)?\s*[:\-–]?\s*/i, '').trim(); continue; }
     const sep = line.includes('\t') ? '\t' : line.includes(';') ? ';' : line.includes('|') ? '|' : ',';
     const p = line.split(sep).map(x => x.trim()), k = p[0].toLowerCase();
-    if (k === 'tf' && p.length >= 4) out.push(['tf', p[1], p[2], /^(ha|true|1|yes|da|\+|to'g'ri|togri)$/i.test(p[3]), theme]);
+    if (k === 'tf' && p.length >= 4) out.push(['tf', p[1], p[2], /^(ha|true|1|yes|da|\+|to'g'ri|togri)$/i.test(p[3]), theme, p[4] || '']);
     else if ((k === 'yoz' || k === 'type') && p.length >= 3) out.push(['type', p[1], p[2], (p[3] || '').split(/[,/]/).map(s => s.trim()).filter(Boolean), theme]);
     else if (p.length >= 2 && !(/^(termin|term|термин)$/i.test(p[0]) && /^(ta['’‘`]?rif|tarif|izoh|definition|определение)$/i.test(p[1]))) out.push(['type', p[1], p[0], [], theme]);
   }
+  // "Noto'g'ri" kartochkada haqiqiy ta'rif ko'rsatilmagan bo'lsa — shu iboraning "to'g'ri" kartochkasidan olamiz
+  const real = {}; out.forEach(c => { if (c[0] === 'tf' && c[3]) real[c[1].toLowerCase()] = c[2]; else if (c[0] === 'type') real[c[2].toLowerCase()] = c[1]; });
+  out.forEach(c => { if (c[0] === 'tf' && !c[3] && !c[5]) c[5] = real[c[1].toLowerCase()] || ''; });
   return out;
 }
 
@@ -249,7 +252,14 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
       kitob.pdf   taqdimot.pdf   video.mp4 (yoki video.txt — YouTube havola)
       kartochka.csv   test.txt   takrorlash.txt (ixtiyoriy)
     Kirish/              (so'z boshi: mavzu hisoblanmaydi, birinchi bo'lib turadi)</pre>
-      <button class="btn lg block" id="pf">${ic('folder', 18)} ${esc(T('Papkani tanlash', 'Выбрать папку', 'Choose folder'))}</button><div id="pv" class="mt"></div></div>`;
+      <button class="btn lg block" id="pk">⚡ ${esc(T('Tayyor kursni o\'rnatish (Biologiya 5-sinf, ilova bilan birga keladi)', 'Установить готовый курс (Биология 5 класс, из приложения)', 'Install the ready course (Biology grade 5, bundled)'))}</button>
+      <button class="btn ghost lg block mt" id="pf">${ic('folder', 18)} ${esc(T('Yoki o\'z papkangizni tanlash', 'Или выбрать свою папку', 'Or choose your own folder'))}</button><div class="bd-prog mt" id="kg" hidden>${bar(0)}<small class="muted" id="kt"></small></div><div id="pv" class="mt"></div></div>`;
+    $('#pk', host).onclick = e => run(e.currentTarget, async () => {
+      const r = await fetch('/kurs5/manifest.json', { cache: 'no-cache' }); if (!r.ok) throw new Error(T('Tayyor kurs topilmadi (kurs5/ papkasi deploy qilinganmi?)', 'Готовый курс не найден', 'Bundled course not found'));
+      const man = await r.json(), files = [], kg = $('#kg', host); kg.hidden = false; let done = 0;
+      for (const m of man.files) { const x = await fetch('/kurs5/' + m.split('/').map(encodeURIComponent).join('/'), { cache: 'no-cache' }); if (!x.ok) throw new Error(m + ': ' + x.status); const f = new File([await x.blob()], m.split('/').pop()); Object.defineProperty(f, 'webkitRelativePath', { value: 'kurs5/' + m }); files.push(f); $('.pbar i', kg).style.width = Math.round(++done / man.files.length * 100) + '%'; $('#kt', host).textContent = T('Yuklab olinmoqda', 'Скачивание', 'Downloading') + ` ${done}/${man.files.length}`; }
+      kg.hidden = true; preview(files);
+    });
     $('#pf', host).onclick = () => { const i = document.createElement('input'); i.type = 'file'; i.webkitdirectory = true; i.multiple = true; i.onchange = () => preview(Array.from(i.files)); i.click(); };
     const preview = files => {
       const pl = planOf(files), chl = [...pl.chapters.values()].sort((a, b) => nat(a.name, b.name)), nT = chl.reduce((a, x) => a + x.topics.size, 0), nF = chl.reduce((a, x) => a + [...x.topics.values()].reduce((q, t) => q + t.files.length, 0), 0), mb = Math.round(files.reduce((a, f) => a + f.size, 0) / 1048576);
@@ -271,16 +281,21 @@ route('/teach/build/:id', async ({ el, params, alive }) => {
       line('📁 ' + ch.name);
       let cover = null; if (ch.cover) { try { cover = 'r2:' + (await r2Upload(ch.cover)).key; } catch (e) { line('✗ cover: ' + (e.message || e)); } }
       const { data: chr, error } = await sb.from('course_chapters').insert({ course_id: id, title: U(ch.name), cover, position: ci++ }).select('id').single(); if (error) throw error;
-      const topics = [...ch.topics.values()].sort((a, b) => nat(a.name, b.name));
+      const isI = n => /^\W*(0[\s.\-]*)?(kirish|so['’‘ʻ`]?z\s*boshi|intro)/i.test(n), topics = [...ch.topics.values()].sort((a, b) => (isI(b.name) - isI(a.name)) || nat(a.name, b.name));
       for (const tp of topics) {
         const isIntro = /^\W*(0[\s.\-]*)?(kirish|so['’‘ʻ`]?z\s*boshi|intro)/i.test(tp.name); if (!isIntro) n++;
         const { data: s, error: e1 } = await sb.from('course_sections').insert({ course_id: id, chapter_id: chr.id, kind: isIntro ? 'intro' : 'topic', title: U(tp.name), position: pos++ }).select('*').single(); if (e1) throw e1; secs.push(s);
         const rv = !isIntro && tp.files.find(x => x.slot === 'review'); let rs = null;
-        if (rv) { const { data: r, error: e2 } = await sb.from('course_sections').insert({ course_id: id, chapter_id: chr.id, kind: 'review', title: U(`Takrorlash: ${Math.max(1, n - 1)}-mavzu va ${n}-mavzu`), position: pos++ }).select('*').single(); if (e2) throw e2; rs = r; secs.push(r); }
-        for (const x of tp.files.slice().sort((a, b) => (SLOTS[a.slot]?.i ?? 9) - (SLOTS[b.slot]?.i ?? 9))) {
+        if (rv) { const nums = (stem(rv.f.name).match(/\d+/g) || []).map(Number), rt = nums.length > 1 ? `Takrorlash: ${nums[0]}–${nums[nums.length - 1]}-mavzular` : `Takrorlash: ${Math.max(1, n - 1)}-mavzu va ${n}-mavzu`;
+          const { data: r, error: e2 } = await sb.from('course_sections').insert({ course_id: id, chapter_id: chr.id, kind: 'review', title: U(rt), position: pos++ }).select('*').single(); if (e2) throw e2; rs = r; secs.push(r); }
+        // topikdagi hamma test fayllari bitta "Test" slotiga qism-qism bo'lib yuklanadi
+        const tf = tp.files.filter(x => x.slot === 'test'), tfs = tf.map(x => x.f).sort((a, b) => nat(a.name, b.name));
+        const seq = tp.files.filter(x => x.slot !== 'test').sort((a, b) => (SLOTS[a.slot]?.i ?? 9) - (SLOTS[b.slot]?.i ?? 9)); if (tfs.length) seq.push({ slot: 'test', tests: tfs, f: { name: `test × ${tfs.length}` } });
+        for (const x of seq) {
           const d = line('… ' + tp.name + ' / ' + x.f.name);
           try {
-            if (x.slot === 'review') await setSlot(rs, 'test', { file: x.f });
+            if (x.tests) await setSlot(s, 'test', { files: x.tests }, f => { d.textContent = `… ${tp.name} / ${x.f.name} ${Math.round(f * 100)}%`; });
+            else if (x.slot === 'review') await setSlot(rs, 'test', { file: x.f });
             else if (x.link) await setSlot(s, 'video', { link: (await x.f.text()).trim() });
             else await setSlot(s, x.slot, { file: x.f }, f => { d.textContent = `… ${tp.name} / ${x.f.name} ${Math.round(f * 100)}%`; });
             d.textContent = '✓ ' + tp.name + ' / ' + x.f.name;

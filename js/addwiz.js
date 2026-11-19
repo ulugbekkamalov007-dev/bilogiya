@@ -1,5 +1,5 @@
 // Kutubxonaga qo'shish: butun ekranli oyna. 1) turni tanlash (cheksiz aylanuvchi zanjir), 2) forma, 3) manba tanlash (+ tugmasi → tanlov varag'i)
-import { sb, state, t, addDict, esc, ic, $, $$, toast, btnBusy, i18nField, upload, friendlyErr, go } from './core.js';
+import { sb, state, t, addDict, esc, ic, $, $$, toast, btnBusy, i18nField, upload, uploadContent, friendlyErr, go } from './core.js';
 import { holdLock } from './lock.js';
 import { CONFIG } from './config.js';
 
@@ -87,8 +87,7 @@ export function openAddWizard(fid, done, H) {
             if (f.size > CONFIG.MAX_UPLOAD_MB * 1048576) throw new Error(t('lib.too_big', { mb: CONFIG.MAX_UPLOAD_MB }));
             if (type === 'video') { const pr = await H.probeMedia(f, 'video'); if (!pr.ok) throw new Error(t('lib.bad_media')); Object.assign(row.meta, { width: pr.w, height: pr.h, duration: pr.d }); }
             if (type === 'audio') { const pr = await H.probeMedia(f, 'audio'); if (pr.ok) row.meta.duration = pr.d; else row.meta.noplay = true; }
-            const pg = $('#pg', fs); pg.hidden = false; $('i', pg).style.width = '30%'; const path = `${id}/${H.safeName(f.name)}`;
-            await upload('content', path, f, { contentType: H.mimeOf(f) }); $('i', pg).style.width = '100%';
+            const pg = $('#pg', fs); pg.hidden = false; $('i', pg).style.width = '30%'; const path = await uploadContent(f, id, { contentType: H.mimeOf(f), onProgress: x => { $('i', pg).style.width = Math.round(30 + x * 70) + '%'; } }); $('i', pg).style.width = '100%';
             Object.assign(row, { storage_path: path, size_bytes: f.size, source: 'storage' });
           }
           const { error } = await sb.from('items').insert(row); if (error) throw error;

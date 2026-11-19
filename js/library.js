@@ -1,5 +1,5 @@
 // Kutubxona: Drive kabi papkalar, materiallar (video/PDF/taqdimot/kitob/test/havola), pullik to'plamlar, admin boshqaruvi
-import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, confirmDlg, btnBusy, i18nField, upload, signedUrl, safeName, fmtSize, fmtDur, trackTime, spinner, memo, memoClear, friendlyErr, itemCmp } from './core.js';
+import { sb, state, t, tr, addDict, route, go, onLeave, esc, ic, $, $$, modal, toast, confirmDlg, btnBusy, i18nField, upload, uploadContent, signedUrl, safeName, fmtSize, fmtDur, trackTime, spinner, memo, memoClear, friendlyErr, itemCmp } from './core.js';
 import { T } from './ui.js';
 import { mountPlayer } from './player.js';
 import { offlineBox, offList } from './offline.js';
@@ -222,8 +222,8 @@ function addDialog(type, fid, done) {
         const id = crypto.randomUUID(); let row = { id, folder_id: fid, title, description, visible, created_by: state.user.id, meta: {} };
         const putFile = async f => {
           if (f.size > CONFIG.MAX_UPLOAD_MB * 1048576) throw new Error(t('lib.too_big', { mb: CONFIG.MAX_UPLOAD_MB }));
-          const pg = $('#pg', el); pg.hidden = false; $('i', pg).style.width = '30%'; const path = `${id}/${safeName(f.name)}`;
-          await upload('content', path, f, { contentType: mimeOf(f) }); $('i', pg).style.width = '100%'; row.storage_path = path; row.size_bytes = f.size; row.source = 'storage';
+          const pg = $('#pg', el); pg.hidden = false; $('i', pg).style.width = '30%'; const path = await uploadContent(f, id, { contentType: mimeOf(f), onProgress: x => { $('i', pg).style.width = Math.round(30 + x * 70) + '%'; } });
+           $('i', pg).style.width = '100%'; row.storage_path = path; row.size_bytes = f.size; row.source = 'storage';
         };
         if (type === 'video') {
           const s = $('input[name=s]:checked', el).value; row.kind = 'video';

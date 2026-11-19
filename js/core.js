@@ -249,8 +249,18 @@ export async function upload(bucket, path, blob, opts = {}) {
   }
   console.warn('[yuklash]', last); throw new Error(t('err.upl') + ' [' + String(last?.message || last).slice(0, 60) + ']');
 }
+// Material fayllari (video/audio/PDF…) R2 ga yuklanadi (admin ham, o'qituvchi ham; 2 GB gacha). Worker bo'lmasa — eski Supabase 'content'.
+export async function uploadContent(file, id, opts = {}) {
+  const r2 = await import('./r2.js');
+  try { const r = await r2.r2Upload(file, opts.onProgress); return 'r2:' + r.key; }
+  catch (e) {
+    if (!/upload_start_(404|405|5\d\d)|failed to fetch/i.test(String(e?.message || e))) { if (/upload_start_40[13]/.test(String(e?.message))) throw new Error(t('err.upl') + ' (ruxsat yo\'q / kirish muddati tugagan)'); throw e; }
+  }
+  const path = `${id}/${safeName(file.name)}`; await upload('content', path, file, { contentType: opts.contentType }); return path;
+}
 const urlCache = new Map();
 export async function signedUrl(bucket, path, ttl = 3600) {
+  if (typeof path === 'string' && path.startsWith('r2:')) return (await import('./r2.js')).r2Src(path.slice(3));
   const k = bucket + '/' + path, c = urlCache.get(k);
   if (c && c.exp > Date.now()) return c.url;
   const { data, error } = await sb.storage.from(bucket).createSignedUrl(path, ttl);

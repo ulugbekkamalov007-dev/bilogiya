@@ -42,8 +42,8 @@ export function renderCards(host, cards, onDone, onProg) {
     const res = ok => {
       tries++; $$('button,input', host).forEach(x => x.disabled = true);
       const exp = kind === 'tf' ? (c ? T('Aynan shunday: ', 'Верно: ', 'Correct: ') : T('Noto\'g\'ri. To\'g\'ri ta\'rif: ', 'Неверно. Правильно: ', 'Wrong. Correct: ')) + (c ? '' : '') : T('To\'g\'ri javob: ', 'Правильный ответ: ', 'Correct answer: ');
-      const hint = kind === 'tf' ? (c ? '' : esc(T('Bu ibora ta\'rifi boshqacha.', 'У этого термина другое определение.', 'This term has another definition.'))) : `<b>${esc(b)}</b>`;
-      $('#fb', host).innerHTML = `<div class="crd-fb ${ok ? 'good' : 'bad'}"><b>${ok ? '✅ ' + esc(T('To\'g\'ri!', 'Верно!', 'Correct!')) : '❌ ' + esc(T('Xato', 'Ошибка', 'Wrong'))}</b> ${ok ? '' : hint}</div><button class="btn block mt" id="nx">${esc(T('Keyingisi', 'Далее', 'Next'))} ${ic('chev', 16)}</button>`;
+      const real = it.c[5], hint = kind === 'tf' ? (c ? `<b>${esc(a)}</b> — ${esc(b)}` : real ? `${esc(T('Aslida', 'На самом деле', 'Actually'))}: <b>${esc(a)}</b> — ${esc(real)}` : esc(T('Bu ibora ta\'rifi boshqacha.', 'У этого термина другое определение.', 'This term has another definition.'))) : `<b>${esc(b)}</b>`;
+      $('#fb', host).innerHTML = `<div class="crd-fb ${ok ? 'good' : 'bad'}"><b>${ok ? '✅ ' + esc(T('To\'g\'ri!', 'Верно!', 'Correct!')) : '❌ ' + esc(T('Xato', 'Ошибка', 'Wrong'))}</b> ${ok && kind === 'tf' && !c && it.c[5] ? esc(T('To\'g\'ri ta\'rif', 'Верное определение', 'Correct definition')) + ': ' + esc(a) + ' — ' + esc(it.c[5]) : ok ? '' : hint}</div><button class="btn block mt" id="nx">${esc(T('Keyingisi', 'Далее', 'Next'))} ${ic('chev', 16)}</button>`;
       queue.shift(); if (ok) right++; else { it.miss++; queue.splice(Math.min(queue.length, 2 + Math.floor(Math.random() * 3)), 0, it); }
       const nx = $('#nx', host); nx.disabled = false; nx.focus(); nx.onclick = next;
     };

@@ -1,5 +1,5 @@
 // O'qituvchi (va admin) materiallar markazi: papkalar, 5 ta kategoriya, yuklash (tanlash + drag&drop), amallar menyusi, guruhga biriktirish, chiqitdon
-import { sb, state, tr, route, go, esc, ic, $, $$, modal, toast, btnBusy, confirmDlg, spinner, fmtDate, fmtSize, i18nField, upload, safeName, itemCmp } from './core.js';
+import { sb, state, tr, route, go, esc, ic, $, $$, modal, toast, btnBusy, confirmDlg, spinner, fmtDate, fmtSize, i18nField, upload, uploadContent, safeName, itemCmp } from './core.js';
 import { T, skeleton, empty, errBox, dbErr } from './ui.js';
 import { CONFIG } from './config.js';
 import { probeMedia, mimeOf, ytId } from './library.js';
@@ -154,7 +154,7 @@ route('/teach/materials', async ({ el, q, alive }) => {
   const purge = async ref => {
     const { k, id, o } = find(ref);
     if (!(await confirmDlg(T('Butunlay o\'chirilsinmi? Buni qaytarib bo\'lmaydi.', 'Удалить навсегда? Это нельзя отменить.', 'Delete permanently? This cannot be undone.'), T('Butunlay o\'chirish', 'Удалить навсегда', 'Delete forever')))) return;
-    if (k === 'i' && o.storage_path) await sb.storage.from('content').remove([o.storage_path]).catch(() => { });
+    if (k === 'i' && o.storage_path) { if (o.storage_path.startsWith('r2:')) import('./r2.js').then(r => r.r2Delete(o.storage_path.slice(3))).catch(() => { }); else await sb.storage.from('content').remove([o.storage_path]).catch(() => { }); }
     const { error } = await sb.from(k === 'f' ? 'folders' : 'items').delete().eq('id', id); if (error) return toast(dbErr(error), 'err'); reload();
   };
 
@@ -204,9 +204,9 @@ route('/teach/materials', async ({ el, q, alive }) => {
         const bad = (forced === 'audio' && !EXT_KIND[e]) ? '' : await sniff(f); if (bad && !(forced === 'audio' || kind === 'audio')) throw new Error(T('Fayl ichidagi tur kengaytmaga mos emas (buzilgan yoki soxta fayl)', 'Содержимое не соответствует расширению (повреждён или подделан)', 'File content does not match its extension (corrupt or fake)'));
         const meta = {}; if (k2 === 'video' || k2 === 'audio') { const pr = await probeMedia(f, k2); if (!pr.ok && k2 === 'audio') meta.noplay = true; else if (!pr.ok) throw new Error(T('Brauzer bu faylni ocha olmaydi. MP4/MP3 ga o\'tkazing', 'Браузер не может открыть файл. Конвертируйте в MP4/MP3', 'The browser cannot open this file. Convert to MP4/MP3')); if (pr.ok) meta.duration = pr.d; if (k2 === 'video') { meta.width = pr.w; meta.height = pr.h; } }
         st(i, T('yuklanmoqda…', 'загрузка…', 'uploading…'));
-        const pi = partInfo(f.name), id = crypto.randomUUID(), path = `${id}/${safeName(f.name)}`; await upload('content', path, f, { contentType: mimeOf(f) });
+        const pi = partInfo(f.name), id = crypto.randomUUID(); const path = await uploadContent(f, id, { contentType: mimeOf(f), onProgress: x => st(i, Math.round(x * 100) + '%') });
         const { error } = await sb.from('items').insert({ id, folder_id: target, kind: k2, title: await i18nField(pi ? `${pi.s}-sinf ${pi.m}-mavzu` : f.name.replace(/\.[^.]+$/, ''), state.lang), description: pi ? await i18nField(`${pi.q}-qism`, state.lang) : {}, visible: !hideNew, source: 'storage', storage_path: path, size_bytes: f.size, meta, created_by: uid });
-        if (error) { await sb.storage.from('content').remove([path]).catch(() => { }); throw error; }
+        if (error) { (path.startsWith('r2:') ? import('./r2.js').then(r => r.r2Delete(path.slice(3))) : sb.storage.from('content').remove([path])).catch(() => { }); throw error; }
         st(i, '✓', 'ok');
       } catch (err) { st(i, '✗ ' + (err?.message || String(err)).slice(0, 90), 'err'); }
     }
