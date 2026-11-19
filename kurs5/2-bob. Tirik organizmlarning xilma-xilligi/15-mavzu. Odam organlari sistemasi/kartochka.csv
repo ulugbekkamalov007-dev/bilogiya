@@ -1,0 +1,33 @@
+tf;Organ;bir nechta to'qimadan hosil bo'lgan, muayyan vazifani bajaruvchi qism;ha
+tf;Organ;yurakka qon olib keluvchi qon tomir;yo'q
+tf;Organlar sistemasi;birgalikda umumiy vazifani bajaruvchi organlar majmuasi;ha
+tf;Organlar sistemasi;to'qimalar orasida joylashgan eng mayda qon tomir;yo'q
+tf;Arteriya;yurakdan chiquvchi qon tomir;ha
+tf;Arteriya;o'pkada gazlar almashinuvi sodir bo'ladigan pufakcha;yo'q
+tf;Vena;yurakka qon olib keluvchi qon tomir;ha
+tf;Vena;bakteriya va viruslarni ushlab qolib zararsizlantiruvchi tuzilmalar;yo'q
+tf;Kapillyar;to'qimalar orasida joylashgan eng mayda qon tomir;ha
+tf;Kapillyar;limfa sistemasiga kiruvchi, limfotsit hosil qiladigan organ;yo'q
+tf;Alveola;o'pkada gazlar almashinuvi sodir bo'ladigan pufakcha;ha
+tf;Alveola;ichki sekretsiya bezlari qonga ajratadigan biologik faol modda;yo'q
+tf;Limfa tugunlari;bakteriya va viruslarni ushlab qolib zararsizlantiruvchi tuzilmalar;ha
+tf;Limfa tugunlari;qo'rquv paytida buyrak usti bezidan ko'p ajraladigan gormon;yo'q
+tf;Taloq;limfa sistemasiga kiruvchi, limfotsit hosil qiladigan organ;ha
+tf;Taloq;ichki sekretsiya bezlaridan biri;yo'q
+tf;Gormon;ichki sekretsiya bezlari qonga ajratadigan biologik faol modda;ha
+tf;Gormon;bosh miya va orqa miyadan iborat sistema;yo'q
+tf;Adrenalin;qo'rquv paytida buyrak usti bezidan ko'p ajraladigan gormon;ha
+tf;Adrenalin;bir nechta to'qimadan hosil bo'lgan, muayyan vazifani bajaruvchi qism;yo'q
+tf;Gipofiz;ichki sekretsiya bezlaridan biri;ha
+tf;Gipofiz;birgalikda umumiy vazifani bajaruvchi organlar majmuasi;yo'q
+tf;Markaziy nerv sistemasi;bosh miya va orqa miyadan iborat sistema;ha
+tf;Markaziy nerv sistemasi;yurakdan chiquvchi qon tomir;yo'q
+yoz;Yurakdan chiquvchi qon tomir nima deyiladi?;Arteriya;
+yoz;Yurakka qon olib keluvchi qon tomir nima deyiladi?;Vena;
+yoz;To'qimalar orasidagi eng mayda qon tomirlar nima deyiladi?;Kapillyar;kapillyarlar
+yoz;Ichki sekretsiya bezlari ishlab chiqaradigan modda nima deyiladi?;Gormon;
+yoz;Qo'rquv paytida ko'p ajraladigan gormon qaysi?;Adrenalin;
+yoz;Limfa sistemasiga kiruvchi organ qaysi?;Taloq;
+yoz;Bosh miya qayerda joylashgan?;Miya qutisi;miya qutisida
+yoz;Orqa miya qayerda joylashgan?;Umurtqa pog'onasi kanalida;umurtqa pog'onasi
+yoz;Odamda nechta qon aylanish doirasi bor?;2;ikkita,ikki,2 ta
