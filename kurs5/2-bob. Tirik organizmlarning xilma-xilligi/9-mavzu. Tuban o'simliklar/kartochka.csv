@@ -1,0 +1,33 @@
+tf;Xlorella;sharsimon, bir hujayrali yashil suvo't;ha
+tf;Xlorella;spiralsimon xromatoforli, ipsimon yashil suvo't;yo'q
+tf;Xlamidomonada;xivchinli, qizil ko'zchali bir hujayrali suvo't;ha
+tf;Xlamidomonada;dengiz salati deb ataladigan qizil suvo't;yo'q
+tf;Ulotriks;belbog'simon xromatoforli, ipsimon yashil suvo't;ha
+tf;Ulotriks;tasmasimon, yodga boy qo'ng'ir suvo't;yo'q
+tf;Spirogira;spiralsimon xromatoforli, ipsimon yashil suvo't;ha
+tf;Spirogira;suvo'tlarda rang beruvchi pigment joylashgan qism;yo'q
+tf;Porfira;dengiz salati deb ataladigan qizil suvo't;ha
+tf;Porfira;ildizga o'xshash, suvo'tni suv tubiga biriktiruvchi hosila;yo'q
+tf;Laminariya;tasmasimon, yodga boy qo'ng'ir suvo't;ha
+tf;Laminariya;ulotriksning jinssiz ko'payishida hosil bo'ladigan to'rt xivchinli hujayra;yo'q
+tf;Xromatofor;suvo'tlarda rang beruvchi pigment joylashgan qism;ha
+tf;Xromatofor;jinsiy ko'payishda hosil bo'ladigan, qalin po'st bilan o'raladigan hujayra;yo'q
+tf;Rizoid;ildizga o'xshash, suvo'tni suv tubiga biriktiruvchi hosila;ha
+tf;Rizoid;qizil suvo'tlarga xos pigment;yo'q
+tf;Zoospora;ulotriksning jinssiz ko'payishida hosil bo'ladigan to'rt xivchinli hujayra;ha
+tf;Zoospora;xlamidomonadada yorug'likni sezuvchi qism;yo'q
+tf;Zigota;jinsiy ko'payishda hosil bo'ladigan, qalin po'st bilan o'raladigan hujayra;ha
+tf;Zigota;sharsimon, bir hujayrali yashil suvo't;yo'q
+tf;Antotsian;qizil suvo'tlarga xos pigment;ha
+tf;Antotsian;xivchinli, qizil ko'zchali bir hujayrali suvo't;yo'q
+tf;Qizil ko'zcha;xlamidomonadada yorug'likni sezuvchi qism;ha
+tf;Qizil ko'zcha;belbog'simon xromatoforli, ipsimon yashil suvo't;yo'q
+yoz;Sharsimon bir hujayrali yashil suvo't qaysi?;Xlorella;
+yoz;Qizil ko'zchali, xivchinli bir hujayrali suvo't qaysi?;Xlamidomonada;
+yoz;Suvo'tni suv tubiga biriktiruvchi ildizga o'xshash hosila nima deyiladi?;Rizoid;
+yoz;Dengiz salati deb ataladigan suvo't qaysi?;Porfira;
+yoz;Tasmasimon, yodga boy qo'ng'ir suvo't qaysi?;Laminariya;
+yoz;Qizil suvo'tlarga xos pigment qaysi?;Antotsian;
+yoz;Ulotriks jinssiz ko'payganda nima hosil qiladi?;Zoospora;
+yoz;Xlamidomonadada yorug'likni sezadigan qism qaysi?;Qizil ko'zcha;
+yoz;Spirogira suv yuzasida boshqa suvo'tlar bilan nimani hosil qiladi?;Baqa to'nlari;baqa to'ni
