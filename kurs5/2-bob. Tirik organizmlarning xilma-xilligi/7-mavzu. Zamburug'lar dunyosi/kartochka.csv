@@ -1,0 +1,30 @@
+tf;Mikologiya;zamburug'larni o'rganuvchi fan;ha
+tf;Mikologiya;mog'orda sporalar yetiladigan qism;yo'q
+tf;Achitqi zamburug'i;ovalsimon bir hujayrali zamburug', non tayyorlashda ishlatiladi;ha
+tf;Achitqi zamburug'i;ayrim mog'orlardan olinadigan, bakteriyalarga qarshi dori;yo'q
+tf;Mog'or zamburug'i;nonni qoplab, yashil dog' hosil qiluvchi zamburug';ha
+tf;Mog'or zamburug'i;mog'orlagan oziqdagi odamni zaharlovchi modda;yo'q
+tf;Sporangiy;mog'orda sporalar yetiladigan qism;ha
+tf;Sporangiy;oyoqcha va qalpoqchadan iborat meva tanali zamburug'lar;yo'q
+tf;Antibiotik;ayrim mog'orlardan olinadigan, bakteriyalarga qarshi dori;ha
+tf;Antibiotik;boshoqdoshlarda parazitlik qilib, boshoqni qora kukunga aylantiruvchi zamburug';yo'q
+tf;Toksin;mog'orlagan oziqdagi odamni zaharlovchi modda;ha
+tf;Toksin;atirgul bargida zangga o'xshash dog' hosil qiluvchi zamburug';yo'q
+tf;Qalpoqchali zamburug'lar;oyoqcha va qalpoqchadan iborat meva tanali zamburug'lar;ha
+tf;Qalpoqchali zamburug'lar;o'simliklarda vilt (so'lish) kasalligini keltirib chiqaruvchi zamburug';yo'q
+tf;Qorakuya;boshoqdoshlarda parazitlik qilib, boshoqni qora kukunga aylantiruvchi zamburug';ha
+tf;Qorakuya;zaharli qalpoqchali zamburug';yo'q
+tf;Zang zamburug'i;atirgul bargida zangga o'xshash dog' hosil qiluvchi zamburug';ha
+tf;Zang zamburug'i;zamburug'larni o'rganuvchi fan;yo'q
+tf;Vertitsillium;o'simliklarda vilt (so'lish) kasalligini keltirib chiqaruvchi zamburug';ha
+tf;Vertitsillium;ovalsimon bir hujayrali zamburug', non tayyorlashda ishlatiladi;yo'q
+tf;Muxomor;zaharli qalpoqchali zamburug';ha
+tf;Muxomor;nonni qoplab, yashil dog' hosil qiluvchi zamburug';yo'q
+yoz;Zamburug'larni o'rganuvchi fan qaysi?;Mikologiya;
+yoz;Non tayyorlashda ishlatiladigan bir hujayrali zamburug' qaysi?;Achitqi;achitqi zamburug'i
+yoz;Mog'orda sporalar yetiladigan qism nima deyiladi?;Sporangiy;
+yoz;Bakteriyalarga qarshi dori nima deyiladi?;Antibiotik;
+yoz;Boshoqda qora kukun hosil qiluvchi zamburug' qaysi?;Qorakuya;
+yoz;Atirgul bargida zangsimon dog' hosil qiluvchi zamburug' qaysi?;Zang zamburug'i;zang
+yoz;Vilt kasalligini keltirib chiqaruvchi zamburug' qaysi?;Vertitsillium;
+yoz;Mog'orlagan oziqdagi odamni zaharlovchi moddalar nima deyiladi?;Toksin;toksinlar
