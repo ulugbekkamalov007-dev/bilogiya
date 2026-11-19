@@ -1,0 +1,33 @@
+tf;Vegetativ organlar;ildiz, poya va barg;ha
+tf;Vegetativ organlar;sistematikadagi eng kichik birlik;yo'q
+tf;Generativ organlar;o'simlikning ko'payishi va tarqalishini ta'minlovchi organlar;ha
+tf;Generativ organlar;o'xshash turkumlar birlashmasidan hosil bo'ladigan birlik;yo'q
+tf;Produtsent;organik modda hosil qiluvchi organizm;ha
+tf;Produtsent;tanasi ildiz, poya va bargga bo'linmagan o'simliklar;yo'q
+tf;Tur;sistematikadagi eng kichik birlik;ha
+tf;Tur;tuban o'simlik tanasi;yo'q
+tf;Oila;o'xshash turkumlar birlashmasidan hosil bo'ladigan birlik;ha
+tf;Oila;quritilib saqlanadigan o'simlik namunalari;yo'q
+tf;Tuban o'simliklar;tanasi ildiz, poya va bargga bo'linmagan o'simliklar;ha
+tf;Tuban o'simliklar;sistematika fanining asoschisi, shved olimi;yo'q
+tf;Tallom;tuban o'simlik tanasi;ha
+tf;Tallom;o'simlik kislorod ajratishini ko'rsatgan tajriba;yo'q
+tf;Gerbariy;quritilib saqlanadigan o'simlik namunalari;ha
+tf;Gerbariy;makkajo'xori mansub bo'lgan oila;yo'q
+tf;Karl Linney;sistematika fanining asoschisi, shved olimi;ha
+tf;Karl Linney;dorivor qoqio't mansub bo'lgan oila;yo'q
+tf;Pristli tajribasi;o'simlik kislorod ajratishini ko'rsatgan tajriba;ha
+tf;Pristli tajribasi;ildiz, poya va barg;yo'q
+tf;Bug'doydoshlar;makkajo'xori mansub bo'lgan oila;ha
+tf;Bug'doydoshlar;o'simlikning ko'payishi va tarqalishini ta'minlovchi organlar;yo'q
+tf;Qoqio'tdoshlar;dorivor qoqio't mansub bo'lgan oila;ha
+tf;Qoqio'tdoshlar;organik modda hosil qiluvchi organizm;yo'q
+yoz;Ildiz, poya va barg qaysi organlar guruhiga kiradi?;Vegetativ organlar;vegetativ
+yoz;Organik modda hosil qiluvchi organizm nima deyiladi?;Produtsent;produtsentlar
+yoz;Sistematikadagi eng kichik birlik qaysi?;Tur;
+yoz;Sistematikaga asos solgan shved olimi kim?;Karl Linney;Linney
+yoz;Tuban o'simlik tanasi nima deyiladi?;Tallom;qattana
+yoz;Quritilgan o'simlik namunalari to'plami nima deyiladi?;Gerbariy;
+yoz;Makkajo'xori qaysi oilaga mansub?;Bug'doydoshlar;bug'doydoshlar oilasi
+yoz;Dorivor qoqio't qaysi oilaga mansub?;Qoqio'tdoshlar;qoqio'tdoshlar oilasi
+yoz;Tanasi ildiz, poya, bargga bo'linmagan o'simliklar qanday nomlanadi?;Tuban o'simliklar;tuban
