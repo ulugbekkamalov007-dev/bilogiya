@@ -1,0 +1,37 @@
+tf;Regeneratsiya;organizmning shikastlangan qismini tiklash xususiyati;ha
+tf;Regeneratsiya;bo'shliqichlilarning o'lja tutish va himoyalanish vositasi;yo'q
+tf;Ektoderma;bo'shliqichlilar tanasining tashqi qavati;ha
+tf;Ektoderma;to'garak chuvalchanglar tanasini qoplagan pishiq qobiq;yo'q
+tf;Endoderma;bo'shliqichlilar tanasining ichki qavati;ha
+tf;Endoderma;odamning ichki organlarida parazitlik qiluvchi to'garak chuvalchang;yo'q
+tf;Otiluvchi hujayralar;bo'shliqichlilarning o'lja tutish va himoyalanish vositasi;ha
+tf;Otiluvchi hujayralar;oyoq terisida parazitlik qiluvchi chuvalchang;yo'q
+tf;Kutikula;to'garak chuvalchanglar tanasini qoplagan pishiq qobiq;ha
+tf;Kutikula;og'zidan qonni suyultiruvchi suyuqlik ajratadigan halqali chuvalchang;yo'q
+tf;Askarida;odamning ichki organlarida parazitlik qiluvchi to'garak chuvalchang;ha
+tf;Askarida;uzun tuklari bilan suv tubida harakatlanadigan halqali chuvalchang;yo'q
+tf;Rishta;oyoq terisida parazitlik qiluvchi chuvalchang;ha
+tf;Rishta;bo'g'imoyoqlilarning tashqi skeletini hosil qiluvchi modda;yo'q
+tf;Zuluk;og'zidan qonni suyultiruvchi suyuqlik ajratadigan halqali chuvalchang;ha
+tf;Zuluk;tuxum, lichinka va voyaga yetgan hasharotdan iborat rivojlanish;yo'q
+tf;Nereida;uzun tuklari bilan suv tubida harakatlanadigan halqali chuvalchang;ha
+tf;Nereida;tuxum, lichinka, g'umbak va voyaga yetgan hasharotdan iborat rivojlanish;yo'q
+tf;Xitin;bo'g'imoyoqlilarning tashqi skeletini hosil qiluvchi modda;ha
+tf;Xitin;to'liq o'zgarishda lichinkadan keyingi bosqich;yo'q
+tf;Chala o'zgarish;tuxum, lichinka va voyaga yetgan hasharotdan iborat rivojlanish;ha
+tf;Chala o'zgarish;paypaslagichlarida so'rg'ichlari bor, siyoh chiqaradigan mollyuska;yo'q
+tf;To'liq o'zgarish;tuxum, lichinka, g'umbak va voyaga yetgan hasharotdan iborat rivojlanish;ha
+tf;To'liq o'zgarish;organizmning shikastlangan qismini tiklash xususiyati;yo'q
+tf;G'umbak;to'liq o'zgarishda lichinkadan keyingi bosqich;ha
+tf;G'umbak;bo'shliqichlilar tanasining tashqi qavati;yo'q
+tf;Sakkizoyoq;paypaslagichlarida so'rg'ichlari bor, siyoh chiqaradigan mollyuska;ha
+tf;Sakkizoyoq;bo'shliqichlilar tanasining ichki qavati;yo'q
+yoz;Shikastlangan qismni tiklash xususiyati nima deyiladi?;Regeneratsiya;
+yoz;To'garak chuvalchanglar tanasini qoplagan pishiq qobiq nima deyiladi?;Kutikula;
+yoz;Bo'g'imoyoqlilarning tashqi skeleti nimadan iborat?;Xitin;xitindan
+yoz;Qonni suyultiruvchi suyuqlik ajratib, tibbiyotda ishlatiladigan halqali chuvalchang qaysi?;Zuluk;
+yoz;Kartoshkada parazitlik qiluvchi to'garak chuvalchang qaysi?;Bo'rtma nematoda;nematoda
+yoz;Suvarak qaysi usulda rivojlanadi?;Chala o'zgarish;chala o'zgarish bilan
+yoz;Asalari qaysi usulda rivojlanadi?;To'liq o'zgarish;to'liq o'zgarish bilan
+yoz;To'liq o'zgarishda lichinkadan keyingi bosqich qaysi?;G'umbak;
+yoz;Asalari lichinkasi dastlab nima bilan oziqlantiriladi?;Asalari suti;
