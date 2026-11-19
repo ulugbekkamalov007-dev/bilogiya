@@ -1,0 +1,39 @@
+tf;Hujayra;tiriklikning eng kichik birligi;ha
+tf;Hujayra;yadrosi shakllanmagan organizmlar;yo'q
+tf;Eritrotsit;ikki tomoni botiq, kislorod tashiydigan qon hujayrasi;ha
+tf;Eritrotsit;yadrosi shakllangan organizmlar;yo'q
+tf;Leykotsit;soxta oyoqlari bilan mikroblarni yutadigan qon hujayrasi;ha
+tf;Leykotsit;hujayrani o'rab, moddalarni tanlab o'tkazuvchi qism;yo'q
+tf;Prokariotlar;yadrosi shakllanmagan organizmlar;ha
+tf;Prokariotlar;hujayraning organoidlarni saqlovchi ichki suyuqligi;yo'q
+tf;Eukariotlar;yadrosi shakllangan organizmlar;ha
+tf;Eukariotlar;irsiy axborotni saqlaydigan hujayra qismi;yo'q
+tf;Sitoplazmatik membrana;hujayrani o'rab, moddalarni tanlab o'tkazuvchi qism;ha
+tf;Sitoplazmatik membrana;faqat o'simlik hujayrasiga xos organoid;yo'q
+tf;Sitoplazma;hujayraning organoidlarni saqlovchi ichki suyuqligi;ha
+tf;Sitoplazma;yosh poya va barglardagi yashil plastida;yo'q
+tf;Yadro;irsiy axborotni saqlaydigan hujayra qismi;ha
+tf;Yadro;gul va mevalarda uchraydigan rangli plastida;yo'q
+tf;Plastida;faqat o'simlik hujayrasiga xos organoid;ha
+tf;Plastida;ildiz va urug'dagi rangsiz plastida;yo'q
+tf;Xloroplast;yosh poya va barglardagi yashil plastida;ha
+tf;Xloroplast;hayvon hujayrasidan ortiqcha suyuqlikni chiqarib yuboradigan vakuola;yo'q
+tf;Xromoplast;gul va mevalarda uchraydigan rangli plastida;ha
+tf;Xromoplast;bir xil vazifani bajaruvchi hujayralar yig'indisi;yo'q
+tf;Leykoplast;ildiz va urug'dagi rangsiz plastida;ha
+tf;Leykoplast;o'simlik hujayrasiga mustahkamlik va tayanch beruvchi qobiq;yo'q
+tf;Qisqaruvchi vakuola;hayvon hujayrasidan ortiqcha suyuqlikni chiqarib yuboradigan vakuola;ha
+tf;Qisqaruvchi vakuola;tiriklikning eng kichik birligi;yo'q
+tf;To'qima;bir xil vazifani bajaruvchi hujayralar yig'indisi;ha
+tf;To'qima;ikki tomoni botiq, kislorod tashiydigan qon hujayrasi;yo'q
+tf;Sellyuloza qobiq;o'simlik hujayrasiga mustahkamlik va tayanch beruvchi qobiq;ha
+tf;Sellyuloza qobiq;soxta oyoqlari bilan mikroblarni yutadigan qon hujayrasi;yo'q
+yoz;Tiriklikning eng kichik birligi nima?;Hujayra;
+yoz;Yadrosi shakllanmagan organizmlar guruhi qanday nomlanadi?;Prokariotlar;prokariot
+yoz;Irsiy axborotni saqlovchi hujayra qismi qaysi?;Yadro;
+yoz;Yosh poya va barglardagi yashil plastida nima deyiladi?;Xloroplast;
+yoz;Gul va mevalardagi rangli plastida nima deyiladi?;Xromoplast;
+yoz;Ildiz va urug'dagi rangsiz plastida nima deyiladi?;Leykoplast;
+yoz;Hujayrani o'rab turib, moddalarni tanlab o'tkazuvchi qism qaysi?;Sitoplazmatik membrana;membrana
+yoz;Bir xil vazifani bajaruvchi hujayralar yig'indisi nima deyiladi?;To'qima;
+yoz;Kislorod tashishda ishtirok etuvchi qon hujayrasi qaysi?;Eritrotsit;

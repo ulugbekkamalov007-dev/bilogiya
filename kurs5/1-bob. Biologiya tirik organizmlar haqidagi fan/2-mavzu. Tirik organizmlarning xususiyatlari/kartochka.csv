@@ -1,0 +1,33 @@
+tf;Metabolizm;moddalar almashinuvi;ha
+tf;Metabolizm;o'z ozuqasini o'zi hosil qiluvchi organizm;yo'q
+tf;Assimilyatsiya;organizmda moddalar hosil bo'lishi (sintezlanishi) jarayoni;ha
+tf;Assimilyatsiya;tayyor organik moddalar bilan oziqlanuvchi organizm;yo'q
+tf;Dissimilyatsiya;moddalarning parchalanib energiya ajralishi jarayoni;ha
+tf;Dissimilyatsiya;organizmdan zararli moddalarning chiqarib yuborilishi;yo'q
+tf;Avtotrof;o'z ozuqasini o'zi hosil qiluvchi organizm;ha
+tf;Avtotrof;tashqi muhit ta'siriga javob qaytarish;yo'q
+tf;Geterotrof;tayyor organik moddalar bilan oziqlanuvchi organizm;ha
+tf;Geterotrof;jinsiy ko'payishda ishtirok etuvchi hujayralar;yo'q
+tf;Ayirish;organizmdan zararli moddalarning chiqarib yuborilishi;ha
+tf;Ayirish;tuzilishini saqlagan holda miqdor jihatdan ortish;yo'q
+tf;Ta'sirlanish;tashqi muhit ta'siriga javob qaytarish;ha
+tf;Ta'sirlanish;organizmning sifat jihatdan o'zgarib borishi;yo'q
+tf;Gametalar;jinsiy ko'payishda ishtirok etuvchi hujayralar;ha
+tf;Gametalar;bitta organizm ishtirokida, masalan sporalar bilan ko'payish;yo'q
+tf;O'sish;tuzilishini saqlagan holda miqdor jihatdan ortish;ha
+tf;O'sish;ikki organizm ishtirokida irsiy axborot almashinadigan ko'payish;yo'q
+tf;Rivojlanish;organizmning sifat jihatdan o'zgarib borishi;ha
+tf;Rivojlanish;moddalar almashinuvi;yo'q
+tf;Jinssiz ko'payish;bitta organizm ishtirokida, masalan sporalar bilan ko'payish;ha
+tf;Jinssiz ko'payish;organizmda moddalar hosil bo'lishi (sintezlanishi) jarayoni;yo'q
+tf;Jinsiy ko'payish;ikki organizm ishtirokida irsiy axborot almashinadigan ko'payish;ha
+tf;Jinsiy ko'payish;moddalarning parchalanib energiya ajralishi jarayoni;yo'q
+yoz;Moddalar almashinuvining boshqa nomi nima?;Metabolizm;
+yoz;O'z ozuqasini o'zi sintezlaydigan organizmlar oziqlanishiga ko'ra qanday nomlanadi?;Avtotrof;avtotroflar
+yoz;Tayyor organik moddalar bilan oziqlanuvchi organizmlar qanday nomlanadi?;Geterotrof;geterotroflar
+yoz;Parchalanish natijasida energiya hosil bo'ladigan jarayon qaysi?;Dissimilyatsiya;
+yoz;Oqsil biosintezi va fotosintez qaysi jarayonga misol bo'ladi?;Assimilyatsiya;
+yoz;Tashqi muhit ta'siriga javob qaytarish xususiyati qanday nomlanadi?;Ta'sirlanish;
+yoz;Jinsiy ko'payishda ishtirok etuvchi hujayralar nima deyiladi?;Gametalar;gameta
+yoz;Tirik organizmning o'zidan nasl qoldirishi nima deyiladi?;Ko'payish;
+yoz;Tuzilishini saqlagan holda miqdor jihatdan ortish nima deyiladi?;O'sish;

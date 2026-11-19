@@ -1,0 +1,33 @@
+tf;Kuzatish;tabiiy holatga ta'sir etmasdan, sezgi organlari yordamida ma'lumot to'plash;ha
+tf;Kuzatish;organizm uchun qulay muhit yaratib, o'sish va o'zgarishini o'rganish;yo'q
+tf;Taqqoslash;organizmlarning o'xshash va farqli belgilarini aniqlash;ha
+tf;Taqqoslash;ikki tomoni qavariq linzadan iborat kattalashtiruvchi asbob;yo'q
+tf;Tarixiy usul;qadimgi va hozirgi organizmlarni solishtirib o'zgarishlarni aniqlash;ha
+tf;Tarixiy usul;hujayrani ko'rish uchun ishlatiladigan kuchli kattalashtiruvchi asbob;yo'q
+tf;Tajriba;organizm uchun qulay muhit yaratib, o'sish va o'zgarishini o'rganish;ha
+tf;Tajriba;mikroskop tubusining yuqori qismidagi linza;yo'q
+tf;Lupa;ikki tomoni qavariq linzadan iborat kattalashtiruvchi asbob;ha
+tf;Lupa;mikroskop tubusining pastki qismidagi, preparatga yaqin linza;yo'q
+tf;Mikroskop;hujayrani ko'rish uchun ishlatiladigan kuchli kattalashtiruvchi asbob;ha
+tf;Mikroskop;mikroskop tubusini ko'tarish yoki tushirish uchun vint;yo'q
+tf;Okulyar;mikroskop tubusining yuqori qismidagi linza;ha
+tf;Okulyar;mikroskopda tasvirni yanada tiniqlashtiradigan vint;yo'q
+tf;Obyektiv;mikroskop tubusining pastki qismidagi, preparatga yaqin linza;ha
+tf;Obyektiv;qadimgi organizmlar qoldiqlarini o'rganuvchi olim;yo'q
+tf;Makrovint;mikroskop tubusini ko'tarish yoki tushirish uchun vint;ha
+tf;Makrovint;mikroskopda yorug'likni buyum oynasiga yo'naltiruvchi qism;yo'q
+tf;Mikrovint;mikroskopda tasvirni yanada tiniqlashtiradigan vint;ha
+tf;Mikrovint;tabiiy holatga ta'sir etmasdan, sezgi organlari yordamida ma'lumot to'plash;yo'q
+tf;Paleontolog;qadimgi organizmlar qoldiqlarini o'rganuvchi olim;ha
+tf;Paleontolog;organizmlarning o'xshash va farqli belgilarini aniqlash;yo'q
+tf;Ko'zgu;mikroskopda yorug'likni buyum oynasiga yo'naltiruvchi qism;ha
+tf;Ko'zgu;qadimgi va hozirgi organizmlarni solishtirib o'zgarishlarni aniqlash;yo'q
+yoz;Biologiyani o'rganishning eng qadimgi usuli qaysi?;Kuzatish;
+yoz;Ikki organizmning o'xshash va farqli belgilarini aniqlash usuli qaysi?;Taqqoslash;
+yoz;Qadimgi va hozirgi organizmlarni solishtirish qaysi usul?;Tarixiy usul;tarixiy
+yoz;Qulay muhit yaratib, organizmning o'zgarishini o'rganish qaysi usul?;Tajriba;
+yoz;Ikki tomoni qavariq linzali kattalashtiruvchi asbob qaysi?;Lupa;
+yoz;Mikroskop tubusining pastki qismidagi linza nima deyiladi?;Obyektiv;
+yoz;Mikroskop tubusining yuqori qismidagi linza nima deyiladi?;Okulyar;
+yoz;Okulyari 10, obyektivi 40 bo'lgan mikroskop obyektni necha marta kattalashtiradi?;400;400 marta
+yoz;Mikroskopda tasvirni tiniqlashtirish uchun qaysi vintdan foydalaniladi?;Mikrovint;

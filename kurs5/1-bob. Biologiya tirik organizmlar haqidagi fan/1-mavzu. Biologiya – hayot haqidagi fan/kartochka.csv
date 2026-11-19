@@ -1,0 +1,37 @@
+tf;Biologiya;tiriklik, hayot haqidagi fan;ha
+tf;Biologiya;zamburug'lar haqidagi fan;yo'q
+tf;Botanika;o'simliklar haqidagi fan;ha
+tf;Botanika;ko'zga zo'rg'a ko'rinadigan mayda jonzotlar haqidagi fan;yo'q
+tf;Zoologiya;hayvonlar haqidagi fan;ha
+tf;Zoologiya;hujayra haqidagi fan;yo'q
+tf;Mikologiya;zamburug'lar haqidagi fan;ha
+tf;Mikologiya;belgilarning nasldan naslga o'tishini o'rganadigan fan;yo'q
+tf;Mikrobiologiya;ko'zga zo'rg'a ko'rinadigan mayda jonzotlar haqidagi fan;ha
+tf;Mikrobiologiya;organizmlarning bir-biri va tashqi muhit bilan munosabatini o'rganadigan fan;yo'q
+tf;Sitologiya;hujayra haqidagi fan;ha
+tf;Sitologiya;organizmning ichki tuzilishini o'rganadigan fan;yo'q
+tf;Genetika;belgilarning nasldan naslga o'tishini o'rganadigan fan;ha
+tf;Genetika;organizmda boradigan jarayonlarni o'rganadigan fan;yo'q
+tf;Ekologiya;organizmlarning bir-biri va tashqi muhit bilan munosabatini o'rganadigan fan;ha
+tf;Ekologiya;organizmlarni o'xshash belgilariga ko'ra guruhlarga ajratadigan fan;yo'q
+tf;Anatomiya;organizmning ichki tuzilishini o'rganadigan fan;ha
+tf;Anatomiya;organizmda yod yetishmasligidan kelib chiqadigan kasallik;yo'q
+tf;Fiziologiya;organizmda boradigan jarayonlarni o'rganadigan fan;ha
+tf;Fiziologiya;tirik obyektlarni kesish uchun ishlatiladigan jihoz;yo'q
+tf;Sistematika;organizmlarni o'xshash belgilariga ko'ra guruhlarga ajratadigan fan;ha
+tf;Sistematika;bakteriya va zamburug'larni o'stirishda ishlatiladigan idish;yo'q
+tf;Buqoq;organizmda yod yetishmasligidan kelib chiqadigan kasallik;ha
+tf;Buqoq;tiriklik, hayot haqidagi fan;yo'q
+tf;Skalpel;tirik obyektlarni kesish uchun ishlatiladigan jihoz;ha
+tf;Skalpel;o'simliklar haqidagi fan;yo'q
+tf;Petri idishchasi;bakteriya va zamburug'larni o'stirishda ishlatiladigan idish;ha
+tf;Petri idishchasi;hayvonlar haqidagi fan;yo'q
+yoz;O'simliklar haqidagi fan qanday nomlanadi?;Botanika;botanika
+yoz;Hayvonlar haqidagi fan qanday nomlanadi?;Zoologiya;zoologiya
+yoz;Zamburug'larni o'rganuvchi fan qaysi?;Mikologiya;
+yoz;Hujayra haqidagi fan qaysi?;Sitologiya;
+yoz;Belgilarning nasldan naslga o'tishini o'rganuvchi fan qaysi?;Genetika;
+yoz;Tirik organizmlarni o'xshash belgilariga ko'ra guruhlarga ajratib o'rganuvchi fan qaysi?;Sistematika;
+yoz;Yunoncha logos so'zi nimani anglatadi?;Fan;fan,ta'limot
+yoz;Osh tuziga yod qo'shib buqoq kasalligini davolagan akademik kim?;Yolqin To'raqulov;To'raqulov
+yoz;Dunyoda birinchi bo'lib g'o'za kolleksiyasini yaratgan genetik olim kim?;Jo'ra Musayev;Musayev
