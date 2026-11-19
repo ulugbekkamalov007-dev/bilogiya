@@ -1,0 +1,33 @@
+tf;Flora;o'simliklar dunyosi;ha
+tf;Flora;karbonat angidrid yutilib, kislorod ajraladigan va organik modda hosil bo'ladigan jarayon;yo'q
+tf;Fauna;hayvonot dunyosi;ha
+tf;Fauna;hayotning hujayrasiz shakli;yo'q
+tf;Xlorofill;o'simlikka yashil rang beruvchi, fotosintezda ishtirok etuvchi pigment;ha
+tf;Xlorofill;bakteriyalarda parazitlik qiluvchi virus;yo'q
+tf;Fotosintez;karbonat angidrid yutilib, kislorod ajraladigan va organik modda hosil bo'ladigan jarayon;ha
+tf;Fotosintez;o'simliklarda parazitlik qiluvchi virus;yo'q
+tf;Virus;hayotning hujayrasiz shakli;ha
+tf;Virus;hayvonlarda parazitlik qiluvchi virus;yo'q
+tf;Bakteriofag;bakteriyalarda parazitlik qiluvchi virus;ha
+tf;Bakteriofag;zamburug'ni tuproqqa biriktiruvchi ingichka ipcha;yo'q
+tf;Tamaki mozaikasi virusi;o'simliklarda parazitlik qiluvchi virus;ha
+tf;Tamaki mozaikasi virusi;virusli kasalliklarning eng keng tarqalgani;yo'q
+tf;Quturish virusi;hayvonlarda parazitlik qiluvchi virus;ha
+tf;Quturish virusi;yadrosi shakllanmagan prokariotlar dunyosi;yo'q
+tf;Gifa;zamburug'ni tuproqqa biriktiruvchi ingichka ipcha;ha
+tf;Gifa;geterotrof oziqlanuvchi, gifalar hosil qiluvchi eukariotlar dunyosi;yo'q
+tf;Gripp;virusli kasalliklarning eng keng tarqalgani;ha
+tf;Gripp;o'simliklar dunyosi;yo'q
+tf;Bakteriyalar dunyosi;yadrosi shakllanmagan prokariotlar dunyosi;ha
+tf;Bakteriyalar dunyosi;hayvonot dunyosi;yo'q
+tf;Zamburug'lar dunyosi;geterotrof oziqlanuvchi, gifalar hosil qiluvchi eukariotlar dunyosi;ha
+tf;Zamburug'lar dunyosi;o'simlikka yashil rang beruvchi, fotosintezda ishtirok etuvchi pigment;yo'q
+yoz;O'simliklar dunyosining boshqa nomi nima?;Flora;
+yoz;Hayvonot dunyosining boshqa nomi nima?;Fauna;
+yoz;Hayotning hujayrasiz shakli nima deyiladi?;Virus;viruslar
+yoz;O'simlikka yashil rang beruvchi pigment qaysi?;Xlorofill;
+yoz;Bakteriyalarda parazitlik qiluvchi virus nima deyiladi?;Bakteriofag;
+yoz;Zamburug'ni tuproqqa biriktiruvchi ingichka ipchalar nima deyiladi?;Gifa;gifalar
+yoz;Virusli kasalliklarning eng keng tarqalgani qaysi?;Gripp;
+yoz;Tirik organizmlar nechta dunyoga bo'linadi?;4;to'rt,to'rtta,4 ta
+yoz;Karbonat angidrid yutilib, kislorod ajraladigan jarayon qaysi?;Fotosintez;
