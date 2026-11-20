@@ -338,9 +338,10 @@ route('/verify', async ({ el, q }) => {
   const submit = async () => {
     const token = otp.value.replace(/\D/g, ''); if (token.length < 6) return;
     const b = $('#go', el); btnBusy(b, true); $('#err', el).textContent = '';
+    if (type === 'recovery') state.recovering = true;   // onAuthStateChange /home ga olib ketmasin
     const { error } = await sb.auth.verifyOtp({ email, token, type });
     btnBusy(b, false);
-    if (error) { $('#err', el).textContent = authErr(error); otp.select(); return; }
+    if (error) { state.recovering = false; $('#err', el).textContent = authErr(error); otp.select(); return; }
     $('#aart', el).innerHTML = cellSvg(true); toast(t('ver.ok'), 'ok');
     if (type === 'recovery') go('/newpass', true);
     // signup: onAuthStateChange → /home
@@ -371,7 +372,7 @@ route('/forgot', async ({ el }) => {
 });
 
 route('/newpass', async ({ el }) => {
-  if (!state.user) return go('/login', true);
+  if (!state.user) { const { data: ss } = await sb.auth.getSession().catch(() => ({ data: {} })); if (!ss?.session?.user) return go('/login', true); state.user = ss.session.user; }
   el.innerHTML = shell(t('rec.new'), '', `
     <form id="f" class="form">${passField('pw', t('rec.new'), 'new-password')}${strengthBar('pw')}${passField('pw2', t('auth.pass2'), 'new-password')}
       <div class="err" id="err"></div><button class="btn lg block" id="go">${esc(t('rec.save'))}</button></form>`, { open: true, noLang: true });
@@ -384,6 +385,6 @@ route('/newpass', async ({ el }) => {
     const b = $('#go', el); btnBusy(b, true);
     const { error } = await sb.auth.updateUser({ password: p1 }); btnBusy(b, false);
     if (error) return err.textContent = authErr(error);
-    toast(t('rec.done'), 'ok'); go('/home');
+    state.recovering = false; toast(t('rec.done'), 'ok'); go('/home');
   };
 });

@@ -61,5 +61,5 @@ route('/test/:id/edit', async ({ el, params, alive }) => {
   const shuffleKeep = q => { const o = [q.correct, ...(q.wrong || [])]; while (o.length < 4) o.push(''); return o.slice(0, 4); };
   el.innerHTML = `<div class="page narrow">${spinner()}</div>`;
   try { await load(); } catch (e) { if (alive()) el.innerHTML = `<div class="page">${errBox(dbErr(e))}</div>`; return; }
-  if (!alive()) return; if (!item || item.kind !== 'test' || (!state.isAdmin && item.created_by !== state.user.id)) return go('/library', true); paint();
+  if (!alive()) return; if (!item || item.kind !== 'test' || (!state.isAdmin && state.profile?.role !== 'teacher')) return go('/library', true); paint();
 }, { auth: true });

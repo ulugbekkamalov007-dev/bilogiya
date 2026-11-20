@@ -49,8 +49,8 @@ route('/teach/materials', async ({ el, q, alive }) => {
   const folderMenuTitle = f => tr(f.title);
 
   const load = async () => {
-    let fq = sb.from('folders').select('id,parent_id,title,created_at,deleted_at,visible').order('created_at'); if (!state.isAdmin) fq = fq.eq('created_by', uid);
-    let iq = sb.from('items').select('id,folder_id,kind,title,description,size_bytes,created_at,deleted_at,storage_path,source,youtube_id,url,meta,visible,created_by').order('created_at', { ascending: false }).limit(3000); if (!state.isAdmin) iq = iq.eq('created_by', uid);
+    let fq = sb.from('folders').select('id,parent_id,title,created_at,deleted_at,visible').order('created_at');
+    let iq = sb.from('items').select('id,folder_id,kind,title,description,size_bytes,created_at,deleted_at,storage_path,source,youtube_id,url,meta,visible,created_by').order('created_at', { ascending: false }).limit(3000);
     const [f, i, g] = await Promise.all([fq, iq, sb.from('groups').select('id,name').eq('archived', false).order('name')]);
     if (f.error || i.error) throw (f.error || i.error);
     return { folders: f.data || [], items: i.data || [], groups: (state.isAdmin ? g.data : (g.data || [])).filter(Boolean) };
@@ -81,7 +81,7 @@ route('/teach/materials', async ({ el, q, alive }) => {
         ${Object.keys(CATS).map(c => `<div class="mat-cat ${CATS[c].cls} ${filter === c ? 'on' : ''}" data-c="${c}" data-drop="${c}"><button class="mc-main" data-c="${c}" aria-label="${esc(CATS[c].n())}">
           <span class="item-ic ${CATS[c].cls}">${ic(CATS[c].ic, 22)}</span><b>${esc(CATS[c].n())}</b><small>${cnt(c)} · ${esc(CATS[c].fm)}</small></button><button class="mc-add" data-add="${c}" aria-label="${esc(T('Qo\'shish', 'Добавить', 'Add'))} ${esc(CATS[c].n())}">${ic('plus', 18)}</button></div>`).join('')}</div>`}
       ${trash ? trashHtml(tF, tI) : `
-      <div class="crumbs mt">${[`<a href="#/teach/materials" data-f="">${esc(state.isAdmin ? T('Barcha materiallar', 'Все материалы', 'All materials') : T('Papkalarim', 'Мои папки', 'My folders'))}</a>`, ...bc.map(f => `<a href="#/teach/materials?f=${f.id}" data-f="${f.id}">${esc(folderMenuTitle(f))}</a>`)].join(' <span class="muted">›</span> ')}</div>
+      <div class="crumbs mt">${[`<a href="#/teach/materials" data-f="">${esc(true ? T('Barcha materiallar', 'Все материалы', 'All materials') : T('Papkalarim', 'Мои папки', 'My folders'))}</a>`, ...bc.map(f => `<a href="#/teach/materials?f=${f.id}" data-f="${f.id}">${esc(folderMenuTitle(f))}</a>`)].join(' <span class="muted">›</span> ')}</div>
       <label class="chk mt hidenew"><input type="checkbox" id="hn" ${hideNew ? 'checked' : ''}> ${esc(T('Yangi yuklanganlar talabalarga ko\'rinmasin (avval tayyorlab qo\'yaman, keyin ochaman)', 'Новые загрузки скрыть от студентов (подготовлю и открою позже)', 'Hide new uploads from students (prepare now, publish later)'))}</label>
       <div class="drop mt" id="dz"><div>${ic('download', 22)}<b>${esc(T('Fayllarni shu yerga tashlang', 'Перетащите файлы сюда', 'Drop files here'))}</b><small class="muted">${esc(T('yoki yuqoridagi kategoriyadagi + ni bosing. Hajm: ' + KB_LIMIT() + ' MB gacha', 'или нажмите + в категории выше. До ' + KB_LIMIT() + ' МБ', 'or press + on a category above. Up to ' + KB_LIMIT() + ' MB'))}</small></div></div>
       ${subF.length ? `<h4 class="mt">${esc(T('Papkalar', 'Папки', 'Folders'))}</h4><div class="mat-folders">${subF.map(f => { const n = live.filter(x => x.folder_id === f.id).length + liveF.filter(x => x.parent_id === f.id).length;

@@ -72,9 +72,10 @@ const browse = async ({ el, params, alive }) => {
   ]);
   if (!alive()) return;
   const owned = new Set((ent.data || []).map(e => e.folder_id)), reqMap = Object.fromEntries((reqs.data || []).map(r => [r.folder_id, r.status]));
-  const isLocked = fo => !state.isAdmin && fo.price > 0 && !owned.has(fo.id);
+  const stf = state.isAdmin || state.profile?.role === 'teacher';
+  const isLocked = fo => !stf && fo.price > 0 && !owned.has(fo.id);
   // joriy papka yoki ota-papkalaridan biri qulflimi?
-  const lockedAnc = state.isAdmin ? null : path.find(p => p.price > 0 && !owned.has(p.id));
+  const lockedAnc = stf ? null : path.find(p => p.price > 0 && !owned.has(p.id));
   const folders = f.data || [], items = lockedAnc ? [] : (i.data || []).slice().sort(itemCmp);
 
   let prog = {};
@@ -84,7 +85,7 @@ const browse = async ({ el, params, alive }) => {
   const crumbHtml = `<nav class="crumbs"><a href="#/library">${ic('home', 16)} ${esc(t('lib.title'))}</a>${path.map(p => ` ${ic('chev', 14)} <a href="#/library/${p.id}">${esc(tr(p.title))}</a>`).join('')}</nav>`;
   const isStaff = state.isAdmin || state.profile?.role === 'teacher';
   const adminBar = isStaff && !lockedAnc ? `<button class="fab" id="fab" aria-label="add">${ic('plus', 28)}</button>` : '';
-  const adm = (type, id, vis, by) => (state.isAdmin || (isStaff && by === state.user.id)) ? `<span class="acts"><button data-vis="${type}:${id}:${vis ? 1 : 0}" title="visible">${ic(vis ? 'eye' : 'eyeoff', 16)}</button><button data-edit="${type}:${id}">${ic('edit', 16)}</button><button data-del="${type}:${id}">${ic('trash', 16)}</button></span>` : '';
+  const adm = (type, id, vis, by) => (state.isAdmin || isStaff) ? `<span class="acts"><button data-vis="${type}:${id}:${vis ? 1 : 0}" title="visible">${ic(vis ? 'eye' : 'eyeoff', 16)}</button><button data-edit="${type}:${id}">${ic('edit', 16)}</button><button data-del="${type}:${id}">${ic('trash', 16)}</button></span>` : '';
 
   el.innerHTML = `<div class="page"><h1 class="mb0">${esc(path.length ? tr(path[path.length - 1].title) : t('lib.title'))}</h1>${crumbHtml}${!path.length && offList().length ? `<a class="btn sm soft mt" href="#/offline">${ic('download', 14)} ${esc(t('off.open'))} (${offList().length})</a>` : ''}${adminBar}
     ${lockedAnc ? `<div class="card pad center mt"><div class="bigic">🔒</div><h3>${esc(t('lib.locked_t'))}: ${esc(tr(lockedAnc.title))}</h3><p class="muted">${esc(t('lib.locked_d'))}</p>

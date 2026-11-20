@@ -73,7 +73,7 @@ async function handle(req, env, url) {
     return json({ ok: true });
   }
   if (m === 'DELETE' && key) {
-    if (user.role !== 'admin' && !(isStaff(user) && key.startsWith(user.uid.slice(0, 8) + '/'))) return json({ error: 'forbidden' }, 403);
+    if (!isStaff(user)) return json({ error: 'forbidden' }, 403);
     await env.MEDIA.delete(key);
     return json({ ok: true });
   }
